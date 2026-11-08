@@ -1,15 +1,21 @@
-//! Feed-forward neural network for creature brains.
+//! NEAT-style feed-forward neural network for creature brains.
 //!
-//! v1 uses a fixed topology: inputs → hidden → outputs. Only the weights
-//! evolve. The network is intentionally tiny so thousands can run per tick.
+//! Each brain has arbitrary topology: input nodes, output nodes, and a variable
+//! number of hidden nodes connected by evolvable connections. Connections can
+//! link any node pair where the source has lower depth than the target, enabling
+//! skip connections (input→output) and deep hidden layers.
 //!
-//! The weight layout in a flat `Vec<f64>` is:
-//! 1. input→hidden weights  (inputs × hidden)
-//! 2. hidden biases          (hidden)
-//! 3. hidden→output weights  (hidden × outputs)
-//! 4. output biases          (outputs)
-
-use crate::config::BrainConfig;
+//! Node numbering:
+//!   0 = bias (always outputs 1.0)
+//!   1..=num_inputs = input nodes (sensor data)
+//!   num_inputs+1..=num_inputs+num_outputs = output nodes (actions)
+//!   num_inputs+num_outputs+1.. = hidden nodes (evolved topology)
+//!
+//! The forward pass uses a stack-allocated activation buffer — zero heap allocation
+//! per tick. Connections are pre-sorted at construction time for a single linear pass.
+//!
+//! Citation: Stanley, K.O. & Miikkulainen, R. (2002) "Evolving Neural Networks
+//! through Augmenting Topologies" *Evolutionary Computation* 10(2):99-127
 
 /// Fast rational approximation of tanh.
 ///
@@ -28,21 +34,25 @@ fn fast_tanh(x: f64) -> f64 {
     x * (27.0 + x2) / (27.0 + 9.0 * x2)
 }
 
-/// Maximum hidden layer size supported (for stack allocation).
-pub const MAX_HIDDEN: usize = 32;
+/// Maximum total nodes (bias + inputs + outputs + hidden) for stack allocation.
+pub const MAX_NODES: usize = 64;
 /// Maximum output layer size supported.
 pub const MAX_OUTPUTS: usize = 16;
 /// Maximum input layer size supported.
 pub const MAX_INPUTS: usize = 64;
 
-/// A fixed-topology feed-forward neural network.
+/// A NEAT-style feed-forward neural network with arbitrary topology.
 #[derive(Debug, Clone)]
 pub struct Brain {
     pub inputs: usize,
     pub hidden: usize,
     pub outputs: usize,
-    /// Flat weight vector. Layout described in module docs.
-    pub weights: Vec<f64>,
+    /// Enabled connections sorted for evaluation: (from_node_id, to_node_id, weight).
+    /// Sorted by target node's evaluation order, then by source node.
+    pub connections: Vec<(u16, u16, f64)>,
+    /// Non-input node IDs in topological (evaluation) order.
+    /// Hidden nodes sorted by depth, then output nodes.
+    pub eval_order: Vec<u16>,
 }
 
 /// Output actions produced by the brain each tick.
@@ -65,84 +75,113 @@ pub struct BrainOutput {
 }
 
 impl Brain {
-    /// Create a new brain with the given weights. Panics if weight count is wrong.
-    pub fn new(config: &BrainConfig, weights: Vec<f64>) -> Self {
-        Self::from_genome(config.inputs, config.hidden, config.outputs, weights)
-    }
+    /// Construct a brain from NEAT genome data.
+    ///
+    /// - `num_inputs`: number of sensor inputs (not counting bias node)
+    /// - `num_outputs`: number of output actions
+    /// - `hidden_nodes`: (node_id, depth) pairs for each hidden node
+    /// - `connections`: (from, to, weight, enabled) connection genes
+    ///
+    /// Only enabled connections are kept. Connections are pre-sorted by target
+    /// node evaluation order for a single-pass forward evaluation.
+    pub fn from_neat(
+        num_inputs: usize,
+        num_outputs: usize,
+        hidden_nodes: &[(u16, f64)],
+        connections: &[(u16, u16, f64, bool)],
+    ) -> Self {
+        assert!(num_inputs <= MAX_INPUTS);
+        assert!(num_outputs <= MAX_OUTPUTS);
 
-    /// Create a brain with explicit layer sizes (used when hidden_size varies per organism).
-    pub fn from_genome(inputs: usize, hidden: usize, outputs: usize, weights: Vec<f64>) -> Self {
-        let expected = crate::genome::weight_count_for(inputs, hidden, outputs);
-        assert_eq!(
-            weights.len(),
-            expected,
-            "brain weight count mismatch: expected {}, got {} (topology {}→{}→{})",
-            expected,
-            weights.len(),
-            inputs,
-            hidden,
-            outputs,
-        );
-        assert!(hidden <= MAX_HIDDEN);
-        assert!(outputs <= MAX_OUTPUTS);
-        assert!(inputs <= MAX_INPUTS);
+        let first_output = (num_inputs + 1) as u16;
+        let last_output = (num_inputs + num_outputs) as u16;
+
+        // Build eval order: hidden nodes by (depth, id), then output nodes by id
+        let mut eval_nodes: Vec<(u16, f64)> = hidden_nodes.to_vec();
+        for id in first_output..=last_output {
+            eval_nodes.push((id, 1.0));
+        }
+        eval_nodes.sort_by(|a, b| {
+            a.1.partial_cmp(&b.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then(a.0.cmp(&b.0))
+        });
+        let eval_order: Vec<u16> = eval_nodes.iter().map(|&(id, _)| id).collect();
+
+        // Map node ID → position in eval_order for connection sorting
+        let mut node_eval_pos = [u32::MAX; MAX_NODES];
+        for (pos, &node_id) in eval_order.iter().enumerate() {
+            node_eval_pos[node_id as usize] = pos as u32;
+        }
+
+        // Filter enabled connections and sort by (target_eval_pos, source_id)
+        let mut sorted: Vec<(u16, u16, f64)> = connections
+            .iter()
+            .filter(|c| c.3) // enabled only
+            .map(|&(f, t, w, _)| (f, t, w))
+            .collect();
+        sorted.sort_by(|a, b| {
+            node_eval_pos[a.1 as usize]
+                .cmp(&node_eval_pos[b.1 as usize])
+                .then(a.0.cmp(&b.0))
+        });
+
         Brain {
-            inputs,
-            hidden,
-            outputs,
-            weights,
+            inputs: num_inputs,
+            hidden: hidden_nodes.len(),
+            outputs: num_outputs,
+            connections: sorted,
+            eval_order,
         }
     }
 
     /// Run a forward pass. Returns the output actions.
-    /// Uses stack-allocated arrays — zero heap allocation.
+    ///
+    /// Uses stack-allocated activation buffer — zero heap allocation.
+    /// Connections are pre-sorted so this is a single linear pass through the
+    /// connection list, matching the topological evaluation order.
+    #[inline]
     pub fn forward(&self, inputs: &[f64]) -> BrainOutput {
         debug_assert_eq!(inputs.len(), self.inputs);
 
-        let ih_weights = &self.weights[..self.inputs * self.hidden];
-        let h_biases_start = self.inputs * self.hidden;
-        let h_biases = &self.weights[h_biases_start..h_biases_start + self.hidden];
-        let ho_weights_start = h_biases_start + self.hidden;
-        let ho_weights =
-            &self.weights[ho_weights_start..ho_weights_start + self.hidden * self.outputs];
-        let o_biases_start = ho_weights_start + self.hidden * self.outputs;
-        let o_biases = &self.weights[o_biases_start..];
-
-        // Stack-allocated buffers
-        let mut hidden = [0.0f64; MAX_HIDDEN];
-        let mut output = [0.0f64; MAX_OUTPUTS];
-
-        // Hidden layer
-        for h in 0..self.hidden {
-            let mut sum = h_biases[h];
-            let row_start = h; // weights laid out as input-major: ih_weights[i * hidden + h]
-            for i in 0..self.inputs {
-                sum += inputs[i] * ih_weights[i * self.hidden + row_start];
-            }
-            hidden[h] = fast_tanh(sum);
+        let mut act = [0.0f64; MAX_NODES];
+        act[0] = 1.0; // bias node
+        for (i, &v) in inputs.iter().enumerate() {
+            act[i + 1] = v;
         }
 
-        // Output layer
-        for o in 0..self.outputs {
-            let mut sum = o_biases[o];
-            for h in 0..self.hidden {
-                sum += hidden[h] * ho_weights[h * self.outputs + o];
+        // Evaluate nodes in topological order.
+        // Connections are pre-sorted to match eval_order — single linear pass.
+        let mut ci = 0;
+        for &node in &self.eval_order {
+            let mut sum = 0.0;
+            while ci < self.connections.len() && self.connections[ci].1 == node {
+                let (from, _, w) = self.connections[ci];
+                sum += act[from as usize] * w;
+                ci += 1;
             }
-            output[o] = fast_tanh(sum);
+            act[node as usize] = fast_tanh(sum);
         }
 
+        // Read output nodes: (inputs+1)..=(inputs+outputs)
+        let o = self.inputs + 1;
         BrainOutput {
-            turn: output[0],                // [-1, 1]
-            speed: (output[1] + 1.0) * 0.5, // tanh [-1,1] → [0, 1]
-            eat: output[2],                 // > 0.0 means try to eat
-            attack: output[3],              // > 0.0 means try to attack
-            signal: output[4],              // [-1, 1] broadcast signal
-            share: output[5],               // > 0.0 means share energy with nearest neighbor
+            turn: act[o],                    // [-1, 1]
+            speed: (act[o + 1] + 1.0) * 0.5, // tanh [-1,1] → [0, 1]
+            eat: act[o + 2],                 // > 0.0 means try to eat
+            attack: act[o + 3],              // > 0.0 means try to attack
+            signal: act[o + 4],              // [-1, 1] broadcast signal
+            share: act[o + 5],               // > 0.0 means share energy
         }
     }
 
-    /// Total number of neurons (for energy cost calculation).
+    /// Total number of neurons (hidden + output) for energy cost calculation.
     pub fn neuron_count(&self) -> usize {
         self.hidden + self.outputs
+    }
+
+    /// Number of active (enabled) connections.
+    pub fn connection_count(&self) -> usize {
+        self.connections.len()
     }
 }

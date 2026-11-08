@@ -72,7 +72,17 @@
   - Genome distance accounts for topology difference (0.8× weight for speciation)
   - Viewer inspector shows full topology (e.g., 15→8→6)
   - Citation: Stanley & Miikkulainen (2002) NEAT topology evolution
-- [ ] Full NEAT-style topology (add/remove connections, not just neurons)
+- [x] **Full NEAT-style topology** — connection genes replace dense weight matrix
+  - ConnectionGene: (from, to, weight, enabled) — arbitrary feed-forward connections
+  - HiddenNode: (id, depth) — nodes at variable depths for topological ordering
+  - Add-connection mutation (3%): new edge between unconnected feed-forward pair
+  - Add-node mutation (1%): split existing connection A→B into A→C→B (classic NEAT)
+  - Toggle-connection mutation (1%): flip enabled/disabled on random connection
+  - Sparse forward pass: connections pre-sorted by eval order, single linear pass
+  - Stack-allocated activation buffer [f64; MAX_NODES=64] — zero heap allocs per tick
+  - genome_distance: merge-join on sorted connections (structure + weight + traits)
+  - Skip connections emerge naturally (input→output, deep hidden paths)
+  - Citations: Stanley & Miikkulainen (2002), Kassahun & Sommer (2005)
 - [ ] Information-theoretic analysis of brain activations
 
 ### Phase 6: Analysis & Distribution [PLANNED]
@@ -316,3 +326,13 @@ Mutation: 10% per weight, +/-0.2 step
   - New test: `variable_hidden_size_evolves` (14 tests total, all passing)
   - Pi 5 safe: stack-allocated forward pass unchanged (MAX_HIDDEN=32 buffer)
   - Citation: Stanley & Miikkulainen (2002) NEAT topology evolution
+- **Full NEAT-style topology (connection genes)**
+  - Replaced dense weight matrix with ConnectionGene list + HiddenNode list
+  - brain.rs rewritten: sparse forward pass with pre-sorted connections, [f64; MAX_NODES=64] buffer
+  - genome.rs rewritten: NEAT mutations (add-connection 3%, add-node/split 1%, toggle 1%)
+  - Add-node splits A→B into A→C(weight=1.0)→B(old weight) — preserves behavior while complexifying
+  - genome_distance: zero-allocation merge-join on sorted connection genes (O(n+m))
+  - Skip connections (input→output) emerge naturally from add-connection mutations
+  - Genome stores num_inputs/num_outputs internally — reproduce() no longer needs external params
+  - Updated tests: `brain_topology_matches_genome`, `neat_topology_evolves` (14 tests, all passing)
+  - Citations: Stanley & Miikkulainen (2002), Kassahun & Sommer (2005)

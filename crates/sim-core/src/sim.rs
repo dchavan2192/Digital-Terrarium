@@ -107,7 +107,7 @@ impl Simulation {
 
         for _ in 0..config.creature.initial_count {
             let genome = Genome::random(&config.brain, &config.mutation, &config.aging, &mut rng);
-            let brain = genome.build_brain(&config.brain);
+            let brain = genome.build_brain();
             let org = Organism {
                 id: next_id,
                 pos_x: rng.gen_range(0.0..config.world.width),
@@ -550,12 +550,8 @@ impl Simulation {
             }
             if org.energy >= repro_threshold && (current_alive + offspring.len()) < hard_cap {
                 org.energy -= parent_cost;
-                let child_genome = org.genome.reproduce(
-                    self.config.brain.inputs,
-                    self.config.brain.outputs,
-                    &mut self.rng,
-                );
-                let child_brain = child_genome.build_brain(&self.config.brain);
+                let child_genome = org.genome.reproduce(&mut self.rng);
+                let child_brain = child_genome.build_brain();
 
                 let offset_angle = self.rng.gen_range(0.0..std::f64::consts::TAU);
                 let offset_dist = body_radius * 2.0;

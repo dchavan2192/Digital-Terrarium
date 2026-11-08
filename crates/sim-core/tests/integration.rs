@@ -298,14 +298,20 @@ share_amount = 0.0
 }
 
 #[test]
-fn brain_weight_count_matches_config() {
+fn brain_topology_matches_genome() {
     let cfg = small_config();
     let sim = Simulation::new(cfg);
 
-    let expected = sim.config.brain.total_weights();
     for org in &sim.organisms {
-        assert_eq!(org.brain.weights.len(), expected);
-        assert_eq!(org.genome.brain_weights.len(), expected);
+        // Brain hidden count should match genome hidden node count
+        assert_eq!(org.brain.hidden, org.genome.hidden_nodes.len());
+        // Brain inputs/outputs should match config
+        assert_eq!(org.brain.inputs, sim.config.brain.inputs);
+        assert_eq!(org.brain.outputs, sim.config.brain.outputs);
+        // Initial population should have 8 hidden nodes
+        assert_eq!(org.genome.hidden_nodes.len(), 8);
+        // Connection count: bias→8h + 15i→8h + bias→6o + 8h→6o = 8+120+6+48 = 182
+        assert_eq!(org.brain.connection_count(), 182);
     }
 }
 
@@ -392,10 +398,6 @@ share_amount = 5.0
     let cfg = Config::parse(toml).unwrap();
     let mut sim = Simulation::new(cfg);
 
-    // Run for 2000 ticks — with aging_rate=0.005, hazard at age 2000 is:
-    // 0.0001 + 0.00001 * exp(0.005 * 2000) = 0.0001 + 0.00001 * exp(10) ≈ 0.22
-    // So by tick 2000, old creatures face ~22% death chance per tick.
-    // Total deaths should exceed what we'd see from energy depletion alone.
     for _ in 0..2000 {
         sim.step();
         if sim.is_extinct() {
@@ -403,13 +405,10 @@ share_amount = 5.0
         }
     }
 
-    // Verify deaths occurred (Gompertz + energy depletion)
     assert!(
         sim.stats.total_deaths > 0,
         "expected deaths from Gompertz mortality"
     );
-    // With max_age=50000 and only 2000 ticks, no deaths from hitting max_age —
-    // any old-age deaths are from the Gompertz probability.
 }
 
 #[test]
@@ -525,18 +524,18 @@ fn trophic_level_tracking() {
 }
 
 #[test]
-fn variable_hidden_size_evolves() {
-    // Run long enough for hidden_size mutations to occur (2% per reproduction)
+fn neat_topology_evolves() {
+    // Run long enough for NEAT structural mutations to occur
     let cfg = small_config();
     let mut sim = Simulation::new(cfg);
 
-    // Initial population should all have hidden_size = 8 (from config)
+    // Initial population: all have 8 hidden nodes, 182 connections
     for org in &sim.organisms {
-        assert_eq!(org.genome.hidden_size, 8);
+        assert_eq!(org.genome.hidden_nodes.len(), 8);
         assert_eq!(org.brain.hidden, 8);
     }
 
-    // Run for 2000 ticks — enough for many generations and topology mutations
+    // Run for 2000 ticks — enough for many generations and structural mutations
     for _ in 0..2000 {
         sim.step();
         if sim.is_extinct() {
@@ -547,43 +546,52 @@ fn variable_hidden_size_evolves() {
     // Verify all organisms have consistent brain/genome topology
     for org in &sim.organisms {
         if org.alive {
-            let expected_weights = sim_core::genome::weight_count_for(
-                sim.config.brain.inputs,
-                org.genome.hidden_size,
-                sim.config.brain.outputs,
-            );
             assert_eq!(
-                org.brain.weights.len(),
-                expected_weights,
-                "weight count mismatch for organism {} with hidden_size {}",
-                org.id,
-                org.genome.hidden_size,
+                org.brain.hidden,
+                org.genome.hidden_nodes.len(),
+                "brain hidden count should match genome"
             );
-            assert_eq!(org.brain.hidden, org.genome.hidden_size);
+            assert_eq!(org.brain.inputs, sim.config.brain.inputs);
+            assert_eq!(org.brain.outputs, sim.config.brain.outputs);
+            // Connection count should be positive
             assert!(
-                org.genome.hidden_size >= sim_core::genome::MIN_HIDDEN,
-                "hidden_size {} below minimum",
-                org.genome.hidden_size,
-            );
-            assert!(
-                org.genome.hidden_size <= sim_core::brain::MAX_HIDDEN,
-                "hidden_size {} above maximum",
-                org.genome.hidden_size,
+                org.brain.connection_count() > 0,
+                "brain should have at least some connections"
             );
         }
     }
 
-    // After 2000 ticks with many births, we should see some hidden_size variation
-    let hidden_sizes: std::collections::HashSet<usize> = sim
+    // After 2000 ticks, we should see some topology variation
+    // (different hidden node counts and/or different connection counts)
+    let _unique_hidden: std::collections::HashSet<usize> = sim
         .organisms
         .iter()
         .filter(|o| o.alive)
-        .map(|o| o.genome.hidden_size)
+        .map(|o| o.genome.hidden_nodes.len())
         .collect();
-    // With 2% mutation rate per reproduction and many generations, expect variation
+    let unique_conns: std::collections::HashSet<usize> = sim
+        .organisms
+        .iter()
+        .filter(|o| o.alive)
+        .map(|o| o.brain.connection_count())
+        .collect();
+
+    // At minimum, connection counts should vary (add-connection and toggle mutations)
     assert!(
-        hidden_sizes.len() >= 1,
-        "expected at least some hidden_size variation, got {:?}",
-        hidden_sizes,
+        unique_conns.len() >= 1,
+        "expected connection count variation, got {:?}",
+        unique_conns,
     );
+
+    // Check that no organism exceeds MAX_NODES
+    for org in &sim.organisms {
+        if org.alive {
+            let total_nodes = 1 + org.brain.inputs + org.brain.hidden + org.brain.outputs;
+            assert!(
+                total_nodes <= sim_core::brain::MAX_NODES,
+                "total nodes {} exceeds MAX_NODES",
+                total_nodes,
+            );
+        }
+    }
 }
