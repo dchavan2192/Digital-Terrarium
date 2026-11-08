@@ -33,6 +33,49 @@ pub struct Organism {
     pub energy_from_food: f64,
     /// Cumulative energy gained from attacking other creatures (lifetime).
     pub energy_from_attacks: f64,
+
+    /// Running activation histograms for brain output entropy.
+    /// 6 outputs × 8 bins over [-1, 1], with exponential decay (τ ≈ 100 ticks).
+    /// Citation: Shannon (1948) "A Mathematical Theory of Communication"
+    pub output_bins: [[f64; NUM_ENTROPY_BINS]; NUM_OUTPUTS],
+}
+
+/// Number of histogram bins for entropy computation.
+pub const NUM_ENTROPY_BINS: usize = 8;
+/// Number of brain outputs tracked for entropy.
+pub const NUM_OUTPUTS: usize = 6;
+/// Exponential decay factor for activation histograms (~100 tick memory).
+pub const ENTROPY_DECAY: f64 = 0.99;
+
+/// Compute normalized Shannon entropy from a histogram.
+/// Returns value in [0, 1] where 0 = deterministic, 1 = maximum entropy.
+///
+/// H = -Σ(p·ln(p)) / ln(num_bins)
+///
+/// Citation: Shannon, C.E. (1948) "A Mathematical Theory of Communication"
+/// *Bell System Technical Journal* 27(3):379-423
+pub fn shannon_entropy(bins: &[f64; NUM_ENTROPY_BINS]) -> f64 {
+    let total: f64 = bins.iter().sum();
+    if total <= 0.0 {
+        return 0.0;
+    }
+    let mut h = 0.0;
+    for &count in bins {
+        if count > 0.0 {
+            let p = count / total;
+            h -= p * p.ln();
+        }
+    }
+    // Normalize by max entropy (ln(NUM_BINS)) to get [0, 1]
+    h / (NUM_ENTROPY_BINS as f64).ln()
+}
+
+/// Map a value in [-1, 1] to a histogram bin index.
+#[inline]
+pub fn activation_to_bin(value: f64) -> usize {
+    let normalized = (value + 1.0) * 0.5; // [-1,1] → [0,1]
+    let idx = (normalized * NUM_ENTROPY_BINS as f64) as usize;
+    idx.min(NUM_ENTROPY_BINS - 1)
 }
 
 impl Organism {

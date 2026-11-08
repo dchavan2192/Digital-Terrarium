@@ -2,7 +2,7 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-07
+**Last updated**: 2026-11-08
 
 ---
 
@@ -63,7 +63,7 @@
 - [x] Kin recognition via color hue + signal correlation
 - [x] Cooperation rate measurement
 
-### Phase 5: Cognitive Complexity [IN PROGRESS]
+### Phase 5: Cognitive Complexity [COMPLETE]
 - [x] **Variable hidden layer size** — evolvable hidden neuron count (4-32)
   - hidden_size as genomic trait, 2% mutation rate (±1 neuron per reproduction)
   - Weight vector resized on topology change (new neurons get Xavier-scale init)
@@ -83,7 +83,15 @@
   - genome_distance: merge-join on sorted connections (structure + weight + traits)
   - Skip connections emerge naturally (input→output, deep hidden paths)
   - Citations: Stanley & Miikkulainen (2002), Kassahun & Sommer (2005)
-- [ ] Information-theoretic analysis of brain activations
+- [x] **Information-theoretic brain analysis** — Shannon entropy of brain outputs
+  - Per-organism activation histograms: 6 outputs × 8 bins with exponential decay (τ≈100 ticks)
+  - shannon_entropy(): normalized [0,1], 0=deterministic, 1=maximum entropy
+  - activation_to_bin(): maps [-1,1] output to histogram bin index
+  - Population behavioral diversity: entropy of peak-bin distributions across all organisms
+  - New TickStats: mean_brain_entropy, behavioral_diversity, mean_connections
+  - Viewer: stats panel shows entropy/diversity/connections; inspector shows per-organism entropy
+  - CSV output includes all new fields automatically (serde::Serialize)
+  - Citations: Shannon (1948), Beer & Williams (2015)
 
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
@@ -336,3 +344,10 @@ Mutation: 10% per weight, +/-0.2 step
   - Genome stores num_inputs/num_outputs internally — reproduce() no longer needs external params
   - Updated tests: `brain_topology_matches_genome`, `neat_topology_evolves` (14 tests, all passing)
   - Citations: Stanley & Miikkulainen (2002), Kassahun & Sommer (2005)
+- **Information-theoretic brain analysis (Phase 5 complete)**
+  - Per-organism output histograms: 6 outputs × 8 bins, exponential decay (τ≈100 ticks)
+  - Shannon entropy normalized to [0,1] — measures behavioral variability over recent history
+  - Population behavioral diversity: entropy of peak-bin distributions across organisms
+  - New stats: mean_brain_entropy, behavioral_diversity, mean_connections
+  - Viewer updated: stats panel + inspector show entropy metrics
+  - Citation: Shannon (1948), Beer & Williams (2015)

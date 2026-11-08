@@ -77,6 +77,12 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 stats.cooperation_rate,
                 stats.kin_share_ratio * 100.0
             ));
+            ui.label(format!("Brain entropy: {:.3}", stats.mean_brain_entropy));
+            ui.label(format!(
+                "Behavioral diversity: {:.3}",
+                stats.behavioral_diversity
+            ));
+            ui.label(format!("Mean connections: {:.0}", stats.mean_connections));
             ui.label(format!("FPS: {:.0}", macroquad::time::get_fps()));
 
             ui.separator();
@@ -121,6 +127,12 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                         "Energy from: food {:.0} / attacks {:.0}",
                         org.energy_from_food, org.energy_from_attacks
                     ));
+                    // Brain output entropy (Shannon, 1948)
+                    let org_entropy: f64 = (0..sim_core::organism::NUM_OUTPUTS)
+                        .map(|o| sim_core::organism::shannon_entropy(&org.output_bins[o]))
+                        .sum::<f64>()
+                        / sim_core::organism::NUM_OUTPUTS as f64;
+                    ui.label(format!("Brain entropy: {:.3}", org_entropy));
 
                     if ui.button("Deselect").clicked() {
                         state.selected_id = None;

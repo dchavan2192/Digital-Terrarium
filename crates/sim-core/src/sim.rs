@@ -63,6 +63,14 @@ pub struct TickStats {
     pub mean_trophic_level: f64,
     pub herbivore_count: usize,
     pub predator_count: usize,
+    /// Mean brain output entropy [0, 1]. Higher = more varied behavior over time.
+    /// Citation: Shannon (1948)
+    pub mean_brain_entropy: f64,
+    /// Behavioral diversity [0, 1]. Entropy of output distributions across the population.
+    /// Higher = more diverse behavioral strategies in the population.
+    pub behavioral_diversity: f64,
+    /// Mean active connections per brain.
+    pub mean_connections: f64,
 }
 
 /// Compact action output — one per organism per tick.
@@ -123,6 +131,8 @@ impl Simulation {
                 signal: 0.0,
                 energy_from_food: 0.0,
                 energy_from_attacks: 0.0,
+                output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
+                    crate::organism::NUM_OUTPUTS],
             };
             organisms.push(org);
             next_id += 1;
@@ -373,6 +383,31 @@ impl Simulation {
             // Update broadcast signal
             org.signal = action.signal;
 
+            // Update activation histograms for brain entropy
+            // Citation: Shannon (1948) — information-theoretic measure of brain activity
+            {
+                use crate::organism::{
+                    ENTROPY_DECAY, NUM_ENTROPY_BINS, NUM_OUTPUTS, activation_to_bin,
+                };
+                let raw_outputs = [
+                    action.turn,
+                    action.speed * 2.0 - 1.0, // undo [0,1] → [-1,1] for binning
+                    action.eat,
+                    action.attack,
+                    action.signal,
+                    action.share,
+                ];
+                for (o, &raw_val) in raw_outputs.iter().enumerate().take(NUM_OUTPUTS) {
+                    // Exponential decay of existing bin counts
+                    for b in 0..NUM_ENTROPY_BINS {
+                        org.output_bins[o][b] *= ENTROPY_DECAY;
+                    }
+                    // Increment current bin
+                    let bin = activation_to_bin(raw_val);
+                    org.output_bins[o][bin] += 1.0;
+                }
+            }
+
             // Move — larger creatures are slower (speed / body_size)
             let body_size = org.genome.body_size;
             let actual_speed = action.speed * max_speed / body_size;
@@ -570,6 +605,8 @@ impl Simulation {
                     signal: 0.0,
                     energy_from_food: 0.0,
                     energy_from_attacks: 0.0,
+                    output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
+                        crate::organism::NUM_OUTPUTS],
                 };
                 self.next_id += 1;
                 births += 1;
@@ -731,6 +768,67 @@ impl Simulation {
             0.0
         };
 
+        // Brain entropy — information-theoretic analysis
+        //
+        // Per-organism: mean Shannon entropy of output activation histograms.
+        // Measures how varied each brain's behavior is over recent history.
+        // Population-level: entropy of output distributions across all organisms.
+        // Measures behavioral diversity — are creatures doing different things?
+        //
+        // Citation: Shannon, C.E. (1948) "A Mathematical Theory of Communication"
+        // Also: Beer & Williams (2015) "Information Processing and Dynamics in
+        // Minimally Cognitive Agents" — entropy analysis of evolved neural controllers
+        let (mean_brain_entropy, behavioral_diversity, mean_connections) = if population > 0 {
+            use crate::organism::{NUM_ENTROPY_BINS, NUM_OUTPUTS, shannon_entropy};
+
+            // Per-organism entropy: average over outputs, then over population
+            let mut total_entropy = 0.0;
+            let mut total_connections = 0.0;
+            for org in &self.organisms {
+                let mut org_entropy = 0.0;
+                for o in 0..NUM_OUTPUTS {
+                    org_entropy += shannon_entropy(&org.output_bins[o]);
+                }
+                total_entropy += org_entropy / NUM_OUTPUTS as f64;
+                total_connections += org.brain.connection_count() as f64;
+            }
+
+            // Population behavioral diversity: bin each output across all organisms
+            let mut pop_bins = [[0.0f64; NUM_ENTROPY_BINS]; NUM_OUTPUTS];
+            for org in &self.organisms {
+                // Use current action outputs (from the Action stored this tick)
+                // We need the raw outputs... but they're not stored after the loop.
+                // Instead, use the histogram bins as a proxy — the most recent bin
+                // has the highest weight. This is a reasonable approximation.
+                // Actually, let's just look at the organism's signal and reconstruct
+                // from the action buffer.
+                // Simpler: bin the current output_bins peak for each organism.
+                for (o, pop_bin) in pop_bins.iter_mut().enumerate().take(NUM_OUTPUTS) {
+                    // Find the bin with highest count (most frequent recent output)
+                    let peak_bin = org.output_bins[o]
+                        .iter()
+                        .enumerate()
+                        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                        .map(|(i, _)| i)
+                        .unwrap_or(0);
+                    pop_bin[peak_bin] += 1.0;
+                }
+            }
+            let mut pop_diversity = 0.0;
+            for pop_bin in pop_bins.iter().take(NUM_OUTPUTS) {
+                pop_diversity += shannon_entropy(pop_bin);
+            }
+            pop_diversity /= NUM_OUTPUTS as f64;
+
+            (
+                total_entropy / population as f64,
+                pop_diversity,
+                total_connections / population as f64,
+            )
+        } else {
+            (0.0, 0.0, 0.0)
+        };
+
         self.stats = TickStats {
             tick: self.tick,
             population,
@@ -751,6 +849,9 @@ impl Simulation {
             mean_trophic_level,
             herbivore_count,
             predator_count,
+            mean_brain_entropy,
+            behavioral_diversity,
+            mean_connections,
         };
     }
 
