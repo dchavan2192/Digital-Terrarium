@@ -550,7 +550,11 @@ impl Simulation {
             }
             if org.energy >= repro_threshold && (current_alive + offspring.len()) < hard_cap {
                 org.energy -= parent_cost;
-                let child_genome = org.genome.reproduce(&mut self.rng);
+                let child_genome = org.genome.reproduce(
+                    self.config.brain.inputs,
+                    self.config.brain.outputs,
+                    &mut self.rng,
+                );
                 let child_brain = child_genome.build_brain(&self.config.brain);
 
                 let offset_angle = self.rng.gen_range(0.0..std::f64::consts::TAU);

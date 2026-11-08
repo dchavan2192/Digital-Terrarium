@@ -63,9 +63,16 @@
 - [x] Kin recognition via color hue + signal correlation
 - [x] Cooperation rate measurement
 
-### Phase 5: Cognitive Complexity [PLANNED]
-- [ ] NEAT-style topology evolution (add/remove neurons and connections)
-- [ ] Brain cost scales with actual complexity, not just neuron count
+### Phase 5: Cognitive Complexity [IN PROGRESS]
+- [x] **Variable hidden layer size** — evolvable hidden neuron count (4-32)
+  - hidden_size as genomic trait, 2% mutation rate (±1 neuron per reproduction)
+  - Weight vector resized on topology change (new neurons get Xavier-scale init)
+  - Brain cost scales naturally with actual neuron count (already brain_cost × neuron_count)
+  - Stack-allocated forward pass preserved (uses MAX_HIDDEN=32 fixed buffer)
+  - Genome distance accounts for topology difference (0.8× weight for speciation)
+  - Viewer inspector shows full topology (e.g., 15→8→6)
+  - Citation: Stanley & Miikkulainen (2002) NEAT topology evolution
+- [ ] Full NEAT-style topology (add/remove connections, not just neurons)
 - [ ] Information-theoretic analysis of brain activations
 
 ### Phase 6: Analysis & Distribution [PLANNED]
@@ -297,3 +304,15 @@ Mutation: 10% per weight, +/-0.2 step
   - Kin recognition: 15th brain input — color hue similarity to nearest creature [-1,1]. Enables kin-selective behavior
   - Cooperation measurement: cooperation_rate (shares/pop), kin_share_ratio (fraction of shares to kin, hue diff < 30 degrees)
   - Brain now 15 inputs, 6 outputs (turn, speed, eat, attack, signal, share)
+
+### Session 5 (2026-11-08, continued)
+- **Variable hidden layer size (Phase 5 start)**
+  - `hidden_size` added to Genome as evolvable trait, range [4, 32], default 8
+  - 2% mutation rate per reproduction: ±1 neuron, weight vector resized correctly
+  - New neurons get Xavier-scale random weights; removed neurons simply dropped
+  - `Brain::from_genome()` constructor for per-organism topology
+  - `genome_distance()` updated for variable-size comparison + topology penalty
+  - Viewer inspector shows full topology (15→N→6)
+  - New test: `variable_hidden_size_evolves` (14 tests total, all passing)
+  - Pi 5 safe: stack-allocated forward pass unchanged (MAX_HIDDEN=32 buffer)
+  - Citation: Stanley & Miikkulainen (2002) NEAT topology evolution

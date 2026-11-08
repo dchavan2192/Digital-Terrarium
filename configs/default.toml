@@ -63,5 +63,5 @@ weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
 
 [brain]
 inputs = 15             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal + body_size + kin_similarity
-hidden = 8              # Hidden layer neurons
+hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)
 outputs = 6             # turn, speed, eat, attack, signal, share

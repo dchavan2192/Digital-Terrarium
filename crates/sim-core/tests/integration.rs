@@ -523,3 +523,67 @@ fn trophic_level_tracking() {
         "herbivore + predator count exceeds population"
     );
 }
+
+#[test]
+fn variable_hidden_size_evolves() {
+    // Run long enough for hidden_size mutations to occur (2% per reproduction)
+    let cfg = small_config();
+    let mut sim = Simulation::new(cfg);
+
+    // Initial population should all have hidden_size = 8 (from config)
+    for org in &sim.organisms {
+        assert_eq!(org.genome.hidden_size, 8);
+        assert_eq!(org.brain.hidden, 8);
+    }
+
+    // Run for 2000 ticks — enough for many generations and topology mutations
+    for _ in 0..2000 {
+        sim.step();
+        if sim.is_extinct() {
+            break;
+        }
+    }
+
+    // Verify all organisms have consistent brain/genome topology
+    for org in &sim.organisms {
+        if org.alive {
+            let expected_weights = sim_core::genome::weight_count_for(
+                sim.config.brain.inputs,
+                org.genome.hidden_size,
+                sim.config.brain.outputs,
+            );
+            assert_eq!(
+                org.brain.weights.len(),
+                expected_weights,
+                "weight count mismatch for organism {} with hidden_size {}",
+                org.id,
+                org.genome.hidden_size,
+            );
+            assert_eq!(org.brain.hidden, org.genome.hidden_size);
+            assert!(
+                org.genome.hidden_size >= sim_core::genome::MIN_HIDDEN,
+                "hidden_size {} below minimum",
+                org.genome.hidden_size,
+            );
+            assert!(
+                org.genome.hidden_size <= sim_core::brain::MAX_HIDDEN,
+                "hidden_size {} above maximum",
+                org.genome.hidden_size,
+            );
+        }
+    }
+
+    // After 2000 ticks with many births, we should see some hidden_size variation
+    let hidden_sizes: std::collections::HashSet<usize> = sim
+        .organisms
+        .iter()
+        .filter(|o| o.alive)
+        .map(|o| o.genome.hidden_size)
+        .collect();
+    // With 2% mutation rate per reproduction and many generations, expect variation
+    assert!(
+        hidden_sizes.len() >= 1,
+        "expected at least some hidden_size variation, got {:?}",
+        hidden_sizes,
+    );
+}

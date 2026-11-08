@@ -67,20 +67,29 @@ pub struct BrainOutput {
 impl Brain {
     /// Create a new brain with the given weights. Panics if weight count is wrong.
     pub fn new(config: &BrainConfig, weights: Vec<f64>) -> Self {
+        Self::from_genome(config.inputs, config.hidden, config.outputs, weights)
+    }
+
+    /// Create a brain with explicit layer sizes (used when hidden_size varies per organism).
+    pub fn from_genome(inputs: usize, hidden: usize, outputs: usize, weights: Vec<f64>) -> Self {
+        let expected = crate::genome::weight_count_for(inputs, hidden, outputs);
         assert_eq!(
             weights.len(),
-            config.total_weights(),
-            "brain weight count mismatch: expected {}, got {}",
-            config.total_weights(),
-            weights.len()
+            expected,
+            "brain weight count mismatch: expected {}, got {} (topology {}→{}→{})",
+            expected,
+            weights.len(),
+            inputs,
+            hidden,
+            outputs,
         );
-        assert!(config.hidden <= MAX_HIDDEN);
-        assert!(config.outputs <= MAX_OUTPUTS);
-        assert!(config.inputs <= MAX_INPUTS);
+        assert!(hidden <= MAX_HIDDEN);
+        assert!(outputs <= MAX_OUTPUTS);
+        assert!(inputs <= MAX_INPUTS);
         Brain {
-            inputs: config.inputs,
-            hidden: config.hidden,
-            outputs: config.outputs,
+            inputs,
+            hidden,
+            outputs,
             weights,
         }
     }

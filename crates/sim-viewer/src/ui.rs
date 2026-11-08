@@ -97,7 +97,13 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                     ui.label(format!("Body size: {:.2}", org.genome.body_size));
                     ui.label(format!("Signal: {:.2}", org.signal));
                     ui.label(format!("Mutation rate: {:.3}", org.genome.mutation_rate));
-                    ui.label(format!("Brain weights: {}", org.brain.weights.len()));
+                    ui.label(format!(
+                        "Brain: {}→{}→{} ({} weights)",
+                        org.brain.inputs,
+                        org.brain.hidden,
+                        org.brain.outputs,
+                        org.brain.weights.len()
+                    ));
                     ui.label(format!("Generation: {}", org.generation));
                     ui.label(format!(
                         "Parent: {}",
