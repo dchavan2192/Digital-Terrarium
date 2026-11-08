@@ -296,11 +296,13 @@ fn wraparound_positions_stay_in_bounds() {
     for org in &sim.organisms {
         assert!(
             org.pos_x >= 0.0 && org.pos_x < sim.config.world.width,
-            "x={} out of bounds", org.pos_x
+            "x={} out of bounds",
+            org.pos_x
         );
         assert!(
             org.pos_y >= 0.0 && org.pos_y < sim.config.world.height,
-            "y={} out of bounds", org.pos_y
+            "y={} out of bounds",
+            org.pos_y
         );
     }
 }

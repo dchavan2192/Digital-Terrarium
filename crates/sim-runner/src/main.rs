@@ -15,7 +15,10 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "sim-runner", about = "Headless experiment runner for Terrarium")]
+#[command(
+    name = "sim-runner",
+    about = "Headless experiment runner for Terrarium"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -84,7 +87,15 @@ fn main() {
             log_interval,
             output,
         }) => {
-            sweep::run_sweep(&config, &param, &values, seeds, ticks, log_interval, &output);
+            sweep::run_sweep(
+                &config,
+                &param,
+                &values,
+                seeds,
+                ticks,
+                log_interval,
+                &output,
+            );
         }
         None => {
             run::run_single(&cli.config, cli.ticks, cli.log_interval, &cli.output);

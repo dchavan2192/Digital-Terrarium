@@ -67,12 +67,8 @@ pub fn run_sweep(
         // Label format: "param.name=VALUE_seedN" — split on last "_seed"
         let (param_val, seed_str) = label
             .rsplit_once("_seed")
-            .map(|(pv, s)| (pv, s))
             .unwrap_or((label.as_str(), "?"));
-        let value_str = param_val
-            .rsplit_once('=')
-            .map(|(_, v)| v)
-            .unwrap_or("?");
+        let value_str = param_val.rsplit_once('=').map(|(_, v)| v).unwrap_or("?");
 
         wtr.write_record([
             label.as_str(),
@@ -96,7 +92,8 @@ pub fn run_sweep(
             .filter(|(l, _, _)| l.starts_with(&format!("{}={:.6}", param, value)))
             .collect();
         let survived = runs.iter().filter(|(_, _, s)| *s).count();
-        let mean_tick: f64 = runs.iter().map(|(_, t, _)| *t as f64).sum::<f64>() / runs.len() as f64;
+        let mean_tick: f64 =
+            runs.iter().map(|(_, t, _)| *t as f64).sum::<f64>() / runs.len() as f64;
         println!(
             "  {} = {:.6}: {}/{} survived, mean final tick = {:.0}",
             param,
@@ -156,15 +153,31 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
 
 fn print_supported_params() {
     let params = [
-        "world.width", "world.height",
-        "food.cell_size", "food.max_per_cell", "food.regrowth_rate", "food.energy_per_food",
-        "creature.initial_count", "creature.hard_cap", "creature.body_radius",
-        "creature.max_speed", "creature.max_turn", "creature.max_age",
-        "creature.vision.ray_count", "creature.vision.fov", "creature.vision.range",
-        "energy.starting", "energy.maximum", "energy.base_metabolism",
-        "energy.movement_cost", "energy.brain_cost",
-        "reproduction.threshold", "reproduction.parent_cost", "reproduction.child_energy",
-        "mutation.weight_probability", "mutation.weight_step",
+        "world.width",
+        "world.height",
+        "food.cell_size",
+        "food.max_per_cell",
+        "food.regrowth_rate",
+        "food.energy_per_food",
+        "creature.initial_count",
+        "creature.hard_cap",
+        "creature.body_radius",
+        "creature.max_speed",
+        "creature.max_turn",
+        "creature.max_age",
+        "creature.vision.ray_count",
+        "creature.vision.fov",
+        "creature.vision.range",
+        "energy.starting",
+        "energy.maximum",
+        "energy.base_metabolism",
+        "energy.movement_cost",
+        "energy.brain_cost",
+        "reproduction.threshold",
+        "reproduction.parent_cost",
+        "reproduction.child_energy",
+        "mutation.weight_probability",
+        "mutation.weight_step",
     ];
     for p in params {
         eprintln!("  {}", p);

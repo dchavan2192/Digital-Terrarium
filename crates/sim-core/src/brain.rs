@@ -62,7 +62,8 @@ impl Brain {
         let h_biases_start = self.inputs * self.hidden;
         let h_biases = &self.weights[h_biases_start..h_biases_start + self.hidden];
         let ho_weights_start = h_biases_start + self.hidden;
-        let ho_weights = &self.weights[ho_weights_start..ho_weights_start + self.hidden * self.outputs];
+        let ho_weights =
+            &self.weights[ho_weights_start..ho_weights_start + self.hidden * self.outputs];
         let o_biases_start = ho_weights_start + self.hidden * self.outputs;
         let o_biases = &self.weights[o_biases_start..];
 
@@ -87,9 +88,9 @@ impl Brain {
         }
 
         BrainOutput {
-            turn: output[0],                          // [-1, 1]
-            speed: (output[1] + 1.0) * 0.5,           // tanh [-1,1] → [0, 1]
-            eat: output[2],                            // > 0.0 means try to eat
+            turn: output[0],                // [-1, 1]
+            speed: (output[1] + 1.0) * 0.5, // tanh [-1,1] → [0, 1]
+            eat: output[2],                 // > 0.0 means try to eat
         }
     }
 

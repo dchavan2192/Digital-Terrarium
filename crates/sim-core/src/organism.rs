@@ -46,7 +46,7 @@ impl Organism {
         // Vision rays: interleave distance and type
         for i in 0..ray_distances.len() {
             inputs.push(ray_distances[i]); // [0, 1] where 1 = max range, nothing seen
-            inputs.push(ray_types[i]);     // -1 = nothing, 0 = food, 1 = creature
+            inputs.push(ray_types[i]); // -1 = nothing, 0 = food, 1 = creature
         }
 
         // Own energy normalized

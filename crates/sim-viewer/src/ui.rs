@@ -76,17 +76,14 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 if let Some(org) = sim.organisms.iter().find(|o| o.id == id && o.alive) {
                     ui.label(format!("ID: {}", org.id));
                     ui.label(format!("Age: {} ticks", org.age));
-                    ui.label(format!("Energy: {:.1} / {:.0}", org.energy, sim.config.energy.maximum));
+                    ui.label(format!(
+                        "Energy: {:.1} / {:.0}",
+                        org.energy, sim.config.energy.maximum
+                    ));
                     ui.label(format!("Position: ({:.0}, {:.0})", org.pos_x, org.pos_y));
-                    ui.label(format!(
-                        "Heading: {:.1} deg",
-                        org.heading.to_degrees()
-                    ));
+                    ui.label(format!("Heading: {:.1} deg", org.heading.to_degrees()));
                     ui.label(format!("Hue: {:.0}", org.genome.color_hue));
-                    ui.label(format!(
-                        "Mutation rate: {:.3}",
-                        org.genome.mutation_rate
-                    ));
+                    ui.label(format!("Mutation rate: {:.3}", org.genome.mutation_rate));
                     ui.label(format!("Brain weights: {}", org.brain.weights.len()));
 
                     if ui.button("Deselect").clicked() {

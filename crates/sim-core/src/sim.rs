@@ -14,7 +14,7 @@
 use crate::config::Config;
 use crate::genome::Genome;
 use crate::organism::{Organism, OrganismId};
-use crate::world::{wrap_coord, wraparound_delta, FoodGrid, SpatialGrid};
+use crate::world::{FoodGrid, SpatialGrid, wrap_coord, wraparound_delta};
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
 
@@ -119,7 +119,7 @@ impl Simulation {
             let oy = self.organisms[i].pos_y;
 
             let mut ray_distances = vec![1.0; ray_count]; // 1.0 = nothing seen (max range)
-            let mut ray_types = vec![-1.0; ray_count];    // -1.0 = nothing
+            let mut ray_types = vec![-1.0; ray_count]; // -1.0 = nothing
 
             let start_angle = heading - fov / 2.0;
             let angle_step = if ray_count > 1 {
@@ -230,12 +230,9 @@ impl Simulation {
                 }
 
                 // 4. Metabolize
-                let movement_cost =
-                    self.config.energy.movement_cost * actual_speed * actual_speed;
-                let brain_cost =
-                    self.config.energy.brain_cost * org.brain.neuron_count() as f64;
-                org.energy -=
-                    self.config.energy.base_metabolism + movement_cost + brain_cost;
+                let movement_cost = self.config.energy.movement_cost * actual_speed * actual_speed;
+                let brain_cost = self.config.energy.brain_cost * org.brain.neuron_count() as f64;
+                org.energy -= self.config.energy.base_metabolism + movement_cost + brain_cost;
 
                 org.age += 1;
             }

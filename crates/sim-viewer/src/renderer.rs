@@ -77,7 +77,10 @@ fn draw_creatures(sim: &Simulation, camera: &Camera, selected_id: Option<u64>) {
             continue;
         }
 
-        let color = hue_to_color(org.genome.color_hue as f32, org.energy as f32 / sim.config.energy.maximum as f32);
+        let color = hue_to_color(
+            org.genome.color_hue as f32,
+            org.energy as f32 / sim.config.energy.maximum as f32,
+        );
 
         // Triangle pointing in heading direction
         let h = org.heading as f32;

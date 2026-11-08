@@ -25,7 +25,11 @@ pub struct Genome {
 
 impl Genome {
     /// Create a random genome for the initial population.
-    pub fn random(brain_config: &BrainConfig, mutation_config: &MutationConfig, rng: &mut impl Rng) -> Self {
+    pub fn random(
+        brain_config: &BrainConfig,
+        mutation_config: &MutationConfig,
+        rng: &mut impl Rng,
+    ) -> Self {
         let weight_count = brain_config.total_weights();
         // Xavier-ish initialization: small random weights
         let scale = 1.0 / (brain_config.inputs as f64).sqrt();

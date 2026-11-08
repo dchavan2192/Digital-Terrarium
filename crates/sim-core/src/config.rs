@@ -121,16 +121,22 @@ impl Config {
     /// Sanity-check values that would cause panics or nonsense if wrong.
     fn validate(&self) -> Result<(), ConfigError> {
         if self.world.width <= 0.0 || self.world.height <= 0.0 {
-            return Err(ConfigError::Invalid("world dimensions must be positive".into()));
+            return Err(ConfigError::Invalid(
+                "world dimensions must be positive".into(),
+            ));
         }
         if self.food.cell_size <= 0.0 {
-            return Err(ConfigError::Invalid("food cell_size must be positive".into()));
+            return Err(ConfigError::Invalid(
+                "food cell_size must be positive".into(),
+            ));
         }
         if self.creature.initial_count == 0 {
             return Err(ConfigError::Invalid("initial_count must be > 0".into()));
         }
         if self.energy.starting <= 0.0 {
-            return Err(ConfigError::Invalid("starting energy must be positive".into()));
+            return Err(ConfigError::Invalid(
+                "starting energy must be positive".into(),
+            ));
         }
         if self.reproduction.parent_cost >= self.energy.maximum {
             return Err(ConfigError::Invalid(

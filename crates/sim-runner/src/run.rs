@@ -6,7 +6,12 @@ use std::time::Instant;
 
 /// Run a single simulation and write stats to CSV.
 /// Returns (final_tick, survived: bool).
-pub fn run_single(config_path: &Path, ticks: u64, log_interval: u64, output_dir: &Path) -> (u64, bool) {
+pub fn run_single(
+    config_path: &Path,
+    ticks: u64,
+    log_interval: u64,
+    output_dir: &Path,
+) -> (u64, bool) {
     let config = Config::from_file(config_path).unwrap_or_else(|e| {
         eprintln!("Failed to load config '{}': {}", config_path.display(), e);
         std::process::exit(1);
