@@ -57,6 +57,6 @@ weight_probability = 0.1  # Chance each weight mutates during reproduction
 weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
 
 [brain]
-inputs = 13             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal
+inputs = 14             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal + body_size
 hidden = 8              # Hidden layer neurons
 outputs = 4             # turn, speed, eat, attack

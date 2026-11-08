@@ -273,6 +273,10 @@ impl Simulation {
                 inputs[idx] = organisms[i].heading / std::f64::consts::PI - 1.0;
                 idx += 1;
                 inputs[idx] = 0.0; // signal placeholder
+                idx += 1;
+                // Body size normalized to [-1, 1]: (size - 1.75) / 1.25
+                // Maps [0.5, 3.0] -> [-1, 1]
+                inputs[idx] = (organisms[i].genome.body_size - 1.75) / 1.25;
 
                 let brain_inputs = &inputs[..organisms[i].brain.inputs];
                 let output = organisms[i].brain.forward(brain_inputs);
@@ -304,8 +308,9 @@ impl Simulation {
                 org.heading += std::f64::consts::TAU;
             }
 
-            // Move
-            let actual_speed = action.speed * max_speed;
+            // Move — larger creatures are slower (speed / body_size)
+            let body_size = org.genome.body_size;
+            let actual_speed = action.speed * max_speed / body_size;
             org.pos_x += org.heading.cos() * actual_speed;
             org.pos_y += org.heading.sin() * actual_speed;
             org.pos_x = wrap_coord(org.pos_x, world_w);
@@ -320,10 +325,11 @@ impl Simulation {
                 }
             }
 
-            // Metabolize
+            // Metabolize — Kleiber's law: metabolism scales as body_size^0.75
             let movement_cost = movement_cost_factor * actual_speed * actual_speed;
             let brain_cost = brain_cost_per_neuron * org.brain.neuron_count() as f64;
-            org.energy -= base_metabolism + movement_cost + brain_cost;
+            let size_metabolism = base_metabolism * body_size.powf(0.75);
+            org.energy -= size_metabolism + movement_cost + brain_cost;
 
             org.age += 1;
         }
@@ -382,8 +388,12 @@ impl Simulation {
             });
 
             if let Some(target) = best_target {
-                // Deal damage, transfer energy
-                let actual_damage = attack_damage.min(self.organisms[target].energy);
+                // Damage scales with attacker size, reduced by victim size
+                // Bigger creatures hit harder and absorb hits better
+                let attacker_size = self.organisms[i].genome.body_size;
+                let victim_size = self.organisms[target].genome.body_size;
+                let scaled_damage = attack_damage * attacker_size / victim_size;
+                let actual_damage = scaled_damage.min(self.organisms[target].energy);
                 self.organisms[target].energy -= actual_damage;
                 let gained = actual_damage * transfer_ratio;
                 self.organisms[i].energy = (self.organisms[i].energy + gained).min(max_energy);

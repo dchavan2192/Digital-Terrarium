@@ -53,7 +53,7 @@
 
 ### Phase 3: Ecological Complexity [IN PROGRESS]
 - [x] Attack/consume mechanic (predator-prey dynamics)
-- [ ] Body size as evolvable gene (affects speed, energy cost, attack power)
+- [x] Body size as evolvable gene (affects speed, metabolism, attack power/defense)
 - [ ] Speciation detection and lineage tracking
 - [ ] Trophic level analysis
 
@@ -264,3 +264,10 @@ Mutation: 10% per weight, +/-0.2 step
   - Attacker pays cost, nearest neighbor in range takes damage, 50% energy transfer (trophic loss)
   - ~7600 attacks in first 1000 ticks — creatures using combat immediately
   - Citations: Lotka (1925), Volterra (1926), Yaeger Polyworld (1994)
+- **Evolvable body size**
+  - body_size gene [0.5, 3.0], default 1.0, 5% mutation rate
+  - Speed scales as max_speed/body_size (bigger = slower)
+  - Metabolism scales as base_metabolism * body_size^0.75 (Kleiber's law)
+  - Attack damage scales with attacker size, defense scales with victim size
+  - Added as 14th brain input so creatures sense their own size
+  - Citation: Kleiber (1932) body size allometry

@@ -26,6 +26,11 @@ pub struct Genome {
     /// Citation: Williams (1957) antagonistic pleiotropy predicts selection
     /// can act on aging rate when it trades off against early-life fitness.
     pub aging_rate: f64,
+
+    /// Relative body size [0.5, 3.0]. Affects speed, metabolism, combat.
+    /// Citation: Kleiber (1932) — metabolic rate scales as mass^0.75.
+    /// Larger creatures are slower but hit harder and survive hits better.
+    pub body_size: f64,
 }
 
 impl Genome {
@@ -49,6 +54,7 @@ impl Genome {
             mutation_step: mutation_config.weight_step,
             color_hue: rng.gen_range(0.0..360.0),
             aging_rate: aging_config.aging_rate,
+            body_size: 1.0,
         }
     }
 
@@ -81,6 +87,14 @@ impl Genome {
         if rng.r#gen::<f64>() < 0.05 {
             child.aging_rate *= rng.gen_range(0.8..1.2);
             child.aging_rate = child.aging_rate.clamp(0.0001, 0.01);
+        }
+
+        // Mutate body size
+        // Kleiber (1932): body size is the key trait determining metabolic strategy.
+        // Clamped to [0.5, 3.0] — half-size to triple-size relative to default.
+        if rng.r#gen::<f64>() < 0.05 {
+            child.body_size *= rng.gen_range(0.9..1.1);
+            child.body_size = child.body_size.clamp(0.5, 3.0);
         }
 
         // Small drift in color — offspring look similar to parents (kin marker)

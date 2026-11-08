@@ -28,12 +28,13 @@ pub struct Organism {
 impl Organism {
     /// Build the sensor input vector for the brain.
     ///
-    /// v1 layout (13 inputs):
+    /// v2 layout (14 inputs):
     /// - 5 vision rays × 2 values each (distance normalized [0,1], object type [-1,1])
     ///   type encoding: -1 = nothing, 0 = food, 1 = creature
     /// - own energy normalized to [0,1] (energy / max_energy)
     /// - own heading normalized to [-1,1] (heading / π - 1)
     /// - nearby signal (0 if none heard)
+    /// - own body_size normalized to [-1,1]
     pub fn build_sensor_inputs(
         &self,
         ray_distances: &[f64],

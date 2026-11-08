@@ -55,7 +55,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 13
+inputs = 14
 hidden = 8
 outputs = 4
 
@@ -79,7 +79,7 @@ fn config_loads_from_default_toml() {
     assert_eq!(cfg.world.width, 1000.0);
     assert_eq!(cfg.world.height, 1000.0);
     assert_eq!(cfg.creature.initial_count, 300);
-    assert_eq!(cfg.brain.inputs, 13);
+    assert_eq!(cfg.brain.inputs, 14);
     assert_eq!(cfg.brain.hidden, 8);
     assert_eq!(cfg.brain.outputs, 4);
 }
@@ -121,7 +121,7 @@ child_energy = 50.0
 weight_probability = 0.1
 weight_step = 0.2
 [brain]
-inputs = 13
+inputs = 14
 hidden = 8
 outputs = 4
 [aging]
@@ -259,7 +259,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 13
+inputs = 14
 hidden = 8
 outputs = 4
 
@@ -358,7 +358,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 13
+inputs = 14
 hidden = 8
 outputs = 4
 
