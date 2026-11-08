@@ -18,6 +18,7 @@ use crate::world::{FoodGrid, SpatialGrid, wrap_coord, wraparound_delta};
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
+use rayon::prelude::*;
 
 /// Maximum number of vision rays (for stack allocation).
 const MAX_RAYS: usize = 16;
@@ -169,110 +170,117 @@ impl Simulation {
         // Precompute acceptance threshold as cosine for dot-product comparison
         let cos_acceptance = acceptance.cos();
 
-        // 2. Sense → Think → Act (zero-alloc per organism)
-        self.actions.clear();
-        self.actions.resize(organism_count, Action::default());
+        // 2. Sense → Think → Act (parallelized with rayon)
+        //
+        // This phase is read-only on organisms, food_grid, and spatial_grid.
+        // No RNG is used, so parallel execution preserves determinism.
+        // Each organism independently: cast vision rays → run brain forward pass → produce Action.
+        let organisms = &self.organisms;
+        let food_grid = &self.food_grid;
+        let spatial_grid = &self.spatial_grid;
 
-        for i in 0..organism_count {
-            if !self.organisms[i].alive {
-                continue;
-            }
-
-            let heading = self.organisms[i].heading;
-            let ox = self.organisms[i].pos_x;
-            let oy = self.organisms[i].pos_y;
-            let cos_h = heading.cos();
-            let sin_h = heading.sin();
-
-            // Stack-allocated ray results
-            let mut ray_types = [-1.0f64; MAX_RAYS];
-            let mut closest_dists = [range; MAX_RAYS];
-
-            // Precompute world-space ray direction unit vectors for this organism
-            let mut ray_dirs = [(0.0f64, 0.0f64); MAX_RAYS];
-            for r in 0..ray_count {
-                let (lcos, lsin) = ray_local[r];
-                ray_dirs[r] = (cos_h * lcos - sin_h * lsin, sin_h * lcos + cos_h * lsin);
-            }
-
-            // Check food along rays (sample at cell_size intervals)
-            for r in 0..ray_count {
-                let (ray_dx, ray_dy) = ray_dirs[r];
-                let mut d = food_cell_size;
-                while d < closest_dists[r] {
-                    let sx = wrap_coord(ox + ray_dx * d, world_w);
-                    let sy = wrap_coord(oy + ray_dy * d, world_h);
-                    if self.food_grid.food_at(sx, sy) > 0.1 {
-                        closest_dists[r] = d;
-                        ray_types[r] = 0.0; // food
-                        break;
-                    }
-                    d += food_cell_size;
+        self.actions = (0..organism_count)
+            .into_par_iter()
+            .map(|i| {
+                if !organisms[i].alive {
+                    return Action::default();
                 }
-            }
 
-            // Check creatures — dot-product ray test (no atan2)
-            let range_sq = range * range;
-            self.spatial_grid.for_each_nearby(ox, oy, |ni| {
-                if ni == i || !self.organisms[ni].alive {
-                    return;
-                }
-                let dx = wraparound_delta(ox, self.organisms[ni].pos_x, world_w);
-                let dy = wraparound_delta(oy, self.organisms[ni].pos_y, world_h);
-                let dist_sq = dx * dx + dy * dy;
-                if dist_sq > range_sq || dist_sq < 0.000001 {
-                    return;
-                }
-                let dist = dist_sq.sqrt();
-                let inv_dist = 1.0 / dist;
-                let nx = dx * inv_dist;
-                let ny = dy * inv_dist;
+                let heading = organisms[i].heading;
+                let ox = organisms[i].pos_x;
+                let oy = organisms[i].pos_y;
+                let cos_h = heading.cos();
+                let sin_h = heading.sin();
 
+                // Stack-allocated ray results
+                let mut ray_types = [-1.0f64; MAX_RAYS];
+                let mut closest_dists = [range; MAX_RAYS];
+
+                // Precompute world-space ray direction unit vectors for this organism
+                let mut ray_dirs = [(0.0f64, 0.0f64); MAX_RAYS];
                 for r in 0..ray_count {
-                    if dist >= closest_dists[r] {
-                        continue;
-                    }
-                    let (rdx, rdy) = ray_dirs[r];
-                    let dot = rdx * nx + rdy * ny;
-                    if dot >= cos_acceptance {
-                        closest_dists[r] = dist;
-                        ray_types[r] = 1.0; // creature
+                    let (lcos, lsin) = ray_local[r];
+                    ray_dirs[r] = (cos_h * lcos - sin_h * lsin, sin_h * lcos + cos_h * lsin);
+                }
+
+                // Check food along rays (sample at cell_size intervals)
+                for r in 0..ray_count {
+                    let (ray_dx, ray_dy) = ray_dirs[r];
+                    let mut d = food_cell_size;
+                    while d < closest_dists[r] {
+                        let sx = wrap_coord(ox + ray_dx * d, world_w);
+                        let sy = wrap_coord(oy + ray_dy * d, world_h);
+                        if food_grid.food_at(sx, sy) > 0.1 {
+                            closest_dists[r] = d;
+                            ray_types[r] = 0.0; // food
+                            break;
+                        }
+                        d += food_cell_size;
                     }
                 }
-            });
 
-            // Normalize ray distances
-            let mut ray_distances = [0.0f64; MAX_RAYS];
-            for r in 0..ray_count {
-                ray_distances[r] = closest_dists[r] * range_inv;
-            }
+                // Check creatures — dot-product ray test (no atan2)
+                let range_sq = range * range;
+                spatial_grid.for_each_nearby(ox, oy, |ni| {
+                    if ni == i || !organisms[ni].alive {
+                        return;
+                    }
+                    let dx = wraparound_delta(ox, organisms[ni].pos_x, world_w);
+                    let dy = wraparound_delta(oy, organisms[ni].pos_y, world_h);
+                    let dist_sq = dx * dx + dy * dy;
+                    if dist_sq > range_sq || dist_sq < 0.000001 {
+                        return;
+                    }
+                    let dist = dist_sq.sqrt();
+                    let inv_dist = 1.0 / dist;
+                    let nx = dx * inv_dist;
+                    let ny = dy * inv_dist;
 
-            // Build sensor inputs on the stack
-            let mut inputs = [0.0f64; 64]; // MAX_INPUTS
-            let mut idx = 0;
-            for r in 0..ray_count {
-                inputs[idx] = ray_distances[r];
+                    for r in 0..ray_count {
+                        if dist >= closest_dists[r] {
+                            continue;
+                        }
+                        let (rdx, rdy) = ray_dirs[r];
+                        let dot = rdx * nx + rdy * ny;
+                        if dot >= cos_acceptance {
+                            closest_dists[r] = dist;
+                            ray_types[r] = 1.0; // creature
+                        }
+                    }
+                });
+
+                // Normalize ray distances
+                let mut ray_distances = [0.0f64; MAX_RAYS];
+                for r in 0..ray_count {
+                    ray_distances[r] = closest_dists[r] * range_inv;
+                }
+
+                // Build sensor inputs on the stack
+                let mut inputs = [0.0f64; 64]; // MAX_INPUTS
+                let mut idx = 0;
+                for r in 0..ray_count {
+                    inputs[idx] = ray_distances[r];
+                    idx += 1;
+                    inputs[idx] = ray_types[r];
+                    idx += 1;
+                }
+                inputs[idx] = organisms[i].energy / max_energy;
                 idx += 1;
-                inputs[idx] = ray_types[r];
+                inputs[idx] = organisms[i].heading / std::f64::consts::PI - 1.0;
                 idx += 1;
-            }
-            inputs[idx] = self.organisms[i].energy / max_energy;
-            idx += 1;
-            inputs[idx] = self.organisms[i].heading / std::f64::consts::PI - 1.0;
-            idx += 1;
-            inputs[idx] = 0.0; // signal placeholder
-            // idx += 1; // not needed, we pass the slice
+                inputs[idx] = 0.0; // signal placeholder
 
-            let brain_inputs = &inputs[..self.organisms[i].brain.inputs];
-            let output = self.organisms[i].brain.forward(brain_inputs);
+                let brain_inputs = &inputs[..organisms[i].brain.inputs];
+                let output = organisms[i].brain.forward(brain_inputs);
 
-            self.actions[i] = Action {
-                turn: output.turn,
-                speed: output.speed,
-                eat: output.eat,
-                alive: true,
-            };
-        }
+                Action {
+                    turn: output.turn,
+                    speed: output.speed,
+                    eat: output.eat,
+                    alive: true,
+                }
+            })
+            .collect();
 
         // 3. Apply actions: movement, eating, metabolism
         for i in 0..organism_count {

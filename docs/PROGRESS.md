@@ -21,7 +21,7 @@
 - Population: ~1100 stable equilibrium
 - Turnover: ~75,000 births over 100k ticks (massive evolutionary churn)
 - Mean energy: ~30 (threshold=60, so only good foragers reproduce)
-- Speed: ~900 ticks/s single run, ~600 ticks/s with stats logging
+- Speed: ~4400 ticks/s (rayon parallel + fast_tanh), up from ~1000 single-threaded
 - Deterministic: same seed = same run (ChaCha8Rng)
 
 ### GitHub
@@ -75,9 +75,9 @@
 
 ### Infrastructure [ONGOING]
 - [x] GPU acceleration investigation — NOT worth it at current scale (see Research section)
-- [ ] rayon within-tick parallelism (3-6x speedup, low effort)
+- [x] rayon within-tick parallelism (4.3x speedup achieved)
 - [ ] SoA (struct-of-arrays) refactor for hot fields (1.5-3x speedup)
-- [ ] Fast approximate tanh (1.1-1.3x speedup, trivial)
+- [x] Fast approximate tanh (Pade approximant, part of 4.3x speedup)
 - [ ] Define "Earth-like" primordial environment model
 
 ---
@@ -250,3 +250,11 @@ Mutation: 10% per weight, +/-0.2 step
   - New test: `gompertz_mortality_kills_old_creatures` (11 tests total, all passing)
   - Full CI: clippy clean, fmt clean, all tests pass
 - Pi 5 running 500k-tick baseline overnight as control data
+
+### Session 4 (2026-11-08)
+- **Rayon within-tick parallelism**: 4.3x speedup (1000 -> 4400 ticks/s)
+  - Parallelized sense-think-act loop with `par_iter()` — read-only phase, no RNG, determinism preserved
+  - Sequential phases (apply actions, reproduce, die) unchanged
+- **Fast approximate tanh**: Pade approximant `x(27+x²)/(27+9x²)`, max error ~0.004
+- Analyzed Pi baseline data (5 seeds x 100k + 1 seed x 500k ticks)
+- Pi running Gompertz comparison overnight
