@@ -67,7 +67,7 @@ fn config_loads_from_default_toml() {
     let cfg = load_config();
     assert_eq!(cfg.world.width, 1000.0);
     assert_eq!(cfg.world.height, 1000.0);
-    assert_eq!(cfg.creature.initial_count, 1000);
+    assert_eq!(cfg.creature.initial_count, 300);
     assert_eq!(cfg.brain.inputs, 13);
     assert_eq!(cfg.brain.hidden, 8);
     assert_eq!(cfg.brain.outputs, 3);

@@ -65,9 +65,7 @@ pub fn run_sweep(
 
     for (label, final_tick, survived) in &results {
         // Label format: "param.name=VALUE_seedN" — split on last "_seed"
-        let (param_val, seed_str) = label
-            .rsplit_once("_seed")
-            .unwrap_or((label.as_str(), "?"));
+        let (param_val, seed_str) = label.rsplit_once("_seed").unwrap_or((label.as_str(), "?"));
         let value_str = param_val.rsplit_once('=').map(|(_, v)| v).unwrap_or("?");
 
         wtr.write_record([

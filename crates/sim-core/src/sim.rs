@@ -47,6 +47,8 @@ pub struct TickStats {
     pub population: usize,
     pub births: usize,
     pub deaths: usize,
+    pub total_births: u64,
+    pub total_deaths: u64,
     pub mean_energy: f64,
     pub mean_brain_neurons: f64,
 }
@@ -386,11 +388,15 @@ impl Simulation {
         };
 
         self.tick += 1;
+        let total_births = self.stats.total_births + births as u64;
+        let total_deaths = self.stats.total_deaths + deaths as u64;
         self.stats = TickStats {
             tick: self.tick,
             population,
             births,
             deaths,
+            total_births,
+            total_deaths,
             mean_energy,
             mean_brain_neurons,
         };
