@@ -421,3 +421,52 @@ fn wraparound_positions_stay_in_bounds() {
         );
     }
 }
+
+#[test]
+fn lineage_tracking_and_speciation() {
+    let cfg = small_config();
+    let mut sim = Simulation::new(cfg);
+
+    // Initial population should all be generation 0 with no parent
+    for org in &sim.organisms {
+        assert_eq!(org.generation, 0);
+        assert!(org.parent_id.is_none());
+    }
+
+    // Run for enough ticks to see reproduction
+    for _ in 0..500 {
+        sim.step();
+        if sim.is_extinct() {
+            break;
+        }
+    }
+
+    // After reproduction, some organisms should have generation > 0
+    let max_gen = sim
+        .organisms
+        .iter()
+        .map(|o| o.generation)
+        .max()
+        .unwrap_or(0);
+    assert!(
+        max_gen > 0,
+        "expected offspring with generation > 0 after 500 ticks"
+    );
+
+    // Offspring should have parent_id set
+    let has_parent = sim.organisms.iter().any(|o| o.parent_id.is_some());
+    assert!(has_parent, "expected some organisms with parent_id set");
+
+    // Species count should be at least 1
+    assert!(
+        sim.stats.species_count >= 1,
+        "expected at least 1 species, got {}",
+        sim.stats.species_count
+    );
+
+    // Mean generation should be positive if offspring exist
+    assert!(
+        sim.stats.mean_generation > 0.0,
+        "expected mean_generation > 0"
+    );
+}

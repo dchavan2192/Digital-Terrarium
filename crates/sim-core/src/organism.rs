@@ -23,6 +23,10 @@ pub struct Organism {
     pub brain: Brain,
     /// Whether this organism is still alive. Dead organisms are cleaned up at end of tick.
     pub alive: bool,
+    /// Parent organism ID (None for initial population).
+    pub parent_id: Option<OrganismId>,
+    /// Generation count (0 for initial population, parent's generation + 1 for offspring).
+    pub generation: u64,
 }
 
 impl Organism {

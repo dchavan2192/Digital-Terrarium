@@ -113,4 +113,37 @@ impl Genome {
     pub fn build_brain(&self, config: &BrainConfig) -> Brain {
         Brain::new(config, self.brain_weights.clone())
     }
+
+    /// Compute compatibility distance between two genomes.
+    ///
+    /// Inspired by NEAT (Stanley & Miikkulainen, 2002) compatibility distance,
+    /// but adapted for our fixed-topology networks. Distance is a weighted sum of:
+    /// - Mean absolute weight difference (normalized by weight count)
+    /// - Trait differences (body_size, aging_rate, mutation_rate)
+    ///
+    /// Citation: Stanley, K.O. & Miikkulainen, R. (2002) "Evolving Neural Networks
+    /// through Augmenting Topologies" *Evolutionary Computation* 10(2):99-127
+    pub fn genome_distance(&self, other: &Genome) -> f64 {
+        // Weight distance: mean absolute difference
+        let weight_dist = if !self.brain_weights.is_empty() {
+            let sum: f64 = self
+                .brain_weights
+                .iter()
+                .zip(other.brain_weights.iter())
+                .map(|(a, b)| (a - b).abs())
+                .sum();
+            sum / self.brain_weights.len() as f64
+        } else {
+            0.0
+        };
+
+        // Trait distances (normalized to roughly [0, 1] range)
+        let size_dist = (self.body_size - other.body_size).abs() / 2.5; // range is 2.5
+        let aging_dist = (self.aging_rate - other.aging_rate).abs() / 0.01; // range is ~0.01
+        let mutation_dist = (self.mutation_rate - other.mutation_rate).abs(); // already [0, 1]
+
+        // Weighted combination — weights tuned so brain differences dominate
+        // but body plan differences also contribute to speciation
+        1.0 * weight_dist + 0.5 * size_dist + 0.5 * aging_dist + 0.3 * mutation_dist
+    }
 }

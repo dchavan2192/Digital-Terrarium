@@ -54,7 +54,7 @@
 ### Phase 3: Ecological Complexity [IN PROGRESS]
 - [x] Attack/consume mechanic (predator-prey dynamics)
 - [x] Body size as evolvable gene (affects speed, metabolism, attack power/defense)
-- [ ] Speciation detection and lineage tracking
+- [x] Speciation detection and lineage tracking
 - [ ] Trophic level analysis
 
 ### Phase 4: Social Intelligence [PLANNED]
@@ -271,3 +271,11 @@ Mutation: 10% per weight, +/-0.2 step
   - Attack damage scales with attacker size, defense scales with victim size
   - Added as 14th brain input so creatures sense their own size
   - Citation: Kleiber (1932) body size allometry
+- **Speciation detection & lineage tracking**
+  - Added `parent_id` and `generation` to Organism (lineage tracking)
+  - Genome distance function: weighted sum of brain weight divergence + trait differences
+  - Greedy threshold-based species clustering (NEAT-style compatibility distance)
+  - New stats: `species_count`, `mean_generation` in TickStats and CSV output
+  - Viewer inspector shows generation and parent ID for selected creatures
+  - New test: `lineage_tracking_and_speciation` (12 tests total, all passing)
+  - Citation: Stanley & Miikkulainen (2002) NEAT compatibility distance

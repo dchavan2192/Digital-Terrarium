@@ -66,6 +66,8 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
             ui.label(format!("Deaths (last tick): {}", stats.deaths));
             ui.label(format!("Mean energy: {:.1}", stats.mean_energy));
             ui.label(format!("Mean neurons: {:.1}", stats.mean_brain_neurons));
+            ui.label(format!("Species: {}", stats.species_count));
+            ui.label(format!("Mean generation: {:.0}", stats.mean_generation));
             ui.label(format!("FPS: {:.0}", macroquad::time::get_fps()));
 
             ui.separator();
@@ -83,8 +85,16 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                     ui.label(format!("Position: ({:.0}, {:.0})", org.pos_x, org.pos_y));
                     ui.label(format!("Heading: {:.1} deg", org.heading.to_degrees()));
                     ui.label(format!("Hue: {:.0}", org.genome.color_hue));
+                    ui.label(format!("Body size: {:.2}", org.genome.body_size));
                     ui.label(format!("Mutation rate: {:.3}", org.genome.mutation_rate));
                     ui.label(format!("Brain weights: {}", org.brain.weights.len()));
+                    ui.label(format!("Generation: {}", org.generation));
+                    ui.label(format!(
+                        "Parent: {}",
+                        org.parent_id
+                            .map(|id| id.to_string())
+                            .unwrap_or_else(|| "none (gen 0)".to_string())
+                    ));
 
                     if ui.button("Deselect").clicked() {
                         state.selected_id = None;

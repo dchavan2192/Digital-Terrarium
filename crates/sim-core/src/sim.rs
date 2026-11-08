@@ -54,6 +54,8 @@ pub struct TickStats {
     pub total_attacks: u64,
     pub mean_energy: f64,
     pub mean_brain_neurons: f64,
+    pub species_count: usize,
+    pub mean_generation: f64,
 }
 
 /// Compact action output — one per organism per tick.
@@ -105,6 +107,8 @@ impl Simulation {
                 genome,
                 brain,
                 alive: true,
+                parent_id: None,
+                generation: 0,
             };
             organisms.push(org);
             next_id += 1;
@@ -431,6 +435,8 @@ impl Simulation {
                     genome: child_genome,
                     brain: child_brain,
                     alive: true,
+                    parent_id: Some(org.id),
+                    generation: org.generation + 1,
                 };
                 self.next_id += 1;
                 births += 1;
@@ -481,9 +487,16 @@ impl Simulation {
 
         // Update stats
         let population = self.organisms.len();
-        let (total_energy, total_neurons) = self.organisms.iter().fold((0.0, 0.0), |(e, n), o| {
-            (e + o.energy, n + o.brain.neuron_count() as f64)
-        });
+        let (total_energy, total_neurons, total_generation) =
+            self.organisms
+                .iter()
+                .fold((0.0, 0.0, 0u64), |(e, n, g), o| {
+                    (
+                        e + o.energy,
+                        n + o.brain.neuron_count() as f64,
+                        g + o.generation,
+                    )
+                });
         let mean_energy = if population > 0 {
             total_energy / population as f64
         } else {
@@ -493,6 +506,42 @@ impl Simulation {
             total_neurons / population as f64
         } else {
             0.0
+        };
+        let mean_generation = if population > 0 {
+            total_generation as f64 / population as f64
+        } else {
+            0.0
+        };
+
+        // Species clustering — greedy threshold-based assignment
+        //
+        // Inspired by NEAT compatibility distance (Stanley & Miikkulainen, 2002).
+        // Each organism is assigned to the first species whose representative
+        // genome is within `species_threshold` distance. If no match, a new species
+        // is created. This is O(organisms * species) — fast when species count is small.
+        //
+        // Computed every tick for accurate tracking. With ~1000 organisms and
+        // typically <20 species, this is ~20k distance computations — negligible
+        // compared to the ~1000 brain forward passes.
+        let species_threshold = 0.5;
+        let species_count = if population > 0 {
+            // Representatives: one genome per species (first assigned member)
+            let mut representatives: Vec<&crate::genome::Genome> = Vec::new();
+            for org in &self.organisms {
+                let mut found = false;
+                for rep in &representatives {
+                    if org.genome.genome_distance(rep) < species_threshold {
+                        found = true;
+                        break;
+                    }
+                }
+                if !found {
+                    representatives.push(&org.genome);
+                }
+            }
+            representatives.len()
+        } else {
+            0
         };
 
         self.tick += 1;
@@ -510,6 +559,8 @@ impl Simulation {
             total_attacks,
             mean_energy,
             mean_brain_neurons,
+            species_count,
+            mean_generation,
         };
     }
 
