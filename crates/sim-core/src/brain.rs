@@ -56,6 +56,12 @@ pub struct BrainOutput {
     pub eat: f64,
     /// Attack intent — if > 0.0, the creature attempts to attack a nearby creature.
     pub attack: f64,
+    /// Broadcast signal [-1, 1]. Heard by nearby creatures as a brain input.
+    /// Citation: Werner & Dyer (1991) "Evolution of Communication in Artificial Organisms"
+    pub signal: f64,
+    /// Share intent — if > 0.0, transfer energy to nearest neighbor.
+    /// Citation: Hamilton (1964) kin selection, Trivers (1971) reciprocal altruism
+    pub share: f64,
 }
 
 impl Brain {
@@ -121,6 +127,8 @@ impl Brain {
             speed: (output[1] + 1.0) * 0.5, // tanh [-1,1] → [0, 1]
             eat: output[2],                 // > 0.0 means try to eat
             attack: output[3],              // > 0.0 means try to attack
+            signal: output[4],              // [-1, 1] broadcast signal
+            share: output[5],               // > 0.0 means share energy with nearest neighbor
         }
     }
 

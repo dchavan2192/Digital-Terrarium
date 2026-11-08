@@ -57,11 +57,11 @@
 - [x] Speciation detection and lineage tracking
 - [x] Trophic level analysis
 
-### Phase 4: Social Intelligence [PLANNED]
-- [ ] Broadcast signal channel (brain output -> nearby brain input)
-- [ ] Energy transfer/sharing between creatures
-- [ ] Kin recognition via color hue + signal correlation
-- [ ] Cooperation rate measurement
+### Phase 4: Social Intelligence [COMPLETE]
+- [x] Broadcast signal channel (brain output -> nearby brain input)
+- [x] Energy transfer/sharing between creatures
+- [x] Kin recognition via color hue + signal correlation
+- [x] Cooperation rate measurement
 
 ### Phase 5: Cognitive Complexity [PLANNED]
 - [ ] NEAT-style topology evolution (add/remove neurons and connections)
@@ -287,3 +287,13 @@ Mutation: 10% per weight, +/-0.2 step
   - Viewer shows per-creature trophic level and energy breakdown in inspector
   - New test: `trophic_level_tracking` (13 tests total, all passing)
   - Citation: Lindeman (1942) "The Trophic-Dynamic Aspect of Ecology"
+- **README plots and analysis**
+  - Python plotting script (analysis/plot_readme.py) with dark GitHub theme
+  - 5 plots: dashboard (hero), population/energy, birth/death, combat, evolution
+  - README rewritten with real metrics, biology citations table, embedded plots
+- **Phase 4: Social Intelligence — complete**
+  - Broadcast signal channel: 5th brain output (signal [-1,1]), distance-weighted averaging of nearby signals as brain input. Citation: Werner & Dyer (1991)
+  - Energy sharing: 6th brain output (share), voluntary energy transfer to nearest neighbor. Config: share_range=10, share_amount=5. Citation: Hamilton (1964), Trivers (1971)
+  - Kin recognition: 15th brain input — color hue similarity to nearest creature [-1,1]. Enables kin-selective behavior
+  - Cooperation measurement: cooperation_rate (shares/pop), kin_share_ratio (fraction of shares to kin, hue diff < 30 degrees)
+  - Brain now 15 inputs, 6 outputs (turn, speed, eat, attack, signal, share)

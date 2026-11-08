@@ -56,6 +56,10 @@ pub struct TickStats {
     pub mean_brain_neurons: f64,
     pub species_count: usize,
     pub mean_generation: f64,
+    pub shares: usize,
+    pub total_shares: u64,
+    pub cooperation_rate: f64,
+    pub kin_share_ratio: f64,
     pub mean_trophic_level: f64,
     pub herbivore_count: usize,
     pub predator_count: usize,
@@ -68,6 +72,8 @@ struct Action {
     speed: f64,
     eat: f64,
     attack: f64,
+    signal: f64,
+    share: f64,
     alive: bool,
 }
 
@@ -78,6 +84,8 @@ impl Default for Action {
             speed: 0.0,
             eat: 0.0,
             attack: 0.0,
+            signal: 0.0,
+            share: 0.0,
             alive: false,
         }
     }
@@ -112,6 +120,7 @@ impl Simulation {
                 alive: true,
                 parent_id: None,
                 generation: 0,
+                signal: 0.0,
                 energy_from_food: 0.0,
                 energy_from_attacks: 0.0,
             };
@@ -233,7 +242,12 @@ impl Simulation {
                 }
 
                 // Check creatures — dot-product ray test (no atan2)
+                // Also accumulate nearby signals and track nearest creature for kin recognition
                 let range_sq = range * range;
+                let mut signal_sum = 0.0f64;
+                let mut signal_weight = 0.0f64;
+                let mut nearest_dist_sq = f64::MAX;
+                let mut nearest_hue = -1.0f64; // sentinel: no creature found
                 spatial_grid.for_each_nearby(ox, oy, |ni| {
                     if ni == i || !organisms[ni].alive {
                         return;
@@ -249,6 +263,17 @@ impl Simulation {
                     let nx = dx * inv_dist;
                     let ny = dy * inv_dist;
 
+                    // Accumulate signal: closer creatures have stronger influence
+                    // Weight = 1/dist so nearby signals dominate
+                    signal_sum += organisms[ni].signal * inv_dist;
+                    signal_weight += inv_dist;
+
+                    // Track nearest creature for kin recognition
+                    if dist_sq < nearest_dist_sq {
+                        nearest_dist_sq = dist_sq;
+                        nearest_hue = organisms[ni].genome.color_hue;
+                    }
+
                     for r in 0..ray_count {
                         if dist >= closest_dists[r] {
                             continue;
@@ -261,6 +286,29 @@ impl Simulation {
                         }
                     }
                 });
+
+                // Compute heard signal: distance-weighted average of nearby broadcasts
+                let heard_signal = if signal_weight > 0.0 {
+                    (signal_sum / signal_weight).clamp(-1.0, 1.0)
+                } else {
+                    0.0
+                };
+
+                // Kin similarity: how close is nearest creature's hue to ours?
+                // Hue wraps around 360, so min angular distance ∈ [0, 180].
+                // Normalized to [-1, 1]: 1 = identical hue (kin), -1 = opposite hue.
+                // Hamilton (1964): kin recognition enables rB > C altruism.
+                let kin_similarity = if nearest_hue >= 0.0 {
+                    let own_hue = organisms[i].genome.color_hue;
+                    let mut diff = (own_hue - nearest_hue).abs();
+                    if diff > 180.0 {
+                        diff = 360.0 - diff;
+                    }
+                    // diff ∈ [0, 180] → similarity ∈ [1, -1]
+                    1.0 - diff / 90.0
+                } else {
+                    0.0 // no creature nearby
+                };
 
                 // Normalize ray distances
                 let mut ray_distances = [0.0f64; MAX_RAYS];
@@ -281,11 +329,14 @@ impl Simulation {
                 idx += 1;
                 inputs[idx] = organisms[i].heading / std::f64::consts::PI - 1.0;
                 idx += 1;
-                inputs[idx] = 0.0; // signal placeholder
+                inputs[idx] = heard_signal;
                 idx += 1;
                 // Body size normalized to [-1, 1]: (size - 1.75) / 1.25
                 // Maps [0.5, 3.0] -> [-1, 1]
                 inputs[idx] = (organisms[i].genome.body_size - 1.75) / 1.25;
+                idx += 1;
+                // Kin similarity to nearest creature [-1, 1]
+                inputs[idx] = kin_similarity;
 
                 let brain_inputs = &inputs[..organisms[i].brain.inputs];
                 let output = organisms[i].brain.forward(brain_inputs);
@@ -295,6 +346,8 @@ impl Simulation {
                     speed: output.speed,
                     eat: output.eat,
                     attack: output.attack,
+                    signal: output.signal,
+                    share: output.share,
                     alive: true,
                 }
             })
@@ -316,6 +369,9 @@ impl Simulation {
             } else if org.heading < 0.0 {
                 org.heading += std::f64::consts::TAU;
             }
+
+            // Update broadcast signal
+            org.signal = action.signal;
 
             // Move — larger creatures are slower (speed / body_size)
             let body_size = org.genome.body_size;
@@ -413,7 +469,73 @@ impl Simulation {
             }
         }
 
-        // 5. Reproduce
+        // 5. Energy sharing — cooperative energy transfer
+        //
+        // Creatures can voluntarily transfer energy to their nearest neighbor.
+        // Whether this behavior evolves depends on kin selection (Hamilton, 1964):
+        // rB > C, where r = relatedness, B = benefit to recipient, C = cost to donor.
+        // Since offspring spawn near parents and inherit similar color hue,
+        // related creatures cluster spatially — enabling kin-selected altruism.
+        //
+        // Citations:
+        //   Hamilton (1964) "The Genetical Evolution of Social Behaviour"
+        //   Trivers (1971) "The Evolution of Reciprocal Altruism"
+        let mut shares = 0usize;
+        let mut kin_shares = 0usize;
+        let share_range = self.config.sharing.share_range;
+        let share_amount = self.config.sharing.share_amount;
+        let share_range_sq = share_range * share_range;
+
+        for i in 0..self.organisms.len() {
+            let action = self.actions[i];
+            if !action.alive || action.share <= 0.0 {
+                continue;
+            }
+            // Don't share if it would kill the donor
+            if self.organisms[i].energy <= share_amount {
+                continue;
+            }
+
+            let org_x = self.organisms[i].pos_x;
+            let org_y = self.organisms[i].pos_y;
+
+            // Find nearest living neighbor within share range
+            let mut best_target: Option<usize> = None;
+            let mut best_dist_sq = share_range_sq;
+
+            self.spatial_grid.for_each_nearby(org_x, org_y, |ni| {
+                if ni == i || !self.organisms[ni].alive {
+                    return;
+                }
+                let dx = wraparound_delta(org_x, self.organisms[ni].pos_x, world_w);
+                let dy = wraparound_delta(org_y, self.organisms[ni].pos_y, world_h);
+                let dist_sq = dx * dx + dy * dy;
+                if dist_sq < best_dist_sq {
+                    best_dist_sq = dist_sq;
+                    best_target = Some(ni);
+                }
+            });
+
+            if let Some(target) = best_target {
+                self.organisms[i].energy -= share_amount;
+                self.organisms[target].energy =
+                    (self.organisms[target].energy + share_amount).min(max_energy);
+                shares += 1;
+
+                // Track kin-directed sharing (hue diff < 30 degrees = kin)
+                let donor_hue = self.organisms[i].genome.color_hue;
+                let recipient_hue = self.organisms[target].genome.color_hue;
+                let mut hue_diff = (donor_hue - recipient_hue).abs();
+                if hue_diff > 180.0 {
+                    hue_diff = 360.0 - hue_diff;
+                }
+                if hue_diff < 30.0 {
+                    kin_shares += 1;
+                }
+            }
+        }
+
+        // 6. Reproduce
         let mut offspring: Vec<Organism> = Vec::new();
         let current_alive = self.organisms.iter().filter(|o| o.alive).count();
         let repro_threshold = self.config.reproduction.threshold;
@@ -445,6 +567,7 @@ impl Simulation {
                     alive: true,
                     parent_id: Some(org.id),
                     generation: org.generation + 1,
+                    signal: 0.0,
                     energy_from_food: 0.0,
                     energy_from_attacks: 0.0,
                 };
@@ -594,6 +717,20 @@ impl Simulation {
         let total_births = self.stats.total_births + births as u64;
         let total_deaths = self.stats.total_deaths + deaths as u64;
         let total_attacks = self.stats.total_attacks + attacks as u64;
+        let total_shares = self.stats.total_shares + shares as u64;
+
+        // Cooperation metrics
+        let cooperation_rate = if population > 0 {
+            shares as f64 / population as f64
+        } else {
+            0.0
+        };
+        let kin_share_ratio = if shares > 0 {
+            kin_shares as f64 / shares as f64
+        } else {
+            0.0
+        };
+
         self.stats = TickStats {
             tick: self.tick,
             population,
@@ -603,6 +740,10 @@ impl Simulation {
             total_deaths,
             attacks,
             total_attacks,
+            shares,
+            total_shares,
+            cooperation_rate,
+            kin_share_ratio,
             mean_energy,
             mean_brain_neurons,
             species_count,

@@ -45,6 +45,11 @@ attack_cost = 5.0             # Energy spent per attack attempt (discourages spa
 attack_damage = 20.0          # Base damage per successful hit
 energy_transfer_ratio = 0.5   # Attacker absorbs 50% of damage as energy (trophic loss)
 
+[sharing]
+# Energy sharing: Hamilton (1964) kin selection, Trivers (1971) reciprocal altruism
+share_range = 10.0            # Must be close to share (slightly > attack_range)
+share_amount = 5.0            # Energy transferred per share action
+
 [aging]
 # Gompertz-Makeham mortality: h(age) = λ + α·exp(β·age)
 # Citation: Gompertz (1825), Williams (1957), Kirkwood (1977)
@@ -57,6 +62,6 @@ weight_probability = 0.1  # Chance each weight mutates during reproduction
 weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
 
 [brain]
-inputs = 14             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal + body_size
+inputs = 15             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal + body_size + kin_similarity
 hidden = 8              # Hidden layer neurons
-outputs = 4             # turn, speed, eat, attack
+outputs = 6             # turn, speed, eat, attack, signal, share

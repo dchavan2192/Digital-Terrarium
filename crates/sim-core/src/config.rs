@@ -25,6 +25,7 @@ pub struct Config {
     pub brain: BrainConfig,
     pub aging: AgingConfig,
     pub combat: CombatConfig,
+    pub sharing: SharingConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -119,6 +120,19 @@ pub struct CombatConfig {
     /// Fraction of damage dealt that the attacker absorbs as energy [0, 1].
     /// < 1.0 models thermodynamic loss in trophic transfer (~10% in nature).
     pub energy_transfer_ratio: f64,
+}
+
+/// Energy sharing parameters.
+///
+/// Enables cooperative behavior: creatures can voluntarily transfer energy
+/// to nearby creatures. Whether this evolves depends on kin selection
+/// (Hamilton, 1964) or reciprocal altruism (Trivers, 1971).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SharingConfig {
+    /// Maximum range for energy sharing (world units).
+    pub share_range: f64,
+    /// Amount of energy transferred per share action.
+    pub share_amount: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

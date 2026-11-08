@@ -55,9 +55,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 14
+inputs = 15
 hidden = 8
-outputs = 4
+outputs = 6
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -69,6 +69,10 @@ attack_range = 8.0
 attack_cost = 5.0
 attack_damage = 20.0
 energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
 "#;
     Config::parse(toml).expect("small config should be valid")
 }
@@ -79,9 +83,9 @@ fn config_loads_from_default_toml() {
     assert_eq!(cfg.world.width, 1000.0);
     assert_eq!(cfg.world.height, 1000.0);
     assert_eq!(cfg.creature.initial_count, 300);
-    assert_eq!(cfg.brain.inputs, 14);
+    assert_eq!(cfg.brain.inputs, 15);
     assert_eq!(cfg.brain.hidden, 8);
-    assert_eq!(cfg.brain.outputs, 4);
+    assert_eq!(cfg.brain.outputs, 6);
 }
 
 #[test]
@@ -121,9 +125,9 @@ child_energy = 50.0
 weight_probability = 0.1
 weight_step = 0.2
 [brain]
-inputs = 14
+inputs = 15
 hidden = 8
-outputs = 4
+outputs = 6
 [aging]
 extrinsic_mortality = 0.0001
 initial_senescence = 0.00001
@@ -134,6 +138,10 @@ attack_range = 8.0
 attack_cost = 5.0
 attack_damage = 20.0
 energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
 "#;
     assert!(Config::parse(bad).is_err());
 }
@@ -259,9 +267,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 14
+inputs = 15
 hidden = 8
-outputs = 4
+outputs = 6
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -269,17 +277,21 @@ initial_senescence = 0.00001
 aging_rate = 0.002
 
 [combat]
-attack_range = 8.0
+attack_range = 0.0
 attack_cost = 5.0
 attack_damage = 20.0
 energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 0.0
+share_amount = 0.0
 "#;
     let cfg = Config::parse(toml).unwrap();
     let mut sim = Simulation::new(cfg);
 
     sim.step();
 
-    // With zero food, all organisms should have lost energy
+    // With zero food, no combat, and no sharing, all organisms should have lost energy
     for org in &sim.organisms {
         assert!(org.energy < 100.0, "organism should have lost energy");
     }
@@ -358,9 +370,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 14
+inputs = 15
 hidden = 8
-outputs = 4
+outputs = 6
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -372,6 +384,10 @@ attack_range = 8.0
 attack_cost = 5.0
 attack_damage = 20.0
 energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
 "#;
     let cfg = Config::parse(toml).unwrap();
     let mut sim = Simulation::new(cfg);

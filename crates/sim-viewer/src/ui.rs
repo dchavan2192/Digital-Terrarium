@@ -72,6 +72,11 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 "Trophic: {:.2} (H:{} P:{})",
                 stats.mean_trophic_level, stats.herbivore_count, stats.predator_count
             ));
+            ui.label(format!(
+                "Cooperation: {:.3} (kin: {:.0}%)",
+                stats.cooperation_rate,
+                stats.kin_share_ratio * 100.0
+            ));
             ui.label(format!("FPS: {:.0}", macroquad::time::get_fps()));
 
             ui.separator();
@@ -90,6 +95,7 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                     ui.label(format!("Heading: {:.1} deg", org.heading.to_degrees()));
                     ui.label(format!("Hue: {:.0}", org.genome.color_hue));
                     ui.label(format!("Body size: {:.2}", org.genome.body_size));
+                    ui.label(format!("Signal: {:.2}", org.signal));
                     ui.label(format!("Mutation rate: {:.3}", org.genome.mutation_rate));
                     ui.label(format!("Brain weights: {}", org.brain.weights.len()));
                     ui.label(format!("Generation: {}", org.generation));

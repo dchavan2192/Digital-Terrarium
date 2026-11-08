@@ -155,6 +155,10 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         "combat.attack_damage" => config.combat.attack_damage = value,
         "combat.energy_transfer_ratio" => config.combat.energy_transfer_ratio = value,
 
+        // Sharing
+        "sharing.share_range" => config.sharing.share_range = value,
+        "sharing.share_amount" => config.sharing.share_amount = value,
+
         _ => return false,
     }
     true
@@ -194,6 +198,8 @@ fn print_supported_params() {
         "combat.attack_cost",
         "combat.attack_damage",
         "combat.energy_transfer_ratio",
+        "sharing.share_range",
+        "sharing.share_amount",
     ];
     for p in params {
         eprintln!("  {}", p);

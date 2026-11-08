@@ -27,6 +27,8 @@ pub struct Organism {
     pub parent_id: Option<OrganismId>,
     /// Generation count (0 for initial population, parent's generation + 1 for offspring).
     pub generation: u64,
+    /// Current broadcast signal [-1, 1]. Updated each tick from brain output.
+    pub signal: f64,
     /// Cumulative energy gained from eating food (lifetime).
     pub energy_from_food: f64,
     /// Cumulative energy gained from attacking other creatures (lifetime).
@@ -36,13 +38,14 @@ pub struct Organism {
 impl Organism {
     /// Build the sensor input vector for the brain.
     ///
-    /// v2 layout (14 inputs):
+    /// v3 layout (15 inputs):
     /// - 5 vision rays × 2 values each (distance normalized [0,1], object type [-1,1])
     ///   type encoding: -1 = nothing, 0 = food, 1 = creature
     /// - own energy normalized to [0,1] (energy / max_energy)
     /// - own heading normalized to [-1,1] (heading / π - 1)
-    /// - nearby signal (0 if none heard)
+    /// - nearby signal (distance-weighted average of broadcasts)
     /// - own body_size normalized to [-1,1]
+    /// - kin similarity to nearest creature [-1,1] (1=same hue, -1=opposite)
     pub fn build_sensor_inputs(
         &self,
         ray_distances: &[f64],
