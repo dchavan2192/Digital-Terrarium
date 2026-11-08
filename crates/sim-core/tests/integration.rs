@@ -57,12 +57,18 @@ weight_step = 0.2
 [brain]
 inputs = 13
 hidden = 8
-outputs = 3
+outputs = 4
 
 [aging]
 extrinsic_mortality = 0.0001
 initial_senescence = 0.00001
 aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
 "#;
     Config::parse(toml).expect("small config should be valid")
 }
@@ -75,7 +81,7 @@ fn config_loads_from_default_toml() {
     assert_eq!(cfg.creature.initial_count, 300);
     assert_eq!(cfg.brain.inputs, 13);
     assert_eq!(cfg.brain.hidden, 8);
-    assert_eq!(cfg.brain.outputs, 3);
+    assert_eq!(cfg.brain.outputs, 4);
 }
 
 #[test]
@@ -117,11 +123,17 @@ weight_step = 0.2
 [brain]
 inputs = 13
 hidden = 8
-outputs = 3
+outputs = 4
 [aging]
 extrinsic_mortality = 0.0001
 initial_senescence = 0.00001
 aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
 "#;
     assert!(Config::parse(bad).is_err());
 }
@@ -249,12 +261,18 @@ weight_step = 0.2
 [brain]
 inputs = 13
 hidden = 8
-outputs = 3
+outputs = 4
 
 [aging]
 extrinsic_mortality = 0.0001
 initial_senescence = 0.00001
 aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
 "#;
     let cfg = Config::parse(toml).unwrap();
     let mut sim = Simulation::new(cfg);
@@ -342,12 +360,18 @@ weight_step = 0.2
 [brain]
 inputs = 13
 hidden = 8
-outputs = 3
+outputs = 4
 
 [aging]
 extrinsic_mortality = 0.0001
 initial_senescence = 0.00001
 aging_rate = 0.005
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
 "#;
     let cfg = Config::parse(toml).unwrap();
     let mut sim = Simulation::new(cfg);

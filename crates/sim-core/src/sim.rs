@@ -50,6 +50,8 @@ pub struct TickStats {
     pub deaths: usize,
     pub total_births: u64,
     pub total_deaths: u64,
+    pub attacks: usize,
+    pub total_attacks: u64,
     pub mean_energy: f64,
     pub mean_brain_neurons: f64,
 }
@@ -60,6 +62,7 @@ struct Action {
     turn: f64,
     speed: f64,
     eat: f64,
+    attack: f64,
     alive: bool,
 }
 
@@ -69,6 +72,7 @@ impl Default for Action {
             turn: 0.0,
             speed: 0.0,
             eat: 0.0,
+            attack: 0.0,
             alive: false,
         }
     }
@@ -277,6 +281,7 @@ impl Simulation {
                     turn: output.turn,
                     speed: output.speed,
                     eat: output.eat,
+                    attack: output.attack,
                     alive: true,
                 }
             })
@@ -321,6 +326,69 @@ impl Simulation {
             org.energy -= base_metabolism + movement_cost + brain_cost;
 
             org.age += 1;
+        }
+
+        // 4. Combat — predator-prey energy transfer
+        //
+        // Lotka-Volterra dynamics: predators gain energy from prey, but at a cost.
+        // Attack has an energy cost (discourages universal aggression) and energy
+        // transfer is lossy (thermodynamic inefficiency in trophic transfer).
+        //
+        // Citations:
+        //   Lotka (1925) "Elements of Physical Biology"
+        //   Volterra (1926) "Fluctuations in the Abundance of a Species"
+        //   Yaeger (1994) "Computational Genetics, Physiology, Metabolism, Neural Systems..."
+        let mut attacks = 0usize;
+        let attack_range = self.config.combat.attack_range;
+        let attack_cost = self.config.combat.attack_cost;
+        let attack_damage = self.config.combat.attack_damage;
+        let transfer_ratio = self.config.combat.energy_transfer_ratio;
+        let attack_range_sq = attack_range * attack_range;
+
+        // Rebuild spatial grid with post-movement positions for attack range checks
+        self.positions.clear();
+        self.positions
+            .extend(self.organisms.iter().map(|o| (o.pos_x, o.pos_y, o.alive)));
+        self.spatial_grid.rebuild(&self.positions);
+
+        // Process attacks in index order for determinism.
+        // Each attacker picks the nearest living neighbor within attack_range.
+        for i in 0..organism_count {
+            let action = self.actions[i];
+            if !action.alive || action.attack <= 0.0 {
+                continue;
+            }
+            let org_x = self.organisms[i].pos_x;
+            let org_y = self.organisms[i].pos_y;
+
+            // Pay the attack cost regardless of hitting anything
+            self.organisms[i].energy -= attack_cost;
+
+            // Find nearest living neighbor within attack range
+            let mut best_target: Option<usize> = None;
+            let mut best_dist_sq = attack_range_sq;
+
+            self.spatial_grid.for_each_nearby(org_x, org_y, |ni| {
+                if ni == i || !self.organisms[ni].alive {
+                    return;
+                }
+                let dx = wraparound_delta(org_x, self.organisms[ni].pos_x, world_w);
+                let dy = wraparound_delta(org_y, self.organisms[ni].pos_y, world_h);
+                let dist_sq = dx * dx + dy * dy;
+                if dist_sq < best_dist_sq {
+                    best_dist_sq = dist_sq;
+                    best_target = Some(ni);
+                }
+            });
+
+            if let Some(target) = best_target {
+                // Deal damage, transfer energy
+                let actual_damage = attack_damage.min(self.organisms[target].energy);
+                self.organisms[target].energy -= actual_damage;
+                let gained = actual_damage * transfer_ratio;
+                self.organisms[i].energy = (self.organisms[i].energy + gained).min(max_energy);
+                attacks += 1;
+            }
         }
 
         // 5. Reproduce
@@ -420,6 +488,7 @@ impl Simulation {
         self.tick += 1;
         let total_births = self.stats.total_births + births as u64;
         let total_deaths = self.stats.total_deaths + deaths as u64;
+        let total_attacks = self.stats.total_attacks + attacks as u64;
         self.stats = TickStats {
             tick: self.tick,
             population,
@@ -427,6 +496,8 @@ impl Simulation {
             deaths,
             total_births,
             total_deaths,
+            attacks,
+            total_attacks,
             mean_energy,
             mean_brain_neurons,
         };

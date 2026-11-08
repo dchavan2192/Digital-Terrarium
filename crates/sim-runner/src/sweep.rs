@@ -149,6 +149,12 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         "aging.initial_senescence" => config.aging.initial_senescence = value,
         "aging.aging_rate" => config.aging.aging_rate = value,
 
+        // Combat
+        "combat.attack_range" => config.combat.attack_range = value,
+        "combat.attack_cost" => config.combat.attack_cost = value,
+        "combat.attack_damage" => config.combat.attack_damage = value,
+        "combat.energy_transfer_ratio" => config.combat.energy_transfer_ratio = value,
+
         _ => return false,
     }
     true
@@ -184,6 +190,10 @@ fn print_supported_params() {
         "aging.extrinsic_mortality",
         "aging.initial_senescence",
         "aging.aging_rate",
+        "combat.attack_range",
+        "combat.attack_cost",
+        "combat.attack_damage",
+        "combat.energy_transfer_ratio",
     ];
     for p in params {
         eprintln!("  {}", p);

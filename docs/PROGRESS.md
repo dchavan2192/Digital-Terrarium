@@ -51,8 +51,8 @@
 - [ ] **Research-backed design decisions** — Every mechanic should cite why it exists
 - [ ] **Define control environment** — Standard test config for reproducible comparisons
 
-### Phase 3: Ecological Complexity [PLANNED]
-- [ ] Attack/consume mechanic (predator-prey dynamics)
+### Phase 3: Ecological Complexity [IN PROGRESS]
+- [x] Attack/consume mechanic (predator-prey dynamics)
 - [ ] Body size as evolvable gene (affects speed, energy cost, attack power)
 - [ ] Speciation detection and lineage tracking
 - [ ] Trophic level analysis
@@ -258,3 +258,9 @@ Mutation: 10% per weight, +/-0.2 step
 - **Fast approximate tanh**: Pade approximant `x(27+x²)/(27+9x²)`, max error ~0.004
 - Analyzed Pi baseline data (5 seeds x 100k + 1 seed x 500k ticks)
 - Pi running Gompertz comparison overnight
+- **Predator-prey combat mechanics**
+  - New brain output: attack (outputs 3->4)
+  - [combat] config: attack_range=8, attack_cost=5, attack_damage=20, energy_transfer_ratio=0.5
+  - Attacker pays cost, nearest neighbor in range takes damage, 50% energy transfer (trophic loss)
+  - ~7600 attacks in first 1000 ticks — creatures using combat immediately
+  - Citations: Lotka (1925), Volterra (1926), Yaeger Polyworld (1994)

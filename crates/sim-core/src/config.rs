@@ -24,6 +24,7 @@ pub struct Config {
     pub mutation: MutationConfig,
     pub brain: BrainConfig,
     pub aging: AgingConfig,
+    pub combat: CombatConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,6 +98,27 @@ pub struct AgingConfig {
     pub initial_senescence: f64,
     /// Default aging rate (β) for initial population. Encoded in genome; can evolve.
     pub aging_rate: f64,
+}
+
+/// Combat parameters for predator-prey dynamics.
+///
+/// Inspired by Lotka-Volterra predator-prey models (Lotka, 1925; Volterra, 1926)
+/// and Yaeger's Polyworld (1994) where creatures could fight for energy.
+///
+/// Key design: attacking has a cost, and energy transfer is lossy (thermodynamic
+/// inefficiency). This ensures that predation is only viable when prey is abundant
+/// and creates selective pressure for both predator and prey strategies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CombatConfig {
+    /// Maximum range at which an attack can land (world units).
+    pub attack_range: f64,
+    /// Energy cost to the attacker per attack attempt (win or lose).
+    pub attack_cost: f64,
+    /// Base damage dealt to the victim per successful attack.
+    pub attack_damage: f64,
+    /// Fraction of damage dealt that the attacker absorbs as energy [0, 1].
+    /// < 1.0 models thermodynamic loss in trophic transfer (~10% in nature).
+    pub energy_transfer_ratio: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

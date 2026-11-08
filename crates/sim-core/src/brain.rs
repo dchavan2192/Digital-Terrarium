@@ -54,6 +54,8 @@ pub struct BrainOutput {
     pub speed: f64,
     /// Eat intent — if > 0.0, the creature attempts to eat.
     pub eat: f64,
+    /// Attack intent — if > 0.0, the creature attempts to attack a nearby creature.
+    pub attack: f64,
 }
 
 impl Brain {
@@ -118,6 +120,7 @@ impl Brain {
             turn: output[0],                // [-1, 1]
             speed: (output[1] + 1.0) * 0.5, // tanh [-1,1] → [0, 1]
             eat: output[2],                 // > 0.0 means try to eat
+            attack: output[3],              // > 0.0 means try to attack
         }
     }
 
