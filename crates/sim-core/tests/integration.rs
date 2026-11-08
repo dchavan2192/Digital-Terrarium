@@ -470,3 +470,40 @@ fn lineage_tracking_and_speciation() {
         "expected mean_generation > 0"
     );
 }
+
+#[test]
+fn trophic_level_tracking() {
+    let cfg = small_config();
+    let mut sim = Simulation::new(cfg);
+
+    // Initial organisms should have zero energy intake
+    for org in &sim.organisms {
+        assert_eq!(org.energy_from_food, 0.0);
+        assert_eq!(org.energy_from_attacks, 0.0);
+    }
+
+    // Run long enough for eating and attacks to happen
+    for _ in 0..500 {
+        sim.step();
+        if sim.is_extinct() {
+            break;
+        }
+    }
+
+    // Some organisms should have eaten food
+    let ate_food = sim.organisms.iter().any(|o| o.energy_from_food > 0.0);
+    assert!(ate_food, "expected some organisms to have eaten food");
+
+    // Mean trophic level should be >= 1.0 (pure herbivore baseline)
+    assert!(
+        sim.stats.mean_trophic_level >= 1.0,
+        "trophic level should be >= 1.0, got {}",
+        sim.stats.mean_trophic_level
+    );
+
+    // Herbivore + predator counts should not exceed population
+    assert!(
+        sim.stats.herbivore_count + sim.stats.predator_count <= sim.stats.population,
+        "herbivore + predator count exceeds population"
+    );
+}

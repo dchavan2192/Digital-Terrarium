@@ -51,11 +51,11 @@
 - [ ] **Research-backed design decisions** — Every mechanic should cite why it exists
 - [ ] **Define control environment** — Standard test config for reproducible comparisons
 
-### Phase 3: Ecological Complexity [IN PROGRESS]
+### Phase 3: Ecological Complexity [COMPLETE]
 - [x] Attack/consume mechanic (predator-prey dynamics)
 - [x] Body size as evolvable gene (affects speed, metabolism, attack power/defense)
 - [x] Speciation detection and lineage tracking
-- [ ] Trophic level analysis
+- [x] Trophic level analysis
 
 ### Phase 4: Social Intelligence [PLANNED]
 - [ ] Broadcast signal channel (brain output -> nearby brain input)
@@ -279,3 +279,11 @@ Mutation: 10% per weight, +/-0.2 step
   - Viewer inspector shows generation and parent ID for selected creatures
   - New test: `lineage_tracking_and_speciation` (12 tests total, all passing)
   - Citation: Stanley & Miikkulainen (2002) NEAT compatibility distance
+- **Trophic level analysis**
+  - Per-organism `energy_from_food` and `energy_from_attacks` lifetime tracking
+  - Trophic level = 1 + (attack_energy / total_energy): 1.0 = herbivore, 2.0 = pure predator
+  - Classification: herbivore (<25% from attacks), predator (>50% from attacks), omnivore (between)
+  - New stats: `mean_trophic_level`, `herbivore_count`, `predator_count` in TickStats/CSV
+  - Viewer shows per-creature trophic level and energy breakdown in inspector
+  - New test: `trophic_level_tracking` (13 tests total, all passing)
+  - Citation: Lindeman (1942) "The Trophic-Dynamic Aspect of Ecology"

@@ -56,6 +56,9 @@ pub struct TickStats {
     pub mean_brain_neurons: f64,
     pub species_count: usize,
     pub mean_generation: f64,
+    pub mean_trophic_level: f64,
+    pub herbivore_count: usize,
+    pub predator_count: usize,
 }
 
 /// Compact action output — one per organism per tick.
@@ -109,6 +112,8 @@ impl Simulation {
                 alive: true,
                 parent_id: None,
                 generation: 0,
+                energy_from_food: 0.0,
+                energy_from_attacks: 0.0,
             };
             organisms.push(org);
             next_id += 1;
@@ -323,7 +328,9 @@ impl Simulation {
             // Eat
             if action.eat > 0.0 {
                 let consumed = self.food_grid.eat_at(org.pos_x, org.pos_y, 1.0);
-                org.energy += consumed * energy_per_food;
+                let food_energy = consumed * energy_per_food;
+                org.energy_from_food += food_energy;
+                org.energy += food_energy;
                 if org.energy > max_energy {
                     org.energy = max_energy;
                 }
@@ -400,6 +407,7 @@ impl Simulation {
                 let actual_damage = scaled_damage.min(self.organisms[target].energy);
                 self.organisms[target].energy -= actual_damage;
                 let gained = actual_damage * transfer_ratio;
+                self.organisms[i].energy_from_attacks += gained;
                 self.organisms[i].energy = (self.organisms[i].energy + gained).min(max_energy);
                 attacks += 1;
             }
@@ -437,6 +445,8 @@ impl Simulation {
                     alive: true,
                     parent_id: Some(org.id),
                     generation: org.generation + 1,
+                    energy_from_food: 0.0,
+                    energy_from_attacks: 0.0,
                 };
                 self.next_id += 1;
                 births += 1;
@@ -544,6 +554,42 @@ impl Simulation {
             0
         };
 
+        // Trophic level analysis
+        //
+        // Trophic level = 1 + fraction of energy from predation.
+        // Pure herbivores (all energy from food) = level 1.0
+        // Pure predators (all energy from attacks) = level 2.0
+        // Omnivores fall in between.
+        //
+        // Citation: Lindeman, R.L. (1942) "The Trophic-Dynamic Aspect of Ecology"
+        // *Ecology* 23(4):399-417
+        let mut total_trophic = 0.0;
+        let mut herbivore_count = 0usize;
+        let mut predator_count = 0usize;
+        for org in &self.organisms {
+            let total_intake = org.energy_from_food + org.energy_from_attacks;
+            if total_intake > 0.0 {
+                let predation_fraction = org.energy_from_attacks / total_intake;
+                let trophic_level = 1.0 + predation_fraction;
+                total_trophic += trophic_level;
+                // Classify: >75% from food = herbivore, >50% from attacks = predator
+                if predation_fraction < 0.25 {
+                    herbivore_count += 1;
+                } else if predation_fraction > 0.5 {
+                    predator_count += 1;
+                }
+            } else {
+                // No energy intake yet — default to herbivore (level 1.0)
+                total_trophic += 1.0;
+                herbivore_count += 1;
+            }
+        }
+        let mean_trophic_level = if population > 0 {
+            total_trophic / population as f64
+        } else {
+            0.0
+        };
+
         self.tick += 1;
         let total_births = self.stats.total_births + births as u64;
         let total_deaths = self.stats.total_deaths + deaths as u64;
@@ -561,6 +607,9 @@ impl Simulation {
             mean_brain_neurons,
             species_count,
             mean_generation,
+            mean_trophic_level,
+            herbivore_count,
+            predator_count,
         };
     }
 

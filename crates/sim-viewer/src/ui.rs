@@ -68,6 +68,10 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
             ui.label(format!("Mean neurons: {:.1}", stats.mean_brain_neurons));
             ui.label(format!("Species: {}", stats.species_count));
             ui.label(format!("Mean generation: {:.0}", stats.mean_generation));
+            ui.label(format!(
+                "Trophic: {:.2} (H:{} P:{})",
+                stats.mean_trophic_level, stats.herbivore_count, stats.predator_count
+            ));
             ui.label(format!("FPS: {:.0}", macroquad::time::get_fps()));
 
             ui.separator();
@@ -94,6 +98,17 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                         org.parent_id
                             .map(|id| id.to_string())
                             .unwrap_or_else(|| "none (gen 0)".to_string())
+                    ));
+                    let total_intake = org.energy_from_food + org.energy_from_attacks;
+                    let trophic = if total_intake > 0.0 {
+                        1.0 + org.energy_from_attacks / total_intake
+                    } else {
+                        1.0
+                    };
+                    ui.label(format!("Trophic level: {:.2}", trophic));
+                    ui.label(format!(
+                        "Energy from: food {:.0} / attacks {:.0}",
+                        org.energy_from_food, org.energy_from_attacks
                     ));
 
                     if ui.button("Deselect").clicked() {

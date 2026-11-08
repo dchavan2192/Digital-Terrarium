@@ -27,6 +27,10 @@ pub struct Organism {
     pub parent_id: Option<OrganismId>,
     /// Generation count (0 for initial population, parent's generation + 1 for offspring).
     pub generation: u64,
+    /// Cumulative energy gained from eating food (lifetime).
+    pub energy_from_food: f64,
+    /// Cumulative energy gained from attacking other creatures (lifetime).
+    pub energy_from_attacks: f64,
 }
 
 impl Organism {
