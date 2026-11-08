@@ -11,6 +11,13 @@
 
 use crate::config::BrainConfig;
 
+/// Maximum hidden layer size supported (for stack allocation).
+pub const MAX_HIDDEN: usize = 32;
+/// Maximum output layer size supported.
+pub const MAX_OUTPUTS: usize = 16;
+/// Maximum input layer size supported.
+pub const MAX_INPUTS: usize = 64;
+
 /// A fixed-topology feed-forward neural network.
 #[derive(Debug, Clone)]
 pub struct Brain {
@@ -28,7 +35,7 @@ pub struct BrainOutput {
     pub turn: f64,
     /// Desired speed, normalized to [0, 1]. Scaled by max_speed externally.
     pub speed: f64,
-    /// Eat intent — if > 0.5, the creature attempts to eat.
+    /// Eat intent — if > 0.0, the creature attempts to eat.
     pub eat: f64,
 }
 
@@ -42,6 +49,9 @@ impl Brain {
             config.total_weights(),
             weights.len()
         );
+        assert!(config.hidden <= MAX_HIDDEN);
+        assert!(config.outputs <= MAX_OUTPUTS);
+        assert!(config.inputs <= MAX_INPUTS);
         Brain {
             inputs: config.inputs,
             hidden: config.hidden,
@@ -51,10 +61,7 @@ impl Brain {
     }
 
     /// Run a forward pass. Returns the output actions.
-    ///
-    /// Activation: tanh for hidden, tanh for outputs.
-    /// Outputs are then mapped: turn stays in [-1,1], speed is clamped to [0,1],
-    /// eat stays as-is (thresholded externally at 0.0).
+    /// Uses stack-allocated arrays — zero heap allocation.
     pub fn forward(&self, inputs: &[f64]) -> BrainOutput {
         debug_assert_eq!(inputs.len(), self.inputs);
 
@@ -67,18 +74,21 @@ impl Brain {
         let o_biases_start = ho_weights_start + self.hidden * self.outputs;
         let o_biases = &self.weights[o_biases_start..];
 
+        // Stack-allocated buffers
+        let mut hidden = [0.0f64; MAX_HIDDEN];
+        let mut output = [0.0f64; MAX_OUTPUTS];
+
         // Hidden layer
-        let mut hidden = vec![0.0; self.hidden];
         for h in 0..self.hidden {
             let mut sum = h_biases[h];
+            let row_start = h; // weights laid out as input-major: ih_weights[i * hidden + h]
             for i in 0..self.inputs {
-                sum += inputs[i] * ih_weights[i * self.hidden + h];
+                sum += inputs[i] * ih_weights[i * self.hidden + row_start];
             }
             hidden[h] = sum.tanh();
         }
 
         // Output layer
-        let mut output = vec![0.0; self.outputs];
         for o in 0..self.outputs {
             let mut sum = o_biases[o];
             for h in 0..self.hidden {

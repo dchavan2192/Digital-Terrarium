@@ -36,20 +36,26 @@ impl FoodGrid {
 
     /// Regrow food in every cell, capped at max_per_cell.
     pub fn regrow(&mut self) {
+        let rate = self.regrowth_rate;
+        let max = self.max_per_cell;
         for cell in &mut self.cells {
-            *cell = (*cell + self.regrowth_rate).min(self.max_per_cell);
+            // Branchless: only add if below max
+            if *cell < max {
+                *cell = (*cell + rate).min(max);
+            }
         }
     }
 
     /// Get the grid index for a world position.
+    #[inline(always)]
     fn cell_index(&self, x: f64, y: f64) -> usize {
         let col = ((x / self.cell_size) as usize).min(self.cols - 1);
         let row = ((y / self.cell_size) as usize).min(self.rows - 1);
         row * self.cols + col
     }
 
-    /// Try to eat food at a position. Returns the amount of food consumed (0.0 to available).
-    /// A creature eats up to `max_bite` from the cell it's standing on.
+    /// Try to eat food at a position. Returns the amount of food consumed.
+    #[inline]
     pub fn eat_at(&mut self, x: f64, y: f64, max_bite: f64) -> f64 {
         let idx = self.cell_index(x, y);
         let available = self.cells[idx];
@@ -59,6 +65,7 @@ impl FoodGrid {
     }
 
     /// Read food level at a position (for vision rays).
+    #[inline]
     pub fn food_at(&self, x: f64, y: f64) -> f64 {
         let idx = self.cell_index(x, y);
         self.cells[idx]
@@ -67,8 +74,8 @@ impl FoodGrid {
 
 /// Spatial hash grid for fast organism neighbor lookups.
 ///
-/// Each cell holds a list of organism indices. Rebuilt every tick from scratch
-/// (cheaper than incremental updates for our population size).
+/// Uses a flat index buffer instead of Vec-per-cell to avoid allocation churn.
+/// Each cell stores a (start, count) into a shared index buffer.
 #[derive(Debug, Clone)]
 pub struct SpatialGrid {
     pub cols: usize,
@@ -76,8 +83,12 @@ pub struct SpatialGrid {
     pub cell_size: f64,
     pub world_width: f64,
     pub world_height: f64,
-    /// Each cell holds indices into the organism vec.
-    pub cells: Vec<Vec<usize>>,
+    /// Per-cell: (start_index_in_indices, count).
+    cell_ranges: Vec<(u32, u32)>,
+    /// Flat buffer of organism indices, grouped by cell.
+    indices: Vec<usize>,
+    /// Temporary counts used during build.
+    counts: Vec<u32>,
 }
 
 impl SpatialGrid {
@@ -86,52 +97,105 @@ impl SpatialGrid {
     pub fn new(world: &WorldConfig, cell_size: f64) -> Self {
         let cols = (world.width / cell_size).ceil() as usize;
         let rows = (world.height / cell_size).ceil() as usize;
-        let cells = vec![Vec::new(); cols * rows];
+        let num_cells = cols * rows;
         SpatialGrid {
             cols,
             rows,
             cell_size,
             world_width: world.width,
             world_height: world.height,
-            cells,
+            cell_ranges: vec![(0, 0); num_cells],
+            indices: Vec::new(),
+            counts: vec![0; num_cells],
         }
     }
 
-    /// Clear all cells. Called at the start of each tick before reinserting.
-    pub fn clear(&mut self) {
-        for cell in &mut self.cells {
-            cell.clear();
+    /// Rebuild the spatial grid from scratch. Two-pass counting sort — zero allocation
+    /// after the first tick (reuses buffers).
+    pub fn rebuild(&mut self, positions: &[(f64, f64, bool)]) {
+        let num_cells = self.cols * self.rows;
+
+        // Pass 1: count organisms per cell
+        for c in self.counts.iter_mut() {
+            *c = 0;
+        }
+        for (i, &(x, y, alive)) in positions.iter().enumerate() {
+            if !alive {
+                continue;
+            }
+            let _ = i; // used in pass 2
+            let cell = self.cell_index(x, y);
+            self.counts[cell] += 1;
+        }
+
+        // Compute prefix sums → cell_ranges
+        let mut offset: u32 = 0;
+        for cell in 0..num_cells {
+            self.cell_ranges[cell] = (offset, self.counts[cell]);
+            offset += self.counts[cell];
+        }
+
+        // Resize indices buffer (no alloc if capacity already enough)
+        let total = offset as usize;
+        self.indices.resize(total, 0);
+
+        // Pass 2: scatter organism indices into the buffer
+        // Reset counts to use as write cursors
+        for c in self.counts.iter_mut() {
+            *c = 0;
+        }
+        for (i, &(x, y, alive)) in positions.iter().enumerate() {
+            if !alive {
+                continue;
+            }
+            let cell = self.cell_index(x, y);
+            let (start, _) = self.cell_ranges[cell];
+            let write_pos = start + self.counts[cell];
+            self.indices[write_pos as usize] = i;
+            self.counts[cell] += 1;
         }
     }
 
-    /// Insert an organism index at a world position.
-    pub fn insert(&mut self, x: f64, y: f64, index: usize) {
+    #[inline(always)]
+    fn cell_index(&self, x: f64, y: f64) -> usize {
         let col = ((x / self.cell_size) as usize).min(self.cols - 1);
         let row = ((y / self.cell_size) as usize).min(self.rows - 1);
-        self.cells[row * self.cols + col].push(index);
+        row * self.cols + col
     }
 
-    /// Query all organism indices within a radius of (x, y).
-    /// Returns indices; caller filters by actual distance.
-    /// Handles wraparound by checking neighboring cells across edges.
-    pub fn query_radius(&self, x: f64, y: f64, radius: f64) -> Vec<usize> {
-        let mut results = Vec::new();
-        let cell_radius = (radius / self.cell_size).ceil() as isize;
+    /// Iterate over organism indices in a cell. Returns a slice.
+    #[inline]
+    pub fn cell_contents(&self, col: usize, row: usize) -> &[usize] {
+        let idx = row * self.cols + col;
+        let (start, count) = self.cell_ranges[idx];
+        &self.indices[start as usize..(start + count) as usize]
+    }
+
+    /// Call `f` for each organism index near (x, y) within the grid's cell radius.
+    /// Only checks the 3×3 neighborhood (cell_size >= query radius).
+    #[inline]
+    pub fn for_each_nearby(&self, x: f64, y: f64, mut f: impl FnMut(usize)) {
         let center_col = (x / self.cell_size) as isize;
         let center_row = (y / self.cell_size) as isize;
+        let cols = self.cols as isize;
+        let rows = self.rows as isize;
 
-        for dr in -cell_radius..=cell_radius {
-            for dc in -cell_radius..=cell_radius {
-                let col = ((center_col + dc).rem_euclid(self.cols as isize)) as usize;
-                let row = ((center_row + dr).rem_euclid(self.rows as isize)) as usize;
-                results.extend_from_slice(&self.cells[row * self.cols + col]);
+        for dr in -1..=1 {
+            let row = ((center_row + dr).rem_euclid(rows)) as usize;
+            for dc in -1..=1 {
+                let col = ((center_col + dc).rem_euclid(cols)) as usize;
+                let idx = row * self.cols + col;
+                let (start, count) = self.cell_ranges[idx];
+                for k in start..(start + count) {
+                    f(self.indices[k as usize]);
+                }
             }
         }
-        results
     }
 }
 
 /// Wraparound distance between two points on a toroidal world.
+#[inline]
 pub fn wraparound_distance(x1: f64, y1: f64, x2: f64, y2: f64, width: f64, height: f64) -> f64 {
     let dx = wraparound_delta(x1, x2, width);
     let dy = wraparound_delta(y1, y2, height);
@@ -139,6 +203,7 @@ pub fn wraparound_distance(x1: f64, y1: f64, x2: f64, y2: f64, width: f64, heigh
 }
 
 /// Signed shortest delta along one wrapped axis.
+#[inline(always)]
 pub fn wraparound_delta(a: f64, b: f64, size: f64) -> f64 {
     let mut d = b - a;
     if d > size * 0.5 {
@@ -150,6 +215,7 @@ pub fn wraparound_delta(a: f64, b: f64, size: f64) -> f64 {
 }
 
 /// Wrap a coordinate into [0, size).
+#[inline(always)]
 pub fn wrap_coord(v: f64, size: f64) -> f64 {
     let v = v % size;
     if v < 0.0 { v + size } else { v }
