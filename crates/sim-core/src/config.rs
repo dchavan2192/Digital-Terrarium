@@ -23,6 +23,7 @@ pub struct Config {
     pub reproduction: ReproductionConfig,
     pub mutation: MutationConfig,
     pub brain: BrainConfig,
+    pub aging: AgingConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -78,6 +79,24 @@ pub struct ReproductionConfig {
 pub struct MutationConfig {
     pub weight_probability: f64,
     pub weight_step: f64,
+}
+
+/// Gompertz-Makeham aging parameters.
+///
+/// Per-tick mortality probability: h(age) = extrinsic_mortality + initial_senescence * exp(aging_rate * age)
+///
+/// Based on the Gompertz-Makeham law of mortality (Gompertz, 1825; Makeham, 1860).
+/// - `extrinsic_mortality` (λ): age-independent death rate (accidents, starvation background)
+/// - `initial_senescence` (α): baseline senescence rate at birth
+/// - `aging_rate` (β): how fast mortality accelerates with age — this is the key evolvable parameter
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgingConfig {
+    /// Age-independent mortality per tick (λ in Gompertz-Makeham). Accidents, background hazard.
+    pub extrinsic_mortality: f64,
+    /// Initial senescence rate (α). Tiny at birth, amplified exponentially by aging_rate.
+    pub initial_senescence: f64,
+    /// Default aging rate (β) for initial population. Encoded in genome; can evolve.
+    pub aging_rate: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

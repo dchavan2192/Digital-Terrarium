@@ -38,6 +38,13 @@ threshold = 60.0        # Minimum energy to reproduce
 parent_cost = 30.0      # Energy deducted from the parent
 child_energy = 30.0     # Energy the offspring starts with
 
+[aging]
+# Gompertz-Makeham mortality: h(age) = λ + α·exp(β·age)
+# Citation: Gompertz (1825), Williams (1957), Kirkwood (1977)
+extrinsic_mortality = 0.0001  # λ — age-independent death rate (accidents/background hazard)
+initial_senescence = 0.00001  # α — baseline senescence at birth (tiny, grows with age)
+aging_rate = 0.002            # β — default aging rate (evolvable via genome)
+
 [mutation]
 weight_probability = 0.1  # Chance each weight mutates during reproduction
 weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)

@@ -43,11 +43,11 @@
 - [x] Add cumulative birth/death tracking
 
 ### Phase 2: Biological Realism [IN PROGRESS]
-- [ ] **Probabilistic mortality** — Replace fixed max_age=3000 with Gompertz-like mortality curve
-  - After a certain age, probability of death increases exponentially each tick
-  - Backed by Gompertz-Makeham law (see Research section)
-  - Makes lifespan a distribution, not a constant — more biologically realistic
-  - Enables evolution of longevity genes (future)
+- [x] **Probabilistic mortality** — Gompertz-Makeham mortality curve implemented
+  - Per-tick death probability: h(age) = λ + α·exp(β·age)
+  - β (aging_rate) is a genomic trait — longevity can now evolve
+  - max_age retained as absolute safety cap
+  - Backed by Gompertz (1825), Williams (1957), Kirkwood (1977)
 - [ ] **Research-backed design decisions** — Every mechanic should cite why it exists
 - [ ] **Define control environment** — Standard test config for reproducible comparisons
 
@@ -239,3 +239,14 @@ Mutation: 10% per weight, +/-0.2 step
 - Pushed tuned config to GitHub
 - Started Phase 2 research: mortality models, GPU acceleration, primordial Earth
 - Created this progress doc
+
+### Session 3 (2026-11-07, continued)
+- **Implemented Gompertz-Makeham probabilistic mortality**
+  - Added `[aging]` config section: `extrinsic_mortality` (λ=0.0001), `initial_senescence` (α=0.00001), `aging_rate` (β=0.002)
+  - Added `aging_rate` as evolvable genomic trait (mutates 5% of the time, ±20%, clamped [0.0001, 0.01])
+  - Replaced fixed `age >= max_age` death check with per-tick Gompertz probability
+  - `max_age` retained as absolute safety cap
+  - Added aging params to sweep.rs for parameter exploration
+  - New test: `gompertz_mortality_kills_old_creatures` (11 tests total, all passing)
+  - Full CI: clippy clean, fmt clean, all tests pass
+- Pi 5 running 500k-tick baseline overnight as control data

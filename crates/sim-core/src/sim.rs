@@ -88,7 +88,7 @@ impl Simulation {
         let mut next_id: OrganismId = 0;
 
         for _ in 0..config.creature.initial_count {
-            let genome = Genome::random(&config.brain, &config.mutation, &mut rng);
+            let genome = Genome::random(&config.brain, &config.mutation, &config.aging, &mut rng);
             let brain = genome.build_brain(&config.brain);
             let org = Organism {
                 id: next_id,
@@ -353,8 +353,20 @@ impl Simulation {
         }
         self.organisms.extend(offspring);
 
-        // 6. Die (energy depleted or old age)
+        // 6. Die (energy depleted or Gompertz-Makeham probabilistic mortality)
+        //
+        // Gompertz-Makeham law: h(age) = λ + α·exp(β·age)
+        //   λ = extrinsic_mortality (accidents, background hazard)
+        //   α = initial_senescence (tiny at birth)
+        //   β = aging_rate (from genome — evolvable)
+        //
+        // Citations:
+        //   Gompertz (1825) "On the Nature of the Function Expressive of the Law of Human Mortality"
+        //   Williams (1957) "Pleiotropy, Natural Selection, and the Evolution of Senescence"
+        //   Kirkwood (1977) "Evolution of ageing"
         let max_age = self.config.creature.max_age;
+        let lambda = self.config.aging.extrinsic_mortality;
+        let alpha = self.config.aging.initial_senescence;
         for org in &mut self.organisms {
             if !org.alive {
                 continue;
@@ -362,6 +374,16 @@ impl Simulation {
             if org.energy <= 0.0 || org.age >= max_age {
                 org.alive = false;
                 deaths += 1;
+            } else {
+                // Gompertz-Makeham: per-tick death probability increases exponentially with age
+                let beta = org.genome.aging_rate;
+                let hazard = lambda + alpha * (beta * org.age as f64).exp();
+                // Clamp to [0, 1] — at very old ages exp() can overflow
+                let death_prob = hazard.min(1.0);
+                if self.rng.r#gen::<f64>() < death_prob {
+                    org.alive = false;
+                    deaths += 1;
+                }
             }
         }
 

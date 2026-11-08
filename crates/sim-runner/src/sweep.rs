@@ -144,6 +144,11 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         "mutation.weight_probability" => config.mutation.weight_probability = value,
         "mutation.weight_step" => config.mutation.weight_step = value,
 
+        // Aging (Gompertz-Makeham)
+        "aging.extrinsic_mortality" => config.aging.extrinsic_mortality = value,
+        "aging.initial_senescence" => config.aging.initial_senescence = value,
+        "aging.aging_rate" => config.aging.aging_rate = value,
+
         _ => return false,
     }
     true
@@ -176,6 +181,9 @@ fn print_supported_params() {
         "reproduction.child_energy",
         "mutation.weight_probability",
         "mutation.weight_step",
+        "aging.extrinsic_mortality",
+        "aging.initial_senescence",
+        "aging.aging_rate",
     ];
     for p in params {
         eprintln!("  {}", p);

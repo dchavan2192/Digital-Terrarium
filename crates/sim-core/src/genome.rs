@@ -4,7 +4,7 @@
 //! (so evolvability itself can evolve). Mutation is applied during reproduction.
 
 use crate::brain::Brain;
-use crate::config::{BrainConfig, MutationConfig};
+use crate::config::{AgingConfig, BrainConfig, MutationConfig};
 use rand::Rng;
 
 /// The complete heritable state of a creature.
@@ -21,6 +21,11 @@ pub struct Genome {
 
     /// Hue value [0, 360) used for lineage coloring and kin recognition.
     pub color_hue: f64,
+
+    /// Gompertz aging rate (β). Higher = faster senescence. Evolvable.
+    /// Citation: Williams (1957) antagonistic pleiotropy predicts selection
+    /// can act on aging rate when it trades off against early-life fitness.
+    pub aging_rate: f64,
 }
 
 impl Genome {
@@ -28,6 +33,7 @@ impl Genome {
     pub fn random(
         brain_config: &BrainConfig,
         mutation_config: &MutationConfig,
+        aging_config: &AgingConfig,
         rng: &mut impl Rng,
     ) -> Self {
         let weight_count = brain_config.total_weights();
@@ -42,6 +48,7 @@ impl Genome {
             mutation_rate: mutation_config.weight_probability,
             mutation_step: mutation_config.weight_step,
             color_hue: rng.gen_range(0.0..360.0),
+            aging_rate: aging_config.aging_rate,
         }
     }
 
@@ -66,6 +73,14 @@ impl Genome {
         if rng.r#gen::<f64>() < 0.05 {
             child.mutation_step *= rng.gen_range(0.8..1.2);
             child.mutation_step = child.mutation_step.clamp(0.01, 2.0);
+        }
+
+        // Mutate aging rate (evolvable longevity gene)
+        // Williams (1957): selection can act on senescence rate.
+        // Clamped to [0.0001, 0.01] to prevent immortality or instant death.
+        if rng.r#gen::<f64>() < 0.05 {
+            child.aging_rate *= rng.gen_range(0.8..1.2);
+            child.aging_rate = child.aging_rate.clamp(0.0001, 0.01);
         }
 
         // Small drift in color — offspring look similar to parents (kin marker)

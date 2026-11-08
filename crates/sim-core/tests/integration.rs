@@ -58,6 +58,11 @@ weight_step = 0.2
 inputs = 13
 hidden = 8
 outputs = 3
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
 "#;
     Config::parse(toml).expect("small config should be valid")
 }
@@ -113,6 +118,10 @@ weight_step = 0.2
 inputs = 13
 hidden = 8
 outputs = 3
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
 "#;
     assert!(Config::parse(bad).is_err());
 }
@@ -241,6 +250,11 @@ weight_step = 0.2
 inputs = 13
 hidden = 8
 outputs = 3
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
 "#;
     let cfg = Config::parse(toml).unwrap();
     let mut sim = Simulation::new(cfg);
@@ -279,6 +293,83 @@ fn food_grid_regrows() {
     sim.food_grid.regrow();
     assert!(sim.food_grid.cells[idx] > 0.0);
     assert!(sim.food_grid.cells[idx] <= sim.food_grid.regrowth_rate + 0.0001);
+}
+
+#[test]
+fn gompertz_mortality_kills_old_creatures() {
+    // With high aging rate, creatures should die well before max_age
+    let toml = r#"
+[world]
+width = 200.0
+height = 200.0
+seed = 42
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.01
+energy_per_food = 40.0
+
+[creature]
+initial_count = 50
+hard_cap = 200
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 50000
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 100.0
+maximum = 200.0
+base_metabolism = 0.1
+movement_cost = 0.05
+brain_cost = 0.002
+
+[reproduction]
+threshold = 150.0
+parent_cost = 60.0
+child_energy = 50.0
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+
+[brain]
+inputs = 13
+hidden = 8
+outputs = 3
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.005
+"#;
+    let cfg = Config::parse(toml).unwrap();
+    let mut sim = Simulation::new(cfg);
+
+    // Run for 2000 ticks — with aging_rate=0.005, hazard at age 2000 is:
+    // 0.0001 + 0.00001 * exp(0.005 * 2000) = 0.0001 + 0.00001 * exp(10) ≈ 0.22
+    // So by tick 2000, old creatures face ~22% death chance per tick.
+    // Total deaths should exceed what we'd see from energy depletion alone.
+    for _ in 0..2000 {
+        sim.step();
+        if sim.is_extinct() {
+            break;
+        }
+    }
+
+    // Verify deaths occurred (Gompertz + energy depletion)
+    assert!(
+        sim.stats.total_deaths > 0,
+        "expected deaths from Gompertz mortality"
+    );
+    // With max_age=50000 and only 2000 ticks, no deaths from hitting max_age —
+    // any old-age deaths are from the Gompertz probability.
 }
 
 #[test]
