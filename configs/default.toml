@@ -1,0 +1,48 @@
+# Terrarium — Default Configuration
+# Every tunable number lives here. No magic constants in the code.
+# Copy this file and change one section at a time for experiments.
+
+[world]
+width = 1000.0          # World width in units
+height = 1000.0         # World height in units
+seed = 42               # RNG seed — same seed, same run
+
+[food]
+cell_size = 10.0        # Grid cell size in world units (world/cell_size = grid dims)
+max_per_cell = 1.0      # Maximum food a single cell can hold
+regrowth_rate = 0.002   # Food regrown per cell per tick
+energy_per_food = 40.0  # Energy gained per 1.0 unit of food consumed
+
+[creature]
+initial_count = 1000    # Creatures spawned at tick 0
+hard_cap = 4000         # Maximum living creatures (births blocked above this)
+body_radius = 3.0       # Collision/eating radius in world units
+max_speed = 2.0         # Maximum movement speed (units/tick)
+max_turn = 0.2          # Maximum turn rate (radians/tick)
+max_age = 5000          # Death by old age (ticks)
+
+[creature.vision]
+ray_count = 5           # Number of vision rays cast
+fov = 2.094             # Field of view in radians (~120 degrees)
+range = 60.0            # How far each ray sees (world units)
+
+[energy]
+starting = 100.0        # Energy a new creature begins with (tick 0 spawns)
+maximum = 200.0         # Energy cap — eating beyond this is wasted
+base_metabolism = 0.1   # Flat energy cost per tick just for being alive
+movement_cost = 0.05    # Multiplied by speed^2 per tick
+brain_cost = 0.002      # Cost per neuron per tick — the key intelligence tax
+
+[reproduction]
+threshold = 150.0       # Minimum energy to reproduce
+parent_cost = 60.0      # Energy deducted from the parent
+child_energy = 50.0     # Energy the offspring starts with
+
+[mutation]
+weight_probability = 0.1  # Chance each weight mutates during reproduction
+weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
+
+[brain]
+inputs = 13             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal
+hidden = 8              # Hidden layer neurons
+outputs = 3             # turn, speed, eat (v1 — more actions added later)

@@ -1,0 +1,13 @@
+[package]
+name = "sim-viewer"
+description = "Visual viewer for Terrarium — renders the simulation with macroquad and egui."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+sim-core = { workspace = true }
+macroquad = "0.4"
+egui-macroquad = "0.17"
+egui = "0.31"

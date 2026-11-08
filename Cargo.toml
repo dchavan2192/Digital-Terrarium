@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/sim-core",
+    "crates/sim-viewer",
+    "crates/sim-runner",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["Dinesh Chavan"]
+
+[workspace.dependencies]
+sim-core = { path = "crates/sim-core" }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+rand = "0.8"
+rand_chacha = "0.3"
