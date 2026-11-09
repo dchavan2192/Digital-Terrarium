@@ -109,7 +109,14 @@
   - Backward compatible: amplitude=0 disables (existing configs unaffected)
   - Viewer shows current seasonal multiplier percentage
   - Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
-- [ ] **Population density pressure** — creatures in crowded cells have higher metabolism (Allee effect)
+- [x] **Population density pressure** — creatures in crowded cells have higher metabolism (Allee effect)
+  - `[density_pressure]` config: `cost_per_neighbor = 0.01` (extra energy per tick per nearby creature)
+  - Neighbor counting piggybacks on existing `for_each_nearby` spatial query — zero extra allocation
+  - New TickStats field: `mean_crowding` (average neighbor count across living organisms)
+  - Viewer stats panel shows "Mean crowding: X.X"
+  - Backward compatible via `#[serde(default)]` — cost=0.0 disables (existing configs unaffected)
+  - Two new integration tests: `density_pressure_increases_metabolism`, `density_pressure_no_effect_when_zero`
+  - Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
 - [ ] **Dynamic speciation threshold** — compute from population genome variance
 
 ### Testing & Validation [ONGOING]
@@ -401,3 +408,17 @@ Mutation: 10% per weight, +/-0.2 step
   - Backward compatible via `#[serde(default)]` — amplitude=0 means no effect
   - Two new integration tests: `seasonal_food_variation`, `seasonal_no_effect_when_amplitude_zero`
   - Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+
+### Session 9 (2026-11-09)
+- **Population density pressure (Phase 2.5)**
+  - Added `DensityPressureConfig` with `cost_per_neighbor` field (default 0.0 for backward compat)
+  - Added `[density_pressure]` section to default.toml: `cost_per_neighbor = 0.01`
+  - Neighbor counting integrated into existing parallel sense phase (`for_each_nearby` closure)
+  - `neighbor_count: u32` added to Action struct, crowding cost applied during metabolism
+  - `mean_crowding` added to TickStats — average neighbor count across living organisms
+  - Viewer stats panel displays "Mean crowding: X.X"
+  - Two new integration tests (20 total, all passing):
+    - `density_pressure_increases_metabolism`: verifies crowding reduces mean energy
+    - `density_pressure_no_effect_when_zero`: verifies backward compatibility (cost=0 identical to omitted)
+  - Zero extra spatial queries or allocations — piggybacks on existing vision neighbor loop
+  - Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"

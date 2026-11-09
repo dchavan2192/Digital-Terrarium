@@ -97,6 +97,13 @@ aging_rate = 0.002            # β — default aging rate (evolvable via genome)
 weight_probability = 0.1  # Chance each weight mutates during reproduction
 weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
 
+[density_pressure]
+# Population density pressure: crowding increases metabolism.
+# Each nearby creature (within vision range) adds this much to per-tick metabolic cost.
+# Models negative density dependence / interference competition.
+# Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
+cost_per_neighbor = 0.01
+
 [brain]
 inputs = 15             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal + body_size + kin_similarity
 hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)

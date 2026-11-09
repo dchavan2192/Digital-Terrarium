@@ -882,3 +882,261 @@ fn seasonal_no_effect_when_amplitude_zero() {
         );
     }
 }
+
+#[test]
+fn density_pressure_increases_metabolism() {
+    // Organisms in crowded neighborhoods should lose more energy per tick
+    // when density_pressure.cost_per_neighbor > 0, compared to an identical
+    // simulation without density pressure.
+    //
+    // Citation: Allee, W.C. (1931) "Animal Aggregations: A Study in General Sociology"
+    let base_toml = r#"
+[world]
+width = 500.0
+height = 500.0
+seed = 42
+
+[food]
+cell_size = 10.0
+max_per_cell = 0.0
+regrowth_rate = 0.0
+energy_per_food = 40.0
+
+[creature]
+initial_count = 20
+hard_cap = 200
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 50000
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 200.0
+maximum = 500.0
+base_metabolism = 0.1
+movement_cost = 0.05
+brain_cost = 0.002
+
+[reproduction]
+threshold = 999.0
+parent_cost = 499.0
+child_energy = 50.0
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+
+[brain]
+inputs = 15
+hidden = 8
+outputs = 6
+
+[aging]
+extrinsic_mortality = 0.0
+initial_senescence = 0.0
+aging_rate = 0.0
+
+[combat]
+attack_range = 0.0
+attack_cost = 0.0
+attack_damage = 0.0
+energy_transfer_ratio = 0.0
+
+[sharing]
+share_range = 0.0
+share_amount = 0.0
+"#;
+
+    // Run without density pressure (default cost_per_neighbor = 0.0)
+    let cfg_no = Config::parse(base_toml).unwrap();
+    let mut sim_no = Simulation::new(cfg_no);
+    for _ in 0..3 {
+        sim_no.step();
+    }
+
+    // Run with density pressure
+    let mut cfg_yes = Config::parse(base_toml).unwrap();
+    cfg_yes.density_pressure.cost_per_neighbor = 0.5;
+    let mut sim_yes = Simulation::new(cfg_yes);
+    for _ in 0..3 {
+        sim_yes.step();
+    }
+
+    // Both should survive (high starting energy, short run, no mortality)
+    assert!(!sim_no.is_extinct(), "baseline sim should survive 3 ticks");
+    assert!(
+        !sim_yes.is_extinct(),
+        "density pressure sim should survive 3 ticks"
+    );
+
+    // Mean energy with density pressure should be strictly lower
+    assert!(
+        sim_yes.stats.mean_energy < sim_no.stats.mean_energy,
+        "density pressure should reduce mean energy: with={:.2}, without={:.2}",
+        sim_yes.stats.mean_energy,
+        sim_no.stats.mean_energy
+    );
+
+    // Mean crowding should be tracked and positive (20 creatures in 500×500 world)
+    assert!(
+        sim_yes.stats.mean_crowding > 0.0,
+        "mean_crowding should be positive with 20 organisms in 500×500 world, got {}",
+        sim_yes.stats.mean_crowding
+    );
+}
+
+#[test]
+fn density_pressure_no_effect_when_zero() {
+    // With cost_per_neighbor = 0.0, density pressure should have no effect.
+    // Two identical simulations (one with explicit 0.0, one without the config)
+    // should produce identical results.
+    let toml_explicit = r#"
+[world]
+width = 100.0
+height = 100.0
+seed = 7
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.005
+energy_per_food = 40.0
+
+[creature]
+initial_count = 20
+hard_cap = 200
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 5000
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 100.0
+maximum = 200.0
+base_metabolism = 0.1
+movement_cost = 0.05
+brain_cost = 0.002
+
+[reproduction]
+threshold = 150.0
+parent_cost = 60.0
+child_energy = 50.0
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+
+[brain]
+inputs = 15
+hidden = 8
+outputs = 6
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+
+[density_pressure]
+cost_per_neighbor = 0.0
+"#;
+    // Without density_pressure section — serde(default) gives 0.0
+    let toml_omitted = r#"
+[world]
+width = 100.0
+height = 100.0
+seed = 7
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.005
+energy_per_food = 40.0
+
+[creature]
+initial_count = 20
+hard_cap = 200
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 5000
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 100.0
+maximum = 200.0
+base_metabolism = 0.1
+movement_cost = 0.05
+brain_cost = 0.002
+
+[reproduction]
+threshold = 150.0
+parent_cost = 60.0
+child_energy = 50.0
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+
+[brain]
+inputs = 15
+hidden = 8
+outputs = 6
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+"#;
+
+    let mut sim_explicit = Simulation::new(Config::parse(toml_explicit).unwrap());
+    let mut sim_omitted = Simulation::new(Config::parse(toml_omitted).unwrap());
+
+    for _ in 0..20 {
+        sim_explicit.step();
+        sim_omitted.step();
+    }
+
+    // Identical configs + same seed → identical state
+    assert_eq!(sim_explicit.organisms.len(), sim_omitted.organisms.len());
+    for (a, b) in sim_explicit
+        .organisms
+        .iter()
+        .zip(sim_omitted.organisms.iter())
+    {
+        assert_eq!(a.energy, b.energy, "energy should be identical with cost=0");
+    }
+}

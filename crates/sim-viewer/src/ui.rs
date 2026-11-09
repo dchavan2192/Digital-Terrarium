@@ -83,6 +83,7 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 stats.behavioral_diversity
             ));
             ui.label(format!("Mean connections: {:.0}", stats.mean_connections));
+            ui.label(format!("Mean crowding: {:.1}", stats.mean_crowding));
             // Seasonal food multiplier — Botkin (1990)
             let seasonal = sim_core::world::seasonal_multiplier(sim.tick, &sim.config.food.seasons);
             if sim.config.food.seasons.amplitude > 0.0 {

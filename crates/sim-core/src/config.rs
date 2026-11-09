@@ -26,6 +26,8 @@ pub struct Config {
     pub aging: AgingConfig,
     pub combat: CombatConfig,
     pub sharing: SharingConfig,
+    #[serde(default)]
+    pub density_pressure: DensityPressureConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -188,6 +190,29 @@ pub struct SharingConfig {
     pub share_range: f64,
     /// Amount of energy transferred per share action.
     pub share_amount: f64,
+}
+
+/// Population density pressure — crowding increases metabolism.
+///
+/// Creatures in dense local neighborhoods pay an extra metabolic cost per
+/// nearby neighbor, modeling negative density dependence (interference
+/// competition). At high local densities, organisms expend more energy
+/// competing for space and resources.
+///
+/// Citation: Allee, W.C. (1931) "Animal Aggregations: A Study in General Sociology"
+/// University of Chicago Press
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DensityPressureConfig {
+    /// Extra energy cost per tick per nearby neighbor. 0.0 = disabled.
+    pub cost_per_neighbor: f64,
+}
+
+impl Default for DensityPressureConfig {
+    fn default() -> Self {
+        DensityPressureConfig {
+            cost_per_neighbor: 0.0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

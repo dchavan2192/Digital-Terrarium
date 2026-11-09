@@ -71,6 +71,9 @@ pub struct TickStats {
     pub behavioral_diversity: f64,
     /// Mean active connections per brain.
     pub mean_connections: f64,
+    /// Mean number of nearby neighbors per organism (density pressure).
+    /// Citation: Allee (1931)
+    pub mean_crowding: f64,
 }
 
 /// Compact action output — one per organism per tick.
@@ -83,6 +86,7 @@ struct Action {
     signal: f64,
     share: f64,
     alive: bool,
+    neighbor_count: u32,
 }
 
 impl Default for Action {
@@ -95,6 +99,7 @@ impl Default for Action {
             signal: 0.0,
             share: 0.0,
             alive: false,
+            neighbor_count: 0,
         }
     }
 }
@@ -180,6 +185,7 @@ impl Simulation {
         let base_metabolism = self.config.energy.base_metabolism;
         let movement_cost_factor = self.config.energy.movement_cost;
         let brain_cost_per_neuron = self.config.energy.brain_cost;
+        let density_cost_per_neighbor = self.config.density_pressure.cost_per_neighbor;
 
         let angle_step = if ray_count > 1 {
             fov / (ray_count - 1) as f64
@@ -253,15 +259,18 @@ impl Simulation {
 
                 // Check creatures — dot-product ray test (no atan2)
                 // Also accumulate nearby signals and track nearest creature for kin recognition
+                // Count neighbors for density pressure — Allee (1931)
                 let range_sq = range * range;
                 let mut signal_sum = 0.0f64;
                 let mut signal_weight = 0.0f64;
                 let mut nearest_dist_sq = f64::MAX;
                 let mut nearest_hue = -1.0f64; // sentinel: no creature found
+                let mut neighbor_count: u32 = 0;
                 spatial_grid.for_each_nearby(ox, oy, |ni| {
                     if ni == i || !organisms[ni].alive {
                         return;
                     }
+                    neighbor_count += 1;
                     let dx = wraparound_delta(ox, organisms[ni].pos_x, world_w);
                     let dy = wraparound_delta(oy, organisms[ni].pos_y, world_h);
                     let dist_sq = dx * dx + dy * dy;
@@ -359,9 +368,26 @@ impl Simulation {
                     signal: output.signal,
                     share: output.share,
                     alive: true,
+                    neighbor_count,
                 }
             })
             .collect();
+
+        // Compute mean crowding from neighbor counts (for stats)
+        let mean_crowding = {
+            let alive_count = self.actions.iter().filter(|a| a.alive).count();
+            if alive_count > 0 {
+                let total: u64 = self
+                    .actions
+                    .iter()
+                    .filter(|a| a.alive)
+                    .map(|a| a.neighbor_count as u64)
+                    .sum();
+                total as f64 / alive_count as f64
+            } else {
+                0.0
+            }
+        };
 
         // 3. Apply actions: movement, eating, metabolism
         for i in 0..organism_count {
@@ -428,10 +454,12 @@ impl Simulation {
             }
 
             // Metabolize — Kleiber's law: metabolism scales as body_size^0.75
+            // Density pressure: crowding adds per-neighbor cost — Allee (1931)
             let movement_cost = movement_cost_factor * actual_speed * actual_speed;
             let brain_cost = brain_cost_per_neuron * org.brain.neuron_count() as f64;
             let size_metabolism = base_metabolism * body_size.powf(0.75);
-            org.energy -= size_metabolism + movement_cost + brain_cost;
+            let crowding_cost = density_cost_per_neighbor * action.neighbor_count as f64;
+            org.energy -= size_metabolism + movement_cost + brain_cost + crowding_cost;
 
             org.age += 1;
         }
@@ -853,6 +881,7 @@ impl Simulation {
             mean_brain_entropy,
             behavioral_diversity,
             mean_connections,
+            mean_crowding,
         };
     }
 
