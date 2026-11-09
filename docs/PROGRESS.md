@@ -125,7 +125,7 @@
 
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
-- [ ] WASM build + GitHub Pages live demo
+- [x] WASM build + GitHub Pages live demo — https://dchavan2192.github.io/Digital-Terrarium/
 - [ ] Paper-quality figures and reproducible experiment configs
 
 ### Infrastructure [ONGOING]
