@@ -2,7 +2,7 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-08
+**Last updated**: 2026-11-09
 
 ---
 
