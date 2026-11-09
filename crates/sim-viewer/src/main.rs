@@ -34,10 +34,15 @@ const EMBEDDED_CONFIG: &str = include_str!("../../../configs/default.toml");
 async fn main() {
     // Load config: embedded for WASM, from file for native
     #[cfg(target_arch = "wasm32")]
-    let config = Config::parse(EMBEDDED_CONFIG).unwrap_or_else(|e| {
-        eprintln!("Failed to parse embedded config: {}", e);
-        panic!("Bad embedded config");
-    });
+    let config = {
+        let mut cfg = Config::parse(EMBEDDED_CONFIG).unwrap_or_else(|e| {
+            eprintln!("Failed to parse embedded config: {}", e);
+            panic!("Bad embedded config");
+        });
+        // Randomize seed so each visitor sees a unique simulation
+        cfg.world.seed = macroquad::miniquad::date::now() as u64;
+        cfg
+    };
 
     #[cfg(not(target_arch = "wasm32"))]
     let config = {
