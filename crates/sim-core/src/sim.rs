@@ -18,6 +18,7 @@ use crate::world::{FoodGrid, SpatialGrid, wrap_coord, wraparound_delta};
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
 /// Maximum number of vision rays (for stack allocation).
@@ -220,8 +221,10 @@ impl Simulation {
         let food_grid = &self.food_grid;
         let spatial_grid = &self.spatial_grid;
 
-        self.actions = (0..organism_count)
-            .into_par_iter()
+        let iter = 0..organism_count;
+        #[cfg(feature = "parallel")]
+        let iter = iter.into_par_iter();
+        self.actions = iter
             .map(|i| {
                 if !organisms[i].alive {
                     return Action::default();

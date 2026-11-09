@@ -26,18 +26,30 @@ fn window_conf() -> Conf {
     }
 }
 
+/// Default config embedded at compile time for WASM builds (no filesystem access).
+#[cfg(target_arch = "wasm32")]
+const EMBEDDED_CONFIG: &str = include_str!("../../../configs/default.toml");
+
 #[macroquad::main(window_conf)]
 async fn main() {
-    // Load config: from CLI arg or default path
-    let config_path = std::env::args()
-        .nth(1)
-        .unwrap_or_else(|| "configs/default.toml".to_string());
-
-    let config = Config::from_file(&config_path).unwrap_or_else(|e| {
-        eprintln!("Failed to load config '{}': {}", config_path, e);
-        eprintln!("Usage: cargo run -p sim-viewer [-- path/to/config.toml]");
-        std::process::exit(1);
+    // Load config: embedded for WASM, from file for native
+    #[cfg(target_arch = "wasm32")]
+    let config = Config::parse(EMBEDDED_CONFIG).unwrap_or_else(|e| {
+        eprintln!("Failed to parse embedded config: {}", e);
+        panic!("Bad embedded config");
     });
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let config = {
+        let config_path = std::env::args()
+            .nth(1)
+            .unwrap_or_else(|| "configs/default.toml".to_string());
+        Config::from_file(&config_path).unwrap_or_else(|e| {
+            eprintln!("Failed to load config '{}': {}", config_path, e);
+            eprintln!("Usage: cargo run -p sim-viewer [-- path/to/config.toml]");
+            std::process::exit(1);
+        })
+    };
 
     let mut sim = Simulation::new(config);
     let mut camera = Camera::new(sim.config.world.width, sim.config.world.height);

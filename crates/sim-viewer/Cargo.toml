@@ -6,8 +6,11 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[features]
+default = ["sim-core/parallel"]
+
 [dependencies]
-sim-core = { workspace = true }
+sim-core = { workspace = true, default-features = false }
 macroquad = "0.4"
 egui-macroquad = "0.17"
 egui = "0.31"

@@ -1,0 +1,3 @@
+# WASM target needs --allow-undefined for macroquad's JS-provided symbols
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=--allow-undefined"]

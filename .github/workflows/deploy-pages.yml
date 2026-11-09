@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build sim-viewer for WASM
+        run: cargo build -p sim-viewer --target wasm32-unknown-unknown --release --no-default-features
+
+      - name: Copy WASM binary to web/
+        run: cp target/wasm32-unknown-unknown/release/sim-viewer.wasm web/sim-viewer.wasm
+
+      - name: Fetch macroquad JS runtime
+        run: curl -sSL https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js -o web/mq_js_bundle.js
+
+      - name: Optimize WASM (if wasm-opt available)
+        run: |
+          if command -v wasm-opt &> /dev/null; then
+            wasm-opt -Oz web/sim-viewer.wasm -o web/sim-viewer.wasm
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
