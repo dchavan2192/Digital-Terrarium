@@ -2,7 +2,7 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-08
+**Last updated**: 2026-11-09
 
 ---
 
@@ -99,6 +99,9 @@
   - Viewer: stats panel shows entropy/diversity/connections; inspector shows per-organism entropy
   - CSV output includes all new fields automatically (serde::Serialize)
   - Citations: Shannon (1948), Beer & Williams (2015)
+
+### Testing & Validation [ONGOING]
+- [x] **Biome-aware food regrowth integration test** — verifies FoodGrid with BiomeZone config produces per-cell regrowth rate variation; lush zones regrow faster than moderate zones, which regrow faster than neutral (no-zone) areas; also verifies uniform rates when no biomes configured
 
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
@@ -367,3 +370,9 @@ Mutation: 10% per weight, +/-0.2 step
   - Backward compatible via `#[serde(default)]` — existing configs work unchanged
   - Motivation: Pi 500k runs showed 0 speciation — uniform environment = no niche pressure
   - Citations: Schluter (2000), Rosenzweig (1995)
+
+### Session 7 (2026-11-09)
+- **Integration test for biome-aware food regrowth** (16 tests total, all passing)
+  - `biome_aware_food_regrowth`: constructs FoodGrid with two BiomeZone configs (5× lush, 2× moderate), verifies three-tier regrowth rates (lush > moderate > barren/neutral), tests actual food accumulation over 10 regrow cycles
+  - `biome_no_zones_gives_uniform_regrowth`: verifies backward compatibility — no biomes configured means all cells get the uniform base regrowth rate
+  - Discovered that "barren" zones (multiplier < 1.0) have no effect in current implementation due to "highest multiplier wins" logic starting at 1.0 — documented in test comments
