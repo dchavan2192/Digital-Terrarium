@@ -16,6 +16,7 @@ Outputs PNG figures to docs/images/experiments/.
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -81,26 +82,17 @@ def load_sweep(sweep_dir):
 
     for f in csv_files:
         # Filename: stats_seed{N}_{param}={value}_seed{N}.csv
-        basename = os.path.basename(f)
-        # Extract label from filename: everything between "stats_seed{N}_" and ".csv"
-        # Example: stats_seed0_sharing.share_amount=0.000000_seed0.csv
-        parts = basename.replace("stats_", "").replace(".csv", "")
-        # parts: seed0_sharing.share_amount=0.000000_seed0
-        # Find the param=value segment
-        segments = parts.split("_")
-        # Reconstruct: find the segment with "="
-        param_val_parts = []
-        seed_val = None
-        for i, seg in enumerate(segments):
-            if "=" in seg:
-                param_val_parts.append(seg)
-            elif seg.startswith("seed") and i == len(segments) - 1:
-                seed_val = int(seg.replace("seed", ""))
-
-        if not param_val_parts or seed_val is None:
+        # Example: stats_seed0_food.regrowth_rate=0.000500_seed0.csv
+        basename = os.path.basename(f).replace(".csv", "")
+        # Regex: capture param=value between first seed prefix and last seed suffix
+        m = re.match(r'stats_seed\d+_(.+)_seed(\d+)$', basename)
+        if not m:
             continue
+        param_val_str = m.group(1)
+        seed_val = int(m.group(2))
 
-        param_val_str = "_".join(param_val_parts)
+        if "=" not in param_val_str:
+            continue
         pname, pval_str = param_val_str.rsplit("=", 1)
         pval = float(pval_str)
 
