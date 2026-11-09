@@ -41,6 +41,32 @@ pub struct FoodConfig {
     pub max_per_cell: f64,
     pub regrowth_rate: f64,
     pub energy_per_food: f64,
+    /// Spatial resource gradient zones. Each zone modifies the local regrowth rate.
+    /// Creates ecological niches that drive adaptive radiation and speciation.
+    ///
+    /// Citation: Schluter, D. (2000) "The Ecology of Adaptive Radiation" Oxford UP
+    #[serde(default)]
+    pub biomes: Vec<BiomeZone>,
+}
+
+/// A circular zone with a modified food regrowth rate.
+///
+/// Regrowth at a cell = base_regrowth_rate × biome_multiplier (highest multiplier wins).
+/// This creates spatial heterogeneity — lush oases vs barren deserts — driving
+/// niche specialization and ultimately speciation.
+///
+/// Citation: Rosenzweig, M.L. (1995) "Species Diversity in Space and Time" Cambridge UP
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BiomeZone {
+    /// Center X coordinate (world units).
+    pub x: f64,
+    /// Center Y coordinate (world units).
+    pub y: f64,
+    /// Radius of the zone (world units).
+    pub radius: f64,
+    /// Multiplier applied to the base regrowth rate within this zone.
+    /// >1.0 = lush, <1.0 = barren, 0.0 = dead zone.
+    pub regrowth_multiplier: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

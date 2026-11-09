@@ -47,13 +47,31 @@ fn draw_food_grid(sim: &Simulation, camera: &Camera) {
             }
 
             let food = grid.cells[row * grid.cols + col];
-            if food < 0.01 {
-                continue; // don't draw empty cells
+            let regrowth = grid.regrowth_at(col, row) as f32;
+            let base_regrowth = grid.regrowth_rate as f32;
+
+            if food < 0.01 && regrowth <= 0.0 {
+                // Draw barren zones with a faint brown tint
+                draw_rectangle(sx, sy, cell_px, cell_px, Color::new(0.08, 0.05, 0.03, 0.3));
+                continue;
             }
 
-            // Dim green, intensity proportional to food level
+            if food < 0.01 {
+                continue;
+            }
+
+            // Color by biome: lush zones get brighter green, barren gets brownish
             let intensity = (food / grid.max_per_cell) as f32;
-            let color = Color::new(0.05, 0.15 + 0.35 * intensity, 0.05, 0.6 * intensity);
+            let richness = if base_regrowth > 0.0 {
+                (regrowth / base_regrowth).clamp(0.0, 4.0) / 4.0
+            } else {
+                0.0
+            };
+            // Blend from brown (barren) to bright green (lush)
+            let r = 0.05 + 0.08 * (1.0 - richness);
+            let g = 0.15 + 0.45 * intensity * (0.5 + 0.5 * richness);
+            let b = 0.03 + 0.07 * richness;
+            let color = Color::new(r, g, b, 0.5 + 0.4 * intensity);
             draw_rectangle(sx, sy, cell_px, cell_px, color);
         }
     }

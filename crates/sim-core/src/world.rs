@@ -7,6 +7,11 @@
 use crate::config::{FoodConfig, WorldConfig};
 
 /// The food resource layer. A grid of cells that regrow over time.
+///
+/// Supports spatial resource gradients via biome zones — each cell can have
+/// a different regrowth rate, creating ecological niches that drive speciation.
+///
+/// Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
 #[derive(Debug, Clone)]
 pub struct FoodGrid {
     pub cols: usize,
@@ -16,14 +21,47 @@ pub struct FoodGrid {
     pub regrowth_rate: f64,
     /// Flat row-major storage of food values.
     pub cells: Vec<f64>,
+    /// Per-cell regrowth rates (base_rate × biome_multiplier). Same size as `cells`.
+    /// If no biomes are configured, all cells share the base rate.
+    regrowth_rates: Vec<f64>,
 }
 
 impl FoodGrid {
     pub fn new(world: &WorldConfig, food: &FoodConfig) -> Self {
         let cols = (world.width / food.cell_size).ceil() as usize;
         let rows = (world.height / food.cell_size).ceil() as usize;
+        let num_cells = cols * rows;
         // Start every cell at max food so the world begins lush
-        let cells = vec![food.max_per_cell; cols * rows];
+        let cells = vec![food.max_per_cell; num_cells];
+
+        // Compute per-cell regrowth rates from biome zones
+        let mut regrowth_rates = vec![food.regrowth_rate; num_cells];
+        if !food.biomes.is_empty() {
+            let half_cell = food.cell_size * 0.5;
+            for row in 0..rows {
+                for col in 0..cols {
+                    let cx = col as f64 * food.cell_size + half_cell;
+                    let cy = row as f64 * food.cell_size + half_cell;
+                    let mut best_multiplier = 1.0f64;
+                    for biome in &food.biomes {
+                        // Use wraparound distance so biomes work on toroidal world
+                        let dx = wraparound_delta(cx, biome.x, world.width);
+                        let dy = wraparound_delta(cy, biome.y, world.height);
+                        let dist = (dx * dx + dy * dy).sqrt();
+                        if dist <= biome.radius {
+                            // Smooth falloff: full effect at center, fades at edge
+                            let t = 1.0 - (dist / biome.radius);
+                            let effective = 1.0 + (biome.regrowth_multiplier - 1.0) * t;
+                            // Highest multiplier wins (biomes don't stack)
+                            best_multiplier = best_multiplier.max(effective);
+                        }
+                    }
+                    let idx = row * cols + col;
+                    regrowth_rates[idx] = (food.regrowth_rate * best_multiplier).max(0.0);
+                }
+            }
+        }
+
         FoodGrid {
             cols,
             rows,
@@ -31,19 +69,24 @@ impl FoodGrid {
             max_per_cell: food.max_per_cell,
             regrowth_rate: food.regrowth_rate,
             cells,
+            regrowth_rates,
         }
     }
 
-    /// Regrow food in every cell, capped at max_per_cell.
+    /// Regrow food in every cell using per-cell regrowth rates.
     pub fn regrow(&mut self) {
-        let rate = self.regrowth_rate;
         let max = self.max_per_cell;
-        for cell in &mut self.cells {
-            // Branchless: only add if below max
+        for (cell, &rate) in self.cells.iter_mut().zip(self.regrowth_rates.iter()) {
             if *cell < max {
                 *cell = (*cell + rate).min(max);
             }
         }
+    }
+
+    /// Get the regrowth rate at a given cell index (for visualization).
+    #[inline]
+    pub fn regrowth_at(&self, col: usize, row: usize) -> f64 {
+        self.regrowth_rates[row * self.cols + col]
     }
 
     /// Get the grid index for a world position.

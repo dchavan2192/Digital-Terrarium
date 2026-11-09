@@ -56,6 +56,13 @@
 - [x] Body size as evolvable gene (affects speed, metabolism, attack power/defense)
 - [x] Speciation detection and lineage tracking
 - [x] Trophic level analysis
+- [x] **Spatial resource gradients (biomes)** — ecological niches driving adaptive radiation
+  - BiomeZone config: circular zones with regrowth_multiplier and smooth falloff
+  - Per-cell regrowth rates computed at init, supports wraparound distance
+  - Default config: 2 lush oases (3× regrowth), 1 moderate center (2×), 1 barren zone (0.3×)
+  - Renderer shows biome tinting: bright green (lush) → brown (barren)
+  - Backward compatible: no biomes = uniform regrowth (existing configs unchanged)
+  - Citations: Schluter (2000) adaptive radiation, Rosenzweig (1995) species diversity
 
 ### Phase 4: Social Intelligence [COMPLETE]
 - [x] Broadcast signal channel (brain output -> nearby brain input)
@@ -351,3 +358,12 @@ Mutation: 10% per weight, +/-0.2 step
   - New stats: mean_brain_entropy, behavioral_diversity, mean_connections
   - Viewer updated: stats panel + inspector show entropy metrics
   - Citation: Shannon (1948), Beer & Williams (2015)
+- **Spatial resource gradients (biomes)**
+  - BiomeZone: circular zones with regrowth_multiplier and smooth falloff from center
+  - Per-cell regrowth rates (FoodGrid stores regrowth_rates Vec alongside cells)
+  - Default config: 4 biomes — 2 lush oases (3×), 1 moderate center (2×), 1 barren NE (0.3×)
+  - Renderer: biome-aware food coloring (bright green → brown by richness)
+  - Wraparound-safe distance calculation for biome zones
+  - Backward compatible via `#[serde(default)]` — existing configs work unchanged
+  - Motivation: Pi 500k runs showed 0 speciation — uniform environment = no niche pressure
+  - Citations: Schluter (2000), Rosenzweig (1995)

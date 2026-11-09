@@ -10,8 +10,36 @@ seed = 42               # RNG seed — same seed, same run
 [food]
 cell_size = 10.0        # Grid cell size in world units (world/cell_size = grid dims)
 max_per_cell = 1.0      # Maximum food a single cell can hold
-regrowth_rate = 0.0015  # Food regrown per cell per tick
+regrowth_rate = 0.0015  # Food regrown per cell per tick (base rate, modified by biomes)
 energy_per_food = 30.0  # Energy gained per 1.0 unit of food consumed
+
+# Spatial resource gradients — ecological niches that drive adaptive radiation.
+# Each biome is a circular zone with a regrowth multiplier (smooth falloff from center).
+# Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
+# Citation: Rosenzweig (1995) "Species Diversity in Space and Time"
+[[food.biomes]]
+x = 250.0               # Lush oasis — northwest quadrant
+y = 250.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 750.0               # Lush oasis — southeast quadrant
+y = 750.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 500.0               # Moderate zone — center
+y = 500.0
+radius = 150.0
+regrowth_multiplier = 2.0
+
+[[food.biomes]]
+x = 750.0               # Barren zone — northeast
+y = 250.0
+radius = 180.0
+regrowth_multiplier = 0.3
 
 [creature]
 initial_count = 300     # Creatures spawned at tick 0
