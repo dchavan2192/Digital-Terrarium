@@ -2,6 +2,8 @@
 //!
 //! These verify that the simulation initializes, runs, and obeys its invariants.
 
+use sim_core::config::{BiomeZone, FoodConfig, SeasonsConfig, WorldConfig};
+use sim_core::world::FoodGrid;
 use sim_core::{Config, Simulation};
 
 /// The default config embedded as a string so tests don't depend on file paths.
@@ -325,8 +327,9 @@ fn food_grid_regrows() {
     sim.food_grid.cells[idx] = 0.0;
     assert_eq!(sim.food_grid.cells[idx], 0.0);
 
-    // Regrow
-    sim.food_grid.regrow();
+    // Regrow (no seasons in small_config, so multiplier = 1.0)
+    let no_seasons = SeasonsConfig::default();
+    sim.food_grid.regrow(0, &no_seasons);
     assert!(sim.food_grid.cells[idx] > 0.0);
     assert!(sim.food_grid.cells[idx] <= sim.food_grid.regrowth_rate + 0.0001);
 }
@@ -593,5 +596,289 @@ fn neat_topology_evolves() {
                 total_nodes,
             );
         }
+    }
+}
+
+#[test]
+fn biome_aware_food_regrowth() {
+    // Verify that BiomeZone config produces different per-cell regrowth rates
+    // and that cells in lush zones regrow faster than cells in barren zones.
+    //
+    // The implementation uses "highest multiplier wins" starting at 1.0×,
+    // so we test with two lush zones of different strengths and a neutral area.
+    //
+    // Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
+    let world = WorldConfig {
+        width: 200.0,
+        height: 200.0,
+        seed: 42,
+    };
+    let food = FoodConfig {
+        cell_size: 10.0,
+        max_per_cell: 1.0,
+        regrowth_rate: 0.002,
+        energy_per_food: 40.0,
+        biomes: vec![
+            // Very lush zone at top-left: 5× regrowth
+            BiomeZone {
+                x: 30.0,
+                y: 30.0,
+                radius: 40.0,
+                regrowth_multiplier: 5.0,
+            },
+            // Moderately lush zone at bottom-right: 2× regrowth
+            BiomeZone {
+                x: 170.0,
+                y: 170.0,
+                radius: 40.0,
+                regrowth_multiplier: 2.0,
+            },
+        ],
+        seasons: SeasonsConfig::default(),
+    };
+
+    let mut grid = FoodGrid::new(&world, &food);
+    let base_rate = food.regrowth_rate;
+
+    // Cell at (col=3, row=3) → center (35, 35) is inside the very lush zone
+    let lush_rate = grid.regrowth_at(3, 3);
+    // Cell at (col=17, row=17) → center (175, 175) is inside the moderate zone
+    let moderate_rate = grid.regrowth_at(17, 17);
+    // Cell at (col=10, row=10) → center (105, 105) is far from both zones (barren = base)
+    let barren_rate = grid.regrowth_at(10, 10);
+
+    // Lush zone rate should be higher than base rate
+    assert!(
+        lush_rate > base_rate,
+        "lush zone rate ({}) should exceed base rate ({})",
+        lush_rate,
+        base_rate
+    );
+    // Moderate zone rate should also exceed base rate
+    assert!(
+        moderate_rate > base_rate,
+        "moderate zone rate ({}) should exceed base rate ({})",
+        moderate_rate,
+        base_rate
+    );
+    // Barren area (no zone) should be at the base rate
+    assert!(
+        (barren_rate - base_rate).abs() < 1e-10,
+        "barren rate ({}) should equal base rate ({})",
+        barren_rate,
+        base_rate
+    );
+    // Lush > moderate > barren — three distinct tiers of regrowth
+    assert!(
+        lush_rate > moderate_rate,
+        "lush rate ({}) must exceed moderate rate ({})",
+        lush_rate,
+        moderate_rate
+    );
+    assert!(
+        moderate_rate > barren_rate,
+        "moderate rate ({}) must exceed barren rate ({})",
+        moderate_rate,
+        barren_rate
+    );
+
+    // Now test actual regrowth: drain cells in all three zones and regrow
+    let cols = grid.cols;
+    let lush_idx = 3 * cols + 3;
+    let moderate_idx = 17 * cols + 17;
+    let barren_idx = 10 * cols + 10;
+
+    grid.cells[lush_idx] = 0.0;
+    grid.cells[moderate_idx] = 0.0;
+    grid.cells[barren_idx] = 0.0;
+
+    let no_seasons = SeasonsConfig::default();
+    for t in 0..10 {
+        grid.regrow(t, &no_seasons);
+    }
+
+    let lush_food = grid.cells[lush_idx];
+    let moderate_food = grid.cells[moderate_idx];
+    let barren_food = grid.cells[barren_idx];
+
+    // After regrowth, lush > moderate > barren
+    assert!(
+        lush_food > moderate_food,
+        "after regrowth, lush cell ({}) should have more food than moderate cell ({})",
+        lush_food,
+        moderate_food
+    );
+    assert!(
+        moderate_food > barren_food,
+        "after regrowth, moderate cell ({}) should have more food than barren cell ({})",
+        moderate_food,
+        barren_food
+    );
+    // Lush cell should have regrown well above base rate over 10 ticks
+    assert!(
+        lush_food > base_rate * 10.0,
+        "lush cell ({}) should have more than 10× base regrowth ({})",
+        lush_food,
+        base_rate * 10.0
+    );
+    // Barren cell should have regrown at exactly base rate
+    let expected_barren = base_rate * 10.0;
+    assert!(
+        (barren_food - expected_barren).abs() < 1e-10,
+        "barren cell ({}) should equal 10× base rate ({})",
+        barren_food,
+        expected_barren
+    );
+}
+
+#[test]
+fn biome_no_zones_gives_uniform_regrowth() {
+    // When no biomes are configured, all cells should have the same base regrowth rate.
+    let world = WorldConfig {
+        width: 100.0,
+        height: 100.0,
+        seed: 0,
+    };
+    let food = FoodConfig {
+        cell_size: 10.0,
+        max_per_cell: 1.0,
+        regrowth_rate: 0.005,
+        energy_per_food: 40.0,
+        biomes: vec![],
+        seasons: SeasonsConfig::default(),
+    };
+
+    let grid = FoodGrid::new(&world, &food);
+    let cols = grid.cols;
+    let rows = grid.rows;
+
+    for row in 0..rows {
+        for col in 0..cols {
+            let rate = grid.regrowth_at(col, row);
+            assert!(
+                (rate - food.regrowth_rate).abs() < 1e-10,
+                "cell ({},{}) rate {} != base rate {}",
+                col,
+                row,
+                rate,
+                food.regrowth_rate
+            );
+        }
+    }
+}
+
+#[test]
+fn seasonal_food_variation() {
+    // Verify that seasonal (cyclical) food variation modulates regrowth rates.
+    //
+    // At tick 0, sin(0)=0 → multiplier=1.0 (baseline).
+    // At tick period/4, sin(π/2)=1 → multiplier=1+amplitude (peak summer).
+    // At tick 3*period/4, sin(3π/2)=-1 → multiplier=1-amplitude (peak winter).
+    //
+    // Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+    use sim_core::world::seasonal_multiplier;
+
+    let seasons = SeasonsConfig {
+        amplitude: 0.5,
+        period: 1000.0,
+    };
+
+    // At tick 0: sin(0) = 0 → multiplier = 1.0
+    let m0 = seasonal_multiplier(0, &seasons);
+    assert!(
+        (m0 - 1.0).abs() < 1e-10,
+        "at tick 0, multiplier should be 1.0, got {}",
+        m0
+    );
+
+    // At tick period/4 (=250): sin(π/2) = 1 → multiplier = 1.5
+    let m_peak = seasonal_multiplier(250, &seasons);
+    assert!(
+        (m_peak - 1.5).abs() < 1e-10,
+        "at peak summer, multiplier should be 1.5, got {}",
+        m_peak
+    );
+
+    // At tick 3*period/4 (=750): sin(3π/2) = -1 → multiplier = 0.5
+    let m_trough = seasonal_multiplier(750, &seasons);
+    assert!(
+        (m_trough - 0.5).abs() < 1e-10,
+        "at peak winter, multiplier should be 0.5, got {}",
+        m_trough
+    );
+
+    // Now test actual food regrowth with seasons
+    let world = WorldConfig {
+        width: 100.0,
+        height: 100.0,
+        seed: 0,
+    };
+    let food = FoodConfig {
+        cell_size: 50.0,
+        max_per_cell: 1.0,
+        regrowth_rate: 0.01,
+        energy_per_food: 40.0,
+        biomes: vec![],
+        seasons: SeasonsConfig::default(), // not used for grid init
+    };
+    let mut grid = FoodGrid::new(&world, &food);
+
+    // Drain cell (0,0) and regrow at peak summer (tick=250, multiplier=1.5)
+    grid.cells[0] = 0.0;
+    grid.regrow(250, &seasons);
+    let summer_food = grid.cells[0];
+
+    // Drain again and regrow at peak winter (tick=750, multiplier=0.5)
+    grid.cells[0] = 0.0;
+    grid.regrow(750, &seasons);
+    let winter_food = grid.cells[0];
+
+    // Drain again and regrow at baseline (tick=0, multiplier=1.0)
+    grid.cells[0] = 0.0;
+    grid.regrow(0, &seasons);
+    let baseline_food = grid.cells[0];
+
+    // Summer > baseline > winter
+    assert!(
+        summer_food > baseline_food,
+        "summer regrowth ({}) should exceed baseline ({})",
+        summer_food,
+        baseline_food
+    );
+    assert!(
+        baseline_food > winter_food,
+        "baseline regrowth ({}) should exceed winter ({})",
+        baseline_food,
+        winter_food
+    );
+
+    // Verify exact amounts: rate * multiplier
+    assert!(
+        (summer_food - 0.015).abs() < 1e-10,
+        "summer food should be 0.015 (0.01 * 1.5), got {}",
+        summer_food
+    );
+    assert!(
+        (winter_food - 0.005).abs() < 1e-10,
+        "winter food should be 0.005 (0.01 * 0.5), got {}",
+        winter_food
+    );
+}
+
+#[test]
+fn seasonal_no_effect_when_amplitude_zero() {
+    // With amplitude=0, seasonal multiplier should always be 1.0
+    use sim_core::world::seasonal_multiplier;
+
+    let no_seasons = SeasonsConfig::default(); // amplitude=0
+
+    for tick in [0, 100, 250, 500, 750, 999] {
+        let m = seasonal_multiplier(tick, &no_seasons);
+        assert!(
+            (m - 1.0).abs() < 1e-10,
+            "with amplitude=0, multiplier at tick {} should be 1.0, got {}",
+            tick,
+            m
+        );
     }
 }

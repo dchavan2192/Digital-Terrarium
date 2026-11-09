@@ -47,6 +47,11 @@ pub struct FoodConfig {
     /// Citation: Schluter, D. (2000) "The Ecology of Adaptive Radiation" Oxford UP
     #[serde(default)]
     pub biomes: Vec<BiomeZone>,
+    /// Seasonal (cyclical) food variation. Regrowth oscillates sinusoidally over time.
+    ///
+    /// Citation: Botkin, D.B. (1990) "Forest Dynamics: An Ecological Model" Oxford UP
+    #[serde(default)]
+    pub seasons: SeasonsConfig,
 }
 
 /// A circular zone with a modified food regrowth rate.
@@ -67,6 +72,30 @@ pub struct BiomeZone {
     /// Multiplier applied to the base regrowth rate within this zone.
     /// >1.0 = lush, <1.0 = barren, 0.0 = dead zone.
     pub regrowth_multiplier: f64,
+}
+
+/// Seasonal (cyclical) food regrowth variation.
+///
+/// Applies a sinusoidal multiplier to all regrowth rates: `1.0 + amplitude * sin(2π * tick / period)`.
+/// This creates boom-bust resource cycles that select for energy-buffering strategies
+/// and seasonal migration between biomes.
+///
+/// Citation: Botkin, D.B. (1990) "Forest Dynamics: An Ecological Model" Oxford UP
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SeasonsConfig {
+    /// Amplitude of seasonal oscillation [0, 1). 0 = no seasons, 0.5 = regrowth swings 50%-150%.
+    pub amplitude: f64,
+    /// Period of one full seasonal cycle in ticks.
+    pub period: f64,
+}
+
+impl Default for SeasonsConfig {
+    fn default() -> Self {
+        SeasonsConfig {
+            amplitude: 0.0,
+            period: 10000.0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

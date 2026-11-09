@@ -4,7 +4,7 @@
 //! regrows over time. The spatial grid is a separate, finer grid used for
 //! fast neighbor lookups (vision rays, eating range).
 
-use crate::config::{FoodConfig, WorldConfig};
+use crate::config::{FoodConfig, SeasonsConfig, WorldConfig};
 
 /// The food resource layer. A grid of cells that regrow over time.
 ///
@@ -73,12 +73,17 @@ impl FoodGrid {
         }
     }
 
-    /// Regrow food in every cell using per-cell regrowth rates.
-    pub fn regrow(&mut self) {
+    /// Regrow food in every cell using per-cell regrowth rates,
+    /// modulated by the seasonal multiplier.
+    ///
+    /// Seasonal formula: `multiplier = 1.0 + amplitude * sin(2π * tick / period)`
+    /// Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+    pub fn regrow(&mut self, tick: u64, seasons: &SeasonsConfig) {
         let max = self.max_per_cell;
+        let seasonal = seasonal_multiplier(tick, seasons);
         for (cell, &rate) in self.cells.iter_mut().zip(self.regrowth_rates.iter()) {
             if *cell < max {
-                *cell = (*cell + rate).min(max);
+                *cell = (*cell + rate * seasonal).min(max);
             }
         }
     }
@@ -235,6 +240,21 @@ impl SpatialGrid {
             }
         }
     }
+}
+
+/// Compute the seasonal regrowth multiplier for a given tick.
+///
+/// Returns `1.0 + amplitude * sin(2π * tick / period)`, clamped to [0, ∞).
+/// When amplitude is 0, returns 1.0 (no seasonal effect).
+///
+/// Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+#[inline]
+pub fn seasonal_multiplier(tick: u64, seasons: &SeasonsConfig) -> f64 {
+    if seasons.amplitude == 0.0 || seasons.period <= 0.0 {
+        return 1.0;
+    }
+    let phase = std::f64::consts::TAU * tick as f64 / seasons.period;
+    (1.0 + seasons.amplitude * phase.sin()).max(0.0)
 }
 
 /// Wraparound distance between two points on a toroidal world.

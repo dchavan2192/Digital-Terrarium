@@ -652,8 +652,9 @@ impl Simulation {
         // Remove dead organisms to keep memory bounded
         self.organisms.retain(|o| o.alive);
 
-        // 7. Regrow food
-        self.food_grid.regrow();
+        // 7. Regrow food (with seasonal modulation)
+        // Citation: Botkin (1990) "Forest Dynamics" — sinusoidal resource oscillation
+        self.food_grid.regrow(self.tick, &self.config.food.seasons);
 
         // Update stats
         let population = self.organisms.len();

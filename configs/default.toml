@@ -17,6 +17,14 @@ energy_per_food = 30.0  # Energy gained per 1.0 unit of food consumed
 # Each biome is a circular zone with a regrowth multiplier (smooth falloff from center).
 # Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
 # Citation: Rosenzweig (1995) "Species Diversity in Space and Time"
+# Seasonal (cyclical) food variation — regrowth oscillates sinusoidally over time.
+# Multiplier = 1.0 + amplitude * sin(2π * tick / period)
+# Creates boom-bust resource cycles that select for energy-buffering strategies.
+# Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+[food.seasons]
+amplitude = 0.3         # Regrowth swings 70%-130% of base (0 = no seasons)
+period = 10000.0        # One full cycle every 10k ticks
+
 [[food.biomes]]
 x = 250.0               # Lush oasis — northwest quadrant
 y = 250.0

@@ -100,6 +100,22 @@
   - CSV output includes all new fields automatically (serde::Serialize)
   - Citations: Shannon (1948), Beer & Williams (2015)
 
+### Phase 2.5: Environmental Dynamics [IN PROGRESS]
+- [x] **Seasonal/cyclical food variation** — regrowth oscillates sinusoidally over configurable period
+  - `[food.seasons]` config: amplitude (0-1) and period (ticks)
+  - Formula: `multiplier = 1.0 + amplitude * sin(2π * tick / period)`
+  - Default: amplitude=0.3, period=10000 (regrowth swings 70%-130%)
+  - Applied globally on top of biome multipliers
+  - Backward compatible: amplitude=0 disables (existing configs unaffected)
+  - Viewer shows current seasonal multiplier percentage
+  - Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+- [ ] **Population density pressure** — creatures in crowded cells have higher metabolism (Allee effect)
+- [ ] **Dynamic speciation threshold** — compute from population genome variance
+
+### Testing & Validation [ONGOING]
+- [x] **Biome-aware food regrowth integration test** — verifies FoodGrid with BiomeZone config produces per-cell regrowth rate variation; lush zones regrow faster than moderate zones, which regrow faster than neutral (no-zone) areas; also verifies uniform rates when no biomes configured
+- [x] **Seasonal food variation tests** — `seasonal_food_variation` verifies sinusoidal multiplier at tick 0 (baseline), peak summer (1+amplitude), peak winter (1-amplitude), and actual food accumulation at each phase; `seasonal_no_effect_when_amplitude_zero` verifies backward compatibility
+
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
 - [ ] WASM build + GitHub Pages live demo
@@ -367,3 +383,21 @@ Mutation: 10% per weight, +/-0.2 step
   - Backward compatible via `#[serde(default)]` — existing configs work unchanged
   - Motivation: Pi 500k runs showed 0 speciation — uniform environment = no niche pressure
   - Citations: Schluter (2000), Rosenzweig (1995)
+
+### Session 7 (2026-11-09)
+- **Integration test for biome-aware food regrowth** (16 tests total, all passing)
+  - `biome_aware_food_regrowth`: constructs FoodGrid with two BiomeZone configs (5× lush, 2× moderate), verifies three-tier regrowth rates (lush > moderate > barren/neutral), tests actual food accumulation over 10 regrow cycles
+  - `biome_no_zones_gives_uniform_regrowth`: verifies backward compatibility — no biomes configured means all cells get the uniform base regrowth rate
+  - Discovered that "barren" zones (multiplier < 1.0) have no effect in current implementation due to "highest multiplier wins" logic starting at 1.0 — documented in test comments
+
+### Session 8 (2026-11-09)
+- **Seasonal/cyclical food variation** (18 tests total, all passing)
+  - Added `SeasonsConfig` struct with `amplitude` and `period` fields to config.rs
+  - Added `[food.seasons]` section to default.toml (amplitude=0.3, period=10000)
+  - `FoodGrid::regrow()` now takes tick and SeasonsConfig, applies sinusoidal multiplier
+  - `seasonal_multiplier()` public function: `1.0 + amplitude * sin(2π * tick / period)`, clamped ≥0
+  - Applied globally on top of per-cell biome rates — creates boom-bust cycles
+  - Viewer UI shows "Season: X%" when seasons are active
+  - Backward compatible via `#[serde(default)]` — amplitude=0 means no effect
+  - Two new integration tests: `seasonal_food_variation`, `seasonal_no_effect_when_amplitude_zero`
+  - Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
