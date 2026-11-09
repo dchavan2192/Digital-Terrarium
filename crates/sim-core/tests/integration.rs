@@ -1140,3 +1140,289 @@ share_amount = 5.0
         assert_eq!(a.energy, b.energy, "energy should be identical with cost=0");
     }
 }
+
+#[test]
+fn dynamic_speciation_threshold_adapts_to_diversity() {
+    // Run a simulation with dynamic speciation enabled. After enough ticks for
+    // NEAT structural mutations to diversify genomes, the dynamically computed
+    // threshold should differ from the fixed default (0.5) and be reported in stats.
+    //
+    // Citation: Stanley & Miikkulainen (2002) — dynamic compatibility threshold
+    let toml = r#"
+[world]
+width = 200.0
+height = 200.0
+seed = 42
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.005
+energy_per_food = 40.0
+
+[creature]
+initial_count = 50
+hard_cap = 200
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 5000
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 100.0
+maximum = 200.0
+base_metabolism = 0.1
+movement_cost = 0.05
+brain_cost = 0.002
+
+[reproduction]
+threshold = 80.0
+parent_cost = 40.0
+child_energy = 40.0
+
+[mutation]
+weight_probability = 0.3
+weight_step = 0.5
+
+[brain]
+inputs = 15
+hidden = 8
+outputs = 6
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+
+[speciation]
+dynamic = true
+fixed_threshold = 0.5
+sample_size = 30
+factor = 0.75
+min_threshold = 0.1
+max_threshold = 2.0
+"#;
+    let cfg = Config::parse(toml).unwrap();
+    assert!(cfg.speciation.dynamic);
+
+    let mut sim = Simulation::new(cfg);
+
+    for _ in 0..500 {
+        sim.step();
+        if sim.is_extinct() {
+            break;
+        }
+    }
+
+    // Dynamic threshold should be within configured bounds
+    assert!(
+        sim.stats.speciation_threshold >= 0.1,
+        "threshold {} should be >= min_threshold 0.1",
+        sim.stats.speciation_threshold
+    );
+    assert!(
+        sim.stats.speciation_threshold <= 2.0,
+        "threshold {} should be <= max_threshold 2.0",
+        sim.stats.speciation_threshold
+    );
+    // With high mutation rate (0.3) and large steps (0.5), genomes should diverge,
+    // producing a non-trivial mean distance. The threshold should not equal the
+    // fixed fallback (0.5) — it should have been computed from actual variance.
+    // (It's technically possible but extremely unlikely with these settings.)
+    assert!(
+        sim.stats.speciation_threshold != 0.5,
+        "dynamic threshold should differ from fixed default 0.5"
+    );
+    assert!(
+        sim.stats.species_count >= 1,
+        "should detect at least 1 species"
+    );
+}
+
+#[test]
+fn speciation_fixed_threshold_backward_compatible() {
+    // With dynamic=false (or config section omitted), the speciation threshold
+    // should be the fixed value and behavior should match the previous hard-coded 0.5.
+    //
+    // Citation: Stanley & Miikkulainen (2002)
+    let toml_explicit = r#"
+[world]
+width = 100.0
+height = 100.0
+seed = 7
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.005
+energy_per_food = 40.0
+
+[creature]
+initial_count = 20
+hard_cap = 200
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 5000
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 100.0
+maximum = 200.0
+base_metabolism = 0.1
+movement_cost = 0.05
+brain_cost = 0.002
+
+[reproduction]
+threshold = 150.0
+parent_cost = 60.0
+child_energy = 50.0
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+
+[brain]
+inputs = 15
+hidden = 8
+outputs = 6
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+
+[speciation]
+dynamic = false
+fixed_threshold = 0.5
+"#;
+    // Without [speciation] section — should default to dynamic=false, threshold=0.5
+    let toml_omitted = r#"
+[world]
+width = 100.0
+height = 100.0
+seed = 7
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.005
+energy_per_food = 40.0
+
+[creature]
+initial_count = 20
+hard_cap = 200
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 5000
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 100.0
+maximum = 200.0
+base_metabolism = 0.1
+movement_cost = 0.05
+brain_cost = 0.002
+
+[reproduction]
+threshold = 150.0
+parent_cost = 60.0
+child_energy = 50.0
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+
+[brain]
+inputs = 15
+hidden = 8
+outputs = 6
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.5
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+"#;
+
+    let mut sim_explicit = Simulation::new(Config::parse(toml_explicit).unwrap());
+    let mut sim_omitted = Simulation::new(Config::parse(toml_omitted).unwrap());
+
+    for _ in 0..20 {
+        sim_explicit.step();
+        sim_omitted.step();
+    }
+
+    // Both should use fixed threshold = 0.5
+    assert!(
+        (sim_explicit.stats.speciation_threshold - 0.5).abs() < 1e-10,
+        "explicit fixed threshold should be 0.5, got {}",
+        sim_explicit.stats.speciation_threshold
+    );
+    assert!(
+        (sim_omitted.stats.speciation_threshold - 0.5).abs() < 1e-10,
+        "omitted config should default to 0.5, got {}",
+        sim_omitted.stats.speciation_threshold
+    );
+
+    // Identical configs + same seed → identical species count and state
+    assert_eq!(
+        sim_explicit.stats.species_count, sim_omitted.stats.species_count,
+        "species count should match between explicit and default configs"
+    );
+    assert_eq!(
+        sim_explicit.organisms.len(),
+        sim_omitted.organisms.len(),
+        "population should be identical"
+    );
+    for (a, b) in sim_explicit
+        .organisms
+        .iter()
+        .zip(sim_omitted.organisms.iter())
+    {
+        assert_eq!(a.energy, b.energy, "energy should be identical");
+    }
+}

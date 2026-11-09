@@ -104,6 +104,17 @@ weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
 # Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
 cost_per_neighbor = 0.01
 
+[speciation]
+# Dynamic speciation threshold: compute from population genome variance
+# instead of using a fixed value. Adapts species count to actual diversity.
+# Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through Augmenting Topologies"
+dynamic = true                # true = compute from variance, false = use fixed_threshold
+fixed_threshold = 0.5         # Fallback when dynamic=false (NEAT compatibility distance)
+sample_size = 50              # Organisms sampled for mean pairwise distance (O(n²) among sample)
+factor = 0.75                 # threshold = factor × mean_distance
+min_threshold = 0.1           # Floor: prevents over-splitting
+max_threshold = 2.0           # Ceiling: prevents one giant species
+
 [brain]
 inputs = 15             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal + body_size + kin_similarity
 hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)

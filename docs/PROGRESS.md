@@ -117,7 +117,7 @@
   - Backward compatible via `#[serde(default)]` — cost=0.0 disables (existing configs unaffected)
   - Two new integration tests: `density_pressure_increases_metabolism`, `density_pressure_no_effect_when_zero`
   - Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
-- [ ] **Dynamic speciation threshold** — compute from population genome variance
+- [x] **Dynamic speciation threshold** — compute from population genome variance
 
 ### Testing & Validation [ONGOING]
 - [x] **Biome-aware food regrowth integration test** — verifies FoodGrid with BiomeZone config produces per-cell regrowth rate variation; lush zones regrow faster than moderate zones, which regrow faster than neutral (no-zone) areas; also verifies uniform rates when no biomes configured
@@ -422,3 +422,18 @@ Mutation: 10% per weight, +/-0.2 step
     - `density_pressure_no_effect_when_zero`: verifies backward compatibility (cost=0 identical to omitted)
   - Zero extra spatial queries or allocations — piggybacks on existing vision neighbor loop
   - Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
+
+### Session 10 (2026-11-09)
+- **Dynamic speciation threshold (Phase 2.5 complete)**
+  - Added `SpeciationConfig` with `dynamic`, `fixed_threshold`, `sample_size`, `factor`, `min_threshold`, `max_threshold`
+  - Added `[speciation]` section to default.toml: `dynamic = true`, `factor = 0.75`, bounds [0.1, 2.0]
+  - Algorithm: deterministic stride-based sampling of organisms, compute all pairwise genome distances among sample, set threshold = factor × mean_distance, clamped to [min, max]
+  - Replaces hard-coded `species_threshold = 0.5` with adaptive computation
+  - `speciation_threshold` added to TickStats for observation and CSV output
+  - Viewer shows threshold alongside species count: "Species: N (t=X.XX)"
+  - Backward compatible via `#[serde(default)]`: omitting `[speciation]` gives `dynamic=false`, `fixed_threshold=0.5` (identical to previous behavior)
+  - Two new integration tests (22 total, all passing):
+    - `dynamic_speciation_threshold_adapts_to_diversity`: verifies threshold is computed from genome variance, within configured bounds, and differs from fixed default
+    - `speciation_fixed_threshold_backward_compatible`: verifies omitting config section gives identical behavior to explicit `dynamic=false`
+  - Zero allocation: stride sampling is O(sample_size²) distance computations with no heap allocation beyond the existing genome distance function
+  - Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through Augmenting Topologies"

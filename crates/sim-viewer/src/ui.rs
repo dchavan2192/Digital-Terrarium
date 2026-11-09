@@ -66,7 +66,10 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
             ui.label(format!("Deaths (last tick): {}", stats.deaths));
             ui.label(format!("Mean energy: {:.1}", stats.mean_energy));
             ui.label(format!("Mean neurons: {:.1}", stats.mean_brain_neurons));
-            ui.label(format!("Species: {}", stats.species_count));
+            ui.label(format!(
+                "Species: {} (t={:.2})",
+                stats.species_count, stats.speciation_threshold
+            ));
             ui.label(format!("Mean generation: {:.0}", stats.mean_generation));
             ui.label(format!(
                 "Trophic: {:.2} (H:{} P:{})",

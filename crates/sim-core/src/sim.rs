@@ -74,6 +74,9 @@ pub struct TickStats {
     /// Mean number of nearby neighbors per organism (density pressure).
     /// Citation: Allee (1931)
     pub mean_crowding: f64,
+    /// Current speciation compatibility distance threshold.
+    /// Citation: Stanley & Miikkulainen (2002)
+    pub speciation_threshold: f64,
 }
 
 /// Compact action output — one per organism per tick.
@@ -719,10 +722,42 @@ impl Simulation {
         // genome is within `species_threshold` distance. If no match, a new species
         // is created. This is O(organisms * species) — fast when species count is small.
         //
-        // Computed every tick for accurate tracking. With ~1000 organisms and
-        // typically <20 species, this is ~20k distance computations — negligible
-        // compared to the ~1000 brain forward passes.
-        let species_threshold = 0.5;
+        // Dynamic threshold: sample pairwise genome distances, set threshold =
+        // factor × mean_distance. Adapts to actual population diversity so species
+        // count is meaningful regardless of how divergent genomes become over time.
+        //
+        // Citation: Stanley & Miikkulainen (2002) — dynamic compatibility threshold
+        let species_threshold = if self.config.speciation.dynamic && population > 1 {
+            let sample_size = self.config.speciation.sample_size.min(population);
+            let stride = if population > sample_size {
+                population / sample_size
+            } else {
+                1
+            };
+            let mut total_distance = 0.0;
+            let mut pair_count = 0usize;
+            for a in 0..sample_size {
+                let ai = a * stride;
+                for b in (a + 1)..sample_size {
+                    let bi = b * stride;
+                    total_distance += self.organisms[ai]
+                        .genome
+                        .genome_distance(&self.organisms[bi].genome);
+                    pair_count += 1;
+                }
+            }
+            if pair_count > 0 {
+                let mean_distance = total_distance / pair_count as f64;
+                (mean_distance * self.config.speciation.factor).clamp(
+                    self.config.speciation.min_threshold,
+                    self.config.speciation.max_threshold,
+                )
+            } else {
+                self.config.speciation.fixed_threshold
+            }
+        } else {
+            self.config.speciation.fixed_threshold
+        };
         let species_count = if population > 0 {
             // Representatives: one genome per species (first assigned member)
             let mut representatives: Vec<&crate::genome::Genome> = Vec::new();
@@ -882,6 +917,7 @@ impl Simulation {
             behavioral_diversity,
             mean_connections,
             mean_crowding,
+            speciation_threshold: species_threshold,
         };
     }
 

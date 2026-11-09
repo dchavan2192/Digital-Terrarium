@@ -28,6 +28,8 @@ pub struct Config {
     pub sharing: SharingConfig,
     #[serde(default)]
     pub density_pressure: DensityPressureConfig,
+    #[serde(default)]
+    pub speciation: SpeciationConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -211,6 +213,45 @@ impl Default for DensityPressureConfig {
     fn default() -> Self {
         DensityPressureConfig {
             cost_per_neighbor: 0.0,
+        }
+    }
+}
+
+/// Dynamic speciation threshold configuration.
+///
+/// Computes the compatibility distance threshold from population genome variance
+/// so species count adapts to actual diversity. When the population is genetically
+/// diverse, the threshold rises (keeping species meaningful). When homogeneous,
+/// it drops (detecting finer distinctions).
+///
+/// Citation: Stanley, K.O. & Miikkulainen, R. (2002) "Evolving Neural Networks
+/// through Augmenting Topologies" — dynamic compatibility threshold
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SpeciationConfig {
+    /// Use dynamic threshold computed from genome variance (true) or fixed value (false).
+    pub dynamic: bool,
+    /// Fixed compatibility distance threshold (used when dynamic=false, or as initial fallback).
+    pub fixed_threshold: f64,
+    /// Number of organisms to sample for mean distance estimation (O(n²) pairs among sample).
+    pub sample_size: usize,
+    /// Threshold = factor × mean pairwise genome distance among sample.
+    pub factor: f64,
+    /// Floor: prevents over-splitting into trivially small species.
+    pub min_threshold: f64,
+    /// Ceiling: prevents collapsing all organisms into one species.
+    pub max_threshold: f64,
+}
+
+impl Default for SpeciationConfig {
+    fn default() -> Self {
+        SpeciationConfig {
+            dynamic: false,
+            fixed_threshold: 0.5,
+            sample_size: 50,
+            factor: 0.75,
+            min_threshold: 0.1,
+            max_threshold: 2.0,
         }
     }
 }
