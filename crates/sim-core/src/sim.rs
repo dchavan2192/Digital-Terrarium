@@ -24,6 +24,9 @@ use rayon::prelude::*;
 /// Maximum number of vision rays (for stack allocation).
 const MAX_RAYS: usize = 16;
 
+/// Number of recent ticks to track per-species population for trend detection.
+const SPECIES_HISTORY_LEN: usize = 50;
+
 /// Complete simulation state. Owns all organisms, the world, and the RNG.
 pub struct Simulation {
     pub config: Config,
@@ -40,6 +43,44 @@ pub struct Simulation {
     // Reusable buffers to avoid allocation in the hot loop
     positions: Vec<(f64, f64, bool)>,
     actions: Vec<Action>,
+
+    /// Per-species population history ring buffer for trend detection.
+    /// Key: species representative index, Value: recent population counts.
+    species_history: Vec<Vec<usize>>,
+    /// Representative genomes from last tick for species continuity.
+    species_representatives: Vec<crate::genome::Genome>,
+}
+
+/// Per-species aggregate statistics.
+///
+/// Computed each tick via NEAT-style compatibility distance clustering.
+/// Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through
+/// Augmenting Topologies" *Evolutionary Computation* 10(2):99-127
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct SpeciesInfo {
+    /// Species index (0-based, assigned during clustering).
+    pub id: usize,
+    /// Number of living members.
+    pub population: usize,
+    /// Mean hue of members — for color swatch display.
+    pub mean_hue: f64,
+    /// Mean energy across members.
+    pub mean_energy: f64,
+    /// Mean body size across members.
+    pub mean_body_size: f64,
+    /// Mean active brain connections.
+    pub mean_connections: f64,
+    /// Mean generation number.
+    pub mean_generation: f64,
+    /// Mean trophic level (1.0 = herbivore, 2.0 = predator).
+    pub mean_trophic_level: f64,
+    /// Fraction that are herbivores (predation < 25%).
+    pub herbivore_fraction: f64,
+    /// Fraction that are predators (predation > 50%).
+    pub predator_fraction: f64,
+    /// Population trend: positive = growing, negative = declining.
+    /// Computed as (current - avg_recent) / avg_recent.
+    pub trend: f64,
 }
 
 /// Summary statistics for the most recent tick.
@@ -78,6 +119,9 @@ pub struct TickStats {
     /// Current speciation compatibility distance threshold.
     /// Citation: Stanley & Miikkulainen (2002)
     pub speciation_threshold: f64,
+    /// Per-species breakdown with aggregate stats and trend.
+    #[serde(skip)]
+    pub species: Vec<SpeciesInfo>,
 }
 
 /// Compact action output — one per organism per tick.
@@ -158,6 +202,8 @@ impl Simulation {
             stats: TickStats::default(),
             positions: Vec::with_capacity(cap),
             actions: Vec::with_capacity(cap),
+            species_history: Vec::new(),
+            species_representatives: Vec::new(),
         }
     }
 
@@ -761,24 +807,125 @@ impl Simulation {
         } else {
             self.config.speciation.fixed_threshold
         };
-        let species_count = if population > 0 {
-            // Representatives: one genome per species (first assigned member)
-            let mut representatives: Vec<&crate::genome::Genome> = Vec::new();
+        // Assign each organism to a species and collect per-species stats.
+        // Use previous tick's representatives for continuity when possible.
+        let (species_count, species_infos) = if population > 0 {
+            let mut representatives: Vec<Genome> = Vec::new();
+            let mut species_assignments: Vec<usize> = Vec::with_capacity(population);
+
             for org in &self.organisms {
-                let mut found = false;
-                for rep in &representatives {
+                let mut assigned = None;
+                // Try previous representatives first for temporal continuity
+                for (si, rep) in self.species_representatives.iter().enumerate() {
                     if org.genome.genome_distance(rep) < species_threshold {
-                        found = true;
+                        // Ensure this species index exists in our current list
+                        if si < representatives.len() {
+                            assigned = Some(si);
+                        } else if representatives.len() == si {
+                            // Extend to match old rep
+                            representatives.push(org.genome.clone());
+                            assigned = Some(si);
+                        }
                         break;
                     }
                 }
-                if !found {
-                    representatives.push(&org.genome);
+                // Fall back to current representatives
+                if assigned.is_none() {
+                    for (si, rep) in representatives.iter().enumerate() {
+                        if org.genome.genome_distance(rep) < species_threshold {
+                            assigned = Some(si);
+                            break;
+                        }
+                    }
+                }
+                // New species
+                if assigned.is_none() {
+                    assigned = Some(representatives.len());
+                    representatives.push(org.genome.clone());
+                }
+                species_assignments.push(assigned.unwrap());
+            }
+
+            let num_species = representatives.len();
+
+            // Collect per-species aggregates
+            let mut infos: Vec<SpeciesInfo> = (0..num_species)
+                .map(|id| SpeciesInfo {
+                    id,
+                    ..Default::default()
+                })
+                .collect();
+
+            for (oi, &si) in species_assignments.iter().enumerate() {
+                let org = &self.organisms[oi];
+                let info = &mut infos[si];
+                info.population += 1;
+                info.mean_hue += org.genome.color_hue;
+                info.mean_energy += org.energy;
+                info.mean_body_size += org.genome.body_size;
+                info.mean_connections += org.brain.connection_count() as f64;
+                info.mean_generation += org.generation as f64;
+
+                let total_intake = org.energy_from_food + org.energy_from_attacks;
+                let pred_frac = if total_intake > 0.0 {
+                    org.energy_from_attacks / total_intake
+                } else {
+                    0.0
+                };
+                info.mean_trophic_level += 1.0 + pred_frac;
+                if pred_frac < 0.25 {
+                    info.herbivore_fraction += 1.0;
+                } else if pred_frac > 0.5 {
+                    info.predator_fraction += 1.0;
                 }
             }
-            representatives.len()
+
+            // Normalize and compute trends
+            // Resize history buffer to match current species count
+            if self.species_history.len() < num_species {
+                self.species_history.resize(num_species, Vec::new());
+            }
+
+            for info in &mut infos {
+                let n = info.population as f64;
+                if n > 0.0 {
+                    info.mean_hue /= n;
+                    info.mean_energy /= n;
+                    info.mean_body_size /= n;
+                    info.mean_connections /= n;
+                    info.mean_generation /= n;
+                    info.mean_trophic_level /= n;
+                    info.herbivore_fraction /= n;
+                    info.predator_fraction /= n;
+                }
+
+                // Update history and compute trend
+                if info.id < self.species_history.len() {
+                    let hist = &mut self.species_history[info.id];
+                    hist.push(info.population);
+                    if hist.len() > SPECIES_HISTORY_LEN {
+                        hist.remove(0);
+                    }
+                    if hist.len() >= 2 {
+                        let avg: f64 = hist.iter().sum::<usize>() as f64 / hist.len() as f64;
+                        if avg > 0.0 {
+                            info.trend = (info.population as f64 - avg) / avg;
+                        }
+                    }
+                }
+            }
+
+            // Sort species by population (largest first) for UI display
+            infos.sort_by_key(|a| std::cmp::Reverse(a.population));
+
+            // Update representatives for next tick continuity
+            self.species_representatives = representatives;
+
+            (num_species, infos)
         } else {
-            0
+            self.species_representatives.clear();
+            self.species_history.clear();
+            (0, Vec::new())
         };
 
         // Trophic level analysis
@@ -921,6 +1068,7 @@ impl Simulation {
             mean_connections,
             mean_crowding,
             speciation_threshold: species_threshold,
+            species: species_infos,
         };
     }
 

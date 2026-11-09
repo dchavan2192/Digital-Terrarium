@@ -12,6 +12,8 @@ pub struct UiState {
     pub selected_id: Option<u64>,
     /// Width of the side panel in pixels (used by camera to avoid pan conflicts).
     pub panel_width: f32,
+    /// Whether the species panel is expanded.
+    pub species_expanded: bool,
 }
 
 impl Default for UiState {
@@ -21,6 +23,7 @@ impl Default for UiState {
             ticks_per_frame: 1,
             selected_id: None,
             panel_width: 260.0,
+            species_expanded: true,
         }
     }
 }
@@ -96,6 +99,76 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
 
             ui.separator();
 
+            // --- Species breakdown ---
+            let species_header =
+                egui::CollapsingHeader::new("Species").default_open(state.species_expanded);
+            let response = species_header.show(ui, |ui| {
+                let species = &sim.stats.species;
+                if species.is_empty() {
+                    ui.label("No species data yet.");
+                } else {
+                    // Show top species (cap at 12 to avoid UI overload)
+                    let show_count = species.len().min(12);
+                    for info in &species[..show_count] {
+                        // Color swatch + population + trend arrow
+                        ui.horizontal(|ui| {
+                            // Color swatch from mean hue
+                            let hue = info.mean_hue as f32 / 360.0;
+                            let (r, g, b) = hsv_to_rgb(hue, 0.7, 0.9);
+                            let color = egui::Color32::from_rgb(
+                                (r * 255.0) as u8,
+                                (g * 255.0) as u8,
+                                (b * 255.0) as u8,
+                            );
+                            let (rect, _) = ui
+                                .allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
+                            ui.painter().rect_filled(rect, 2.0, color);
+
+                            // Trend arrow
+                            let trend_str = if info.trend > 0.1 {
+                                "▲"
+                            } else if info.trend < -0.1 {
+                                "▼"
+                            } else {
+                                "—"
+                            };
+
+                            ui.label(format!(
+                                "{} pop:{} e:{:.0} sz:{:.1} c:{:.0}",
+                                trend_str,
+                                info.population,
+                                info.mean_energy,
+                                info.mean_body_size,
+                                info.mean_connections,
+                            ));
+                        });
+
+                        // Second line: trophic + generation
+                        ui.horizontal(|ui| {
+                            ui.add_space(16.0);
+                            let diet = if info.herbivore_fraction > 0.75 {
+                                "herb"
+                            } else if info.predator_fraction > 0.5 {
+                                "pred"
+                            } else {
+                                "omni"
+                            };
+                            ui.label(format!(
+                                "gen:{:.0} troph:{:.2} ({})",
+                                info.mean_generation, info.mean_trophic_level, diet,
+                            ));
+                        });
+                        ui.add_space(2.0);
+                    }
+                    if species.len() > show_count {
+                        ui.label(format!("… +{} more", species.len() - show_count));
+                    }
+                }
+            });
+            state.species_expanded = response.fully_open();
+
+            ui.separator();
+
             // --- Selected organism inspector ---
             ui.heading("Inspector");
             if let Some(id) = state.selected_id {
@@ -165,4 +238,21 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 ui.label("Controls");
             });
         });
+}
+
+/// Convert HSV to RGB. h in [0,1], s in [0,1], v in [0,1].
+fn hsv_to_rgb(h: f32, s: f32, v: f32) -> (f32, f32, f32) {
+    let i = (h * 6.0).floor();
+    let f = h * 6.0 - i;
+    let p = v * (1.0 - s);
+    let q = v * (1.0 - f * s);
+    let t = v * (1.0 - (1.0 - f) * s);
+    match (i as i32) % 6 {
+        0 => (v, t, p),
+        1 => (q, v, p),
+        2 => (p, v, t),
+        3 => (p, q, v),
+        4 => (t, p, v),
+        _ => (v, p, q),
+    }
 }

@@ -23,4 +23,4 @@ pub mod sim;
 pub mod world;
 
 pub use config::Config;
-pub use sim::Simulation;
+pub use sim::{Simulation, SpeciesInfo};
