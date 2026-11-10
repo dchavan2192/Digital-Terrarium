@@ -17,6 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      # Install libasound2-dev for macroquad's audio backend (quad_snd → alsa)
+      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev
       - run: cargo check --workspace
       - run: cargo clippy --workspace -- -D warnings
 
@@ -27,6 +29,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      # Install libasound2-dev for macroquad's audio backend (quad_snd → alsa)
+      - run: sudo apt-get update && sudo apt-get install -y libasound2-dev
       - run: cargo test --workspace
 
   fmt:
