@@ -95,6 +95,9 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
             if sim.config.food.seasons.amplitude > 0.0 {
                 ui.label(format!("Season: {:.0}%", seasonal * 100.0));
             }
+            if stats.active_droughts > 0 {
+                ui.label(format!("Droughts: {}", stats.active_droughts));
+            }
             ui.label(format!("FPS: {:.0}", macroquad::time::get_fps()));
 
             ui.separator();

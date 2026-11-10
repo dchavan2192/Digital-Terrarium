@@ -17,6 +17,7 @@ const BG_COLOR: Color = Color::new(0.04, 0.04, 0.06, 1.0);
 pub fn draw_world(sim: &Simulation, camera: &Camera, selected_id: Option<u64>) {
     clear_background(BG_COLOR);
     draw_food_grid(sim, camera);
+    draw_droughts(sim, camera);
     draw_creatures(sim, camera, selected_id);
     draw_world_border(sim, camera);
 }
@@ -74,6 +75,23 @@ fn draw_food_grid(sim: &Simulation, camera: &Camera) {
             let color = Color::new(r, g, b, 0.5 + 0.4 * intensity);
             draw_rectangle(sx, sy, cell_px, cell_px, color);
         }
+    }
+}
+
+/// Render active drought zones as semi-transparent red circles.
+fn draw_droughts(sim: &Simulation, camera: &Camera) {
+    for drought in &sim.food_grid.droughts {
+        let (sx, sy) = camera.world_to_screen(drought.x, drought.y);
+        let radius_px = (drought.radius * camera.zoom) as f32;
+
+        // Fade opacity based on remaining time (pulses as it nears expiry)
+        let alpha = 0.12 + 0.05 * ((drought.ticks_remaining as f32 * 0.01).sin());
+        let color = Color::new(0.8, 0.15, 0.05, alpha);
+        draw_circle(sx, sy, radius_px, color);
+
+        // Thin border ring
+        let border = Color::new(0.9, 0.2, 0.1, 0.25);
+        draw_circle_lines(sx, sy, radius_px, 1.5, border);
     }
 }
 

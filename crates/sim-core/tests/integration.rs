@@ -2,7 +2,7 @@
 //!
 //! These verify that the simulation initializes, runs, and obeys its invariants.
 
-use sim_core::config::{BiomeZone, FoodConfig, SeasonsConfig, WorldConfig};
+use sim_core::config::{BiomeZone, DroughtConfig, FoodConfig, SeasonsConfig, WorldConfig};
 use sim_core::world::FoodGrid;
 use sim_core::{Config, Simulation};
 
@@ -635,6 +635,7 @@ fn biome_aware_food_regrowth() {
             },
         ],
         seasons: SeasonsConfig::default(),
+        droughts: DroughtConfig::default(),
     };
 
     let mut grid = FoodGrid::new(&world, &food);
@@ -746,6 +747,7 @@ fn biome_no_zones_gives_uniform_regrowth() {
         energy_per_food: 40.0,
         biomes: vec![],
         seasons: SeasonsConfig::default(),
+        droughts: DroughtConfig::default(),
     };
 
     let grid = FoodGrid::new(&world, &food);
@@ -820,6 +822,7 @@ fn seasonal_food_variation() {
         energy_per_food: 40.0,
         biomes: vec![],
         seasons: SeasonsConfig::default(), // not used for grid init
+        droughts: DroughtConfig::default(),
     };
     let mut grid = FoodGrid::new(&world, &food);
 

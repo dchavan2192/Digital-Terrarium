@@ -56,6 +56,14 @@ pub struct FoodConfig {
     /// Citation: Botkin, D.B. (1990) "Forest Dynamics: An Ecological Model" Oxford UP
     #[serde(default)]
     pub seasons: SeasonsConfig,
+    /// Stochastic localized droughts that temporarily kill food regrowth in a region.
+    ///
+    /// Creates scarcity pockets that force migration, predation, or cooperation.
+    /// Citation: Holling (1973) "Resilience and Stability of Ecological Systems"
+    /// Citation: Connell (1978) "Diversity in Tropical Rain Forests and Coral Reefs"
+    /// (intermediate disturbance hypothesis)
+    #[serde(default)]
+    pub droughts: DroughtConfig,
 }
 
 /// A circular zone with a modified food regrowth rate.
@@ -91,6 +99,48 @@ pub struct SeasonsConfig {
     pub amplitude: f64,
     /// Period of one full seasonal cycle in ticks.
     pub period: f64,
+}
+
+/// Stochastic localized droughts — temporary regrowth-killing zones.
+///
+/// Droughts spawn randomly, last for a duration, then fade. Inside a drought
+/// zone, food regrowth is multiplied by `severity` (typically ~0.05-0.1),
+/// effectively killing the food supply in that region.
+///
+/// This creates the scarcity pockets needed for predation and cooperation
+/// to become viable strategies, and prevents any single location from being
+/// a permanent safe haven.
+///
+/// Citations:
+/// - Holling, C.S. (1973) "Resilience and Stability of Ecological Systems"
+///   *Annual Review of Ecology and Systematics* 4:1-23
+/// - Connell, J.H. (1978) "Diversity in Tropical Rain Forests and Coral Reefs"
+///   *Science* 199(4335):1302-1310 (intermediate disturbance hypothesis)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct DroughtConfig {
+    /// Probability of a new drought spawning per tick. ~0.0002 = one every ~5000 ticks.
+    pub spawn_rate: f64,
+    /// How long a drought lasts in ticks.
+    pub duration: u64,
+    /// Radius of the drought zone in world units.
+    pub radius: f64,
+    /// Regrowth multiplier inside drought (0.05 = 5% of normal). Lower = more severe.
+    pub severity: f64,
+    /// Maximum number of simultaneous droughts.
+    pub max_active: usize,
+}
+
+impl Default for DroughtConfig {
+    fn default() -> Self {
+        DroughtConfig {
+            spawn_rate: 0.0,
+            duration: 3000,
+            radius: 150.0,
+            severity: 0.05,
+            max_active: 3,
+        }
+    }
 }
 
 impl Default for SeasonsConfig {

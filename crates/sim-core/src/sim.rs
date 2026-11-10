@@ -119,6 +119,8 @@ pub struct TickStats {
     /// Current speciation compatibility distance threshold.
     /// Citation: Stanley & Miikkulainen (2002)
     pub speciation_threshold: f64,
+    /// Number of active drought zones.
+    pub active_droughts: usize,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -736,7 +738,13 @@ impl Simulation {
         // Remove dead organisms to keep memory bounded
         self.organisms.retain(|o| o.alive);
 
-        // 7. Regrow food (with seasonal modulation)
+        // 7. Droughts: stochastic localized food crashes
+        // Citation: Holling (1973) "Resilience and Stability of Ecological Systems"
+        // Citation: Connell (1978) intermediate disturbance hypothesis
+        self.food_grid
+            .maybe_spawn_drought(&self.config.food.droughts, &mut self.rng);
+
+        // 8. Regrow food (with seasonal modulation + drought suppression)
         // Citation: Botkin (1990) "Forest Dynamics" — sinusoidal resource oscillation
         self.food_grid.regrow(self.tick, &self.config.food.seasons);
 
@@ -1072,6 +1080,7 @@ impl Simulation {
             mean_connections,
             mean_crowding,
             speciation_threshold: species_threshold,
+            active_droughts: self.food_grid.droughts.len(),
             species: species_infos,
         };
     }

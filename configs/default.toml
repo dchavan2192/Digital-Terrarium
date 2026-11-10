@@ -25,6 +25,17 @@ energy_per_food = 15.0  # Energy gained per 1.0 unit of food consumed (halved fr
 amplitude = 0.3         # Regrowth swings 70%-130% of base (0 = no seasons)
 period = 10000.0        # One full cycle every 10k ticks
 
+# Stochastic localized droughts — temporary food-killing zones.
+# Forces migration, predation, and cooperation by creating scarcity pockets.
+# Citation: Holling (1973) "Resilience and Stability of Ecological Systems"
+# Citation: Connell (1978) intermediate disturbance hypothesis
+[food.droughts]
+spawn_rate = 0.0002     # ~one new drought every 5000 ticks
+duration = 3000         # Each drought lasts 3000 ticks
+radius = 150.0          # Affected area radius in world units
+severity = 0.05         # Regrowth drops to 5% inside drought zone
+max_active = 3          # At most 3 simultaneous droughts
+
 [[food.biomes]]
 x = 250.0               # Lush oasis — northwest quadrant
 y = 250.0

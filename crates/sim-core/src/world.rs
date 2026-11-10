@@ -4,7 +4,7 @@
 //! regrows over time. The spatial grid is a separate, finer grid used for
 //! fast neighbor lookups (vision rays, eating range).
 
-use crate::config::{FoodConfig, SeasonsConfig, WorldConfig};
+use crate::config::{DroughtConfig, FoodConfig, SeasonsConfig, WorldConfig};
 
 /// The food resource layer. A grid of cells that regrow over time.
 ///
@@ -24,6 +24,22 @@ pub struct FoodGrid {
     /// Per-cell regrowth rates (base_rate × biome_multiplier). Same size as `cells`.
     /// If no biomes are configured, all cells share the base rate.
     regrowth_rates: Vec<f64>,
+    /// World dimensions (needed for drought distance calculations).
+    world_width: f64,
+    world_height: f64,
+    /// Active drought zones.
+    /// Citation: Holling (1973), Connell (1978) intermediate disturbance hypothesis.
+    pub droughts: Vec<ActiveDrought>,
+}
+
+/// A currently active drought zone.
+#[derive(Debug, Clone)]
+pub struct ActiveDrought {
+    pub x: f64,
+    pub y: f64,
+    pub radius: f64,
+    pub severity: f64,
+    pub ticks_remaining: u64,
 }
 
 impl FoodGrid {
@@ -70,21 +86,79 @@ impl FoodGrid {
             regrowth_rate: food.regrowth_rate,
             cells,
             regrowth_rates,
+            world_width: world.width,
+            world_height: world.height,
+            droughts: Vec::new(),
         }
     }
 
     /// Regrow food in every cell using per-cell regrowth rates,
-    /// modulated by the seasonal multiplier.
+    /// modulated by the seasonal multiplier and active droughts.
     ///
     /// Seasonal formula: `multiplier = 1.0 + amplitude * sin(2π * tick / period)`
     /// Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+    /// Citation: Holling (1973), Connell (1978) — drought disturbance
     pub fn regrow(&mut self, tick: u64, seasons: &SeasonsConfig) {
         let max = self.max_per_cell;
         let seasonal = seasonal_multiplier(tick, seasons);
-        for (cell, &rate) in self.cells.iter_mut().zip(self.regrowth_rates.iter()) {
-            if *cell < max {
-                *cell = (*cell + rate * seasonal).min(max);
+        let half_cell = self.cell_size * 0.5;
+
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                let idx = row * self.cols + col;
+                if self.cells[idx] >= max {
+                    continue;
+                }
+                let rate = self.regrowth_rates[idx];
+
+                // Check if this cell is inside any active drought
+                let drought_mult = if self.droughts.is_empty() {
+                    1.0
+                } else {
+                    let cx = col as f64 * self.cell_size + half_cell;
+                    let cy = row as f64 * self.cell_size + half_cell;
+                    let mut mult = 1.0f64;
+                    for d in &self.droughts {
+                        let dx = wraparound_delta(cx, d.x, self.world_width);
+                        let dy = wraparound_delta(cy, d.y, self.world_height);
+                        let dist = (dx * dx + dy * dy).sqrt();
+                        if dist < d.radius {
+                            // Smooth falloff: full severity at center, fading at edge
+                            let t = 1.0 - (dist / d.radius);
+                            let local_sev = 1.0 - (1.0 - d.severity) * t;
+                            mult = mult.min(local_sev);
+                        }
+                    }
+                    mult
+                };
+
+                self.cells[idx] = (self.cells[idx] + rate * seasonal * drought_mult).min(max);
             }
+        }
+
+        // Tick down drought timers
+        for d in &mut self.droughts {
+            d.ticks_remaining = d.ticks_remaining.saturating_sub(1);
+        }
+        self.droughts.retain(|d| d.ticks_remaining > 0);
+    }
+
+    /// Maybe spawn a new drought. Called once per tick from the sim loop.
+    /// Uses the sim RNG to maintain determinism.
+    pub fn maybe_spawn_drought(&mut self, config: &DroughtConfig, rng: &mut impl rand::Rng) {
+        if config.spawn_rate <= 0.0 || self.droughts.len() >= config.max_active {
+            return;
+        }
+        if rng.r#gen::<f64>() < config.spawn_rate {
+            let x = rng.gen_range(0.0..self.world_width);
+            let y = rng.gen_range(0.0..self.world_height);
+            self.droughts.push(ActiveDrought {
+                x,
+                y,
+                radius: config.radius,
+                severity: config.severity,
+                ticks_remaining: config.duration,
+            });
         }
     }
 
