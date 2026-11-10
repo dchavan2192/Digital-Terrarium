@@ -1,7 +1,10 @@
 //! egui control panel: stats, speed slider, pause/play, organism inspector.
 
-use egui::{Align, Layout};
+use egui::{Align, Color32, Layout, Rect, Vec2};
 use sim_core::Simulation;
+
+/// Number of ticks of history to keep for sparklines.
+const HISTORY_LEN: usize = 200;
 
 /// Persistent UI state across frames.
 pub struct UiState {
@@ -14,6 +17,54 @@ pub struct UiState {
     pub panel_width: f32,
     /// Whether the species panel is expanded.
     pub species_expanded: bool,
+    /// History ring buffers for sparklines.
+    pub history: StatsHistory,
+}
+
+/// Ring buffers for recent stat values (sparkline display).
+pub struct StatsHistory {
+    pub population: Vec<f32>,
+    pub mean_energy: Vec<f32>,
+    pub cooperation_rate: Vec<f32>,
+    pub mean_trophic: Vec<f32>,
+    pub attacks: Vec<f32>,
+    pub last_tick: u64,
+}
+
+impl Default for StatsHistory {
+    fn default() -> Self {
+        StatsHistory {
+            population: Vec::with_capacity(HISTORY_LEN),
+            mean_energy: Vec::with_capacity(HISTORY_LEN),
+            cooperation_rate: Vec::with_capacity(HISTORY_LEN),
+            mean_trophic: Vec::with_capacity(HISTORY_LEN),
+            attacks: Vec::with_capacity(HISTORY_LEN),
+            last_tick: 0,
+        }
+    }
+}
+
+impl StatsHistory {
+    fn push(&mut self, sim: &Simulation) {
+        if sim.tick == self.last_tick {
+            return;
+        }
+        self.last_tick = sim.tick;
+
+        fn ring_push(buf: &mut Vec<f32>, val: f32) {
+            if buf.len() >= HISTORY_LEN {
+                buf.remove(0);
+            }
+            buf.push(val);
+        }
+
+        let s = &sim.stats;
+        ring_push(&mut self.population, s.population as f32);
+        ring_push(&mut self.mean_energy, s.mean_energy as f32);
+        ring_push(&mut self.cooperation_rate, s.cooperation_rate as f32);
+        ring_push(&mut self.mean_trophic, s.mean_trophic_level as f32);
+        ring_push(&mut self.attacks, s.attacks as f32);
+    }
 }
 
 impl Default for UiState {
@@ -24,17 +75,106 @@ impl Default for UiState {
             selected_id: None,
             panel_width: 260.0,
             species_expanded: true,
+            history: StatsHistory::default(),
         }
     }
 }
 
-/// Draw the egui side panel. Returns the panel width so the camera knows where the viewport starts.
+/// Draw a mini sparkline chart inline.
+fn sparkline(ui: &mut egui::Ui, data: &[f32], color: Color32, height: f32) {
+    if data.len() < 2 {
+        return;
+    }
+    let width = ui.available_width().min(200.0);
+    let (rect, _) = ui.allocate_exact_size(Vec2::new(width, height), egui::Sense::hover());
+    let painter = ui.painter_at(rect);
+
+    // Background
+    painter.rect_filled(rect, 2.0, Color32::from_rgba_unmultiplied(20, 20, 30, 180));
+
+    let min_val = data.iter().copied().fold(f32::MAX, f32::min);
+    let max_val = data.iter().copied().fold(f32::MIN, f32::max);
+    let range = (max_val - min_val).max(0.001);
+
+    let points: Vec<egui::Pos2> = data
+        .iter()
+        .enumerate()
+        .map(|(i, &v)| {
+            let x = rect.left() + (i as f32 / (data.len() - 1) as f32) * rect.width();
+            let y = rect.bottom() - ((v - min_val) / range) * rect.height();
+            egui::pos2(x, y)
+        })
+        .collect();
+
+    // Draw line
+    for w in points.windows(2) {
+        painter.line_segment([w[0], w[1]], egui::Stroke::new(1.2_f32, color));
+    }
+
+    // Current value label
+    if let Some(&last) = data.last() {
+        let text = if last >= 1000.0 {
+            format!("{:.0}", last)
+        } else if last >= 1.0 {
+            format!("{:.1}", last)
+        } else {
+            format!("{:.3}", last)
+        };
+        painter.text(
+            egui::pos2(rect.right() - 2.0, rect.top() + 2.0),
+            egui::Align2::RIGHT_TOP,
+            text,
+            egui::FontId::monospace(9.0),
+            Color32::from_rgb(200, 200, 210),
+        );
+    }
+}
+
+/// Draw a horizontal progress/stat bar.
+fn stat_bar(ui: &mut egui::Ui, label: &str, value: f32, max: f32, color: Color32) {
+    ui.horizontal(|ui| {
+        ui.label(label);
+        let frac = (value / max).clamp(0.0, 1.0);
+        let width = ui.available_width().min(120.0);
+        let (rect, _) = ui.allocate_exact_size(Vec2::new(width, 14.0), egui::Sense::hover());
+        let painter = ui.painter_at(rect);
+
+        // Background
+        painter.rect_filled(rect, 2.0, Color32::from_rgb(30, 30, 40));
+
+        // Fill
+        let fill_rect =
+            Rect::from_min_size(rect.min, Vec2::new(rect.width() * frac, rect.height()));
+        painter.rect_filled(fill_rect, 2.0, color);
+
+        // Value text
+        let text = if value >= 100.0 {
+            format!("{:.0}", value)
+        } else if value >= 1.0 {
+            format!("{:.1}", value)
+        } else {
+            format!("{:.2}", value)
+        };
+        painter.text(
+            rect.center(),
+            egui::Align2::CENTER_CENTER,
+            text,
+            egui::FontId::monospace(9.0),
+            Color32::from_rgb(220, 220, 230),
+        );
+    });
+}
+
+/// Draw the egui side panel.
 pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) {
+    // Update history
+    state.history.push(sim);
+
     egui::SidePanel::left("control_panel")
-        .default_width(260.0)
+        .default_width(280.0)
         .resizable(true)
         .show(egui_ctx, |ui| {
-            state.panel_width = ui.available_width() + 16.0; // account for panel padding
+            state.panel_width = ui.available_width() + 16.0;
 
             ui.heading("Terrarium");
             ui.separator();
@@ -49,56 +189,152 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 }
                 if ui.button(" Step ").clicked() {
                     state.paused = true;
-                    // The main loop will step once when this is set
                     state.ticks_per_frame = 1;
                 }
+                ui.label(format!("Tick {}", sim.tick));
             });
 
-            ui.add_space(4.0);
+            ui.add_space(2.0);
             ui.label("Speed (ticks/frame):");
             ui.add(egui::Slider::new(&mut state.ticks_per_frame, 1..=50).logarithmic(true));
 
             ui.separator();
 
-            // --- Simulation stats ---
-            ui.heading("Stats");
+            // --- Population ---
             let stats = &sim.stats;
-            ui.label(format!("Tick: {}", sim.tick));
-            ui.label(format!("Population: {}", stats.population));
-            ui.label(format!("Births (last tick): {}", stats.births));
-            ui.label(format!("Deaths (last tick): {}", stats.deaths));
-            ui.label(format!("Mean energy: {:.1}", stats.mean_energy));
-            ui.label(format!("Mean neurons: {:.1}", stats.mean_brain_neurons));
-            ui.label(format!(
-                "Species: {} (t={:.2})",
-                stats.species_count, stats.speciation_threshold
-            ));
-            ui.label(format!("Mean generation: {:.0}", stats.mean_generation));
-            ui.label(format!(
-                "Trophic: {:.2} (H:{} P:{})",
-                stats.mean_trophic_level, stats.herbivore_count, stats.predator_count
-            ));
-            ui.label(format!(
-                "Cooperation: {:.3} (kin: {:.0}%)",
-                stats.cooperation_rate,
-                stats.kin_share_ratio * 100.0
-            ));
-            ui.label(format!("Brain entropy: {:.3}", stats.mean_brain_entropy));
-            ui.label(format!(
-                "Behavioral diversity: {:.3}",
-                stats.behavioral_diversity
-            ));
-            ui.label(format!("Mean connections: {:.0}", stats.mean_connections));
-            ui.label(format!("Mean crowding: {:.1}", stats.mean_crowding));
-            // Seasonal food multiplier — Botkin (1990)
+            let hard_cap = sim.config.creature.hard_cap as f32;
+
+            ui.label("Population");
+            stat_bar(
+                ui,
+                "",
+                stats.population as f32,
+                hard_cap,
+                Color32::from_rgb(63, 185, 80),
+            );
+            sparkline(
+                ui,
+                &state.history.population,
+                Color32::from_rgb(63, 185, 80),
+                30.0,
+            );
+            ui.horizontal(|ui| {
+                ui.label(format!(
+                    "B:{} D:{} Gen:{:.0}",
+                    stats.births, stats.deaths, stats.mean_generation
+                ));
+            });
+
+            ui.add_space(4.0);
+
+            // --- Energy ---
+            ui.label("Energy");
+            stat_bar(
+                ui,
+                "",
+                stats.mean_energy as f32,
+                sim.config.energy.maximum as f32,
+                Color32::from_rgb(210, 153, 34),
+            );
+            sparkline(
+                ui,
+                &state.history.mean_energy,
+                Color32::from_rgb(210, 153, 34),
+                30.0,
+            );
+
+            ui.add_space(4.0);
+
+            // --- Cooperation ---
+            ui.label("Cooperation");
+            stat_bar(
+                ui,
+                "",
+                stats.cooperation_rate as f32,
+                1.0,
+                Color32::from_rgb(88, 166, 255),
+            );
+            sparkline(
+                ui,
+                &state.history.cooperation_rate,
+                Color32::from_rgb(88, 166, 255),
+                30.0,
+            );
+            if stats.cooperation_rate > 0.001 {
+                ui.label(format!(
+                    "Kin-directed: {:.0}%  Shares: {}",
+                    stats.kin_share_ratio * 100.0,
+                    stats.shares
+                ));
+            }
+
+            ui.add_space(4.0);
+
+            // --- Ecology ---
+            ui.label("Ecology");
+            stat_bar(
+                ui,
+                "Trophic",
+                stats.mean_trophic_level as f32,
+                2.0,
+                Color32::from_rgb(248, 81, 73),
+            );
+            ui.horizontal(|ui| {
+                ui.label(format!(
+                    "H:{} P:{} Atk:{}",
+                    stats.herbivore_count, stats.predator_count, stats.attacks
+                ));
+            });
+            sparkline(
+                ui,
+                &state.history.attacks,
+                Color32::from_rgb(248, 81, 73),
+                24.0,
+            );
+
+            ui.add_space(4.0);
+
+            // --- Brain ---
+            ui.label("Brains");
+            ui.horizontal(|ui| {
+                ui.label(format!(
+                    "Conn:{:.0} Entropy:{:.2} Div:{:.2}",
+                    stats.mean_connections, stats.mean_brain_entropy, stats.behavioral_diversity
+                ));
+            });
+
+            ui.add_space(4.0);
+
+            // --- Environment ---
+            ui.label("Environment");
+            ui.horizontal(|ui| {
+                ui.label(format!("Species: {}", stats.species_count));
+                ui.label(format!("Crowding: {:.1}", stats.mean_crowding));
+            });
             let seasonal = sim_core::world::seasonal_multiplier(sim.tick, &sim.config.food.seasons);
             if sim.config.food.seasons.amplitude > 0.0 {
-                ui.label(format!("Season: {:.0}%", seasonal * 100.0));
+                stat_bar(
+                    ui,
+                    "Season",
+                    seasonal as f32,
+                    1.5,
+                    Color32::from_rgb(57, 210, 192),
+                );
             }
             if stats.active_droughts > 0 {
-                ui.label(format!("Droughts: {}", stats.active_droughts));
+                ui.horizontal(|ui| {
+                    ui.label(format!("Droughts: {}", stats.active_droughts));
+                    let drought_color = Color32::from_rgb(248, 81, 73);
+                    let (rect, _) =
+                        ui.allocate_exact_size(Vec2::new(8.0, 8.0), egui::Sense::hover());
+                    ui.painter()
+                        .circle_filled(rect.center(), 4.0, drought_color);
+                });
             }
-            ui.label(format!("FPS: {:.0}", macroquad::time::get_fps()));
+
+            ui.horizontal(|ui| {
+                ui.label(format!("FPS: {:.0}", macroquad::time::get_fps()));
+            });
 
             ui.separator();
 
@@ -110,24 +346,21 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 if species.is_empty() {
                     ui.label("No species data yet.");
                 } else {
-                    // Show top species (cap at 12 to avoid UI overload)
                     let show_count = species.len().min(12);
                     for info in &species[..show_count] {
-                        // Color swatch + population + trend arrow
                         ui.horizontal(|ui| {
-                            // Color swatch from mean hue
+                            // Color swatch
                             let hue = info.mean_hue as f32 / 360.0;
                             let (r, g, b) = hsv_to_rgb(hue, 0.7, 0.9);
-                            let color = egui::Color32::from_rgb(
+                            let color = Color32::from_rgb(
                                 (r * 255.0) as u8,
                                 (g * 255.0) as u8,
                                 (b * 255.0) as u8,
                             );
-                            let (rect, _) = ui
-                                .allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
+                            let (rect, _) =
+                                ui.allocate_exact_size(Vec2::new(12.0, 12.0), egui::Sense::hover());
                             ui.painter().rect_filled(rect, 2.0, color);
 
-                            // Trend arrow
                             let trend_str = if info.trend > 0.1 {
                                 "▲"
                             } else if info.trend < -0.1 {
@@ -146,7 +379,6 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                             ));
                         });
 
-                        // Second line: trophic + generation
                         ui.horizontal(|ui| {
                             ui.add_space(16.0);
                             let diet = if info.herbivore_fraction > 0.75 {
@@ -173,64 +405,87 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
             ui.separator();
 
             // --- Selected organism inspector ---
-            ui.heading("Inspector");
-            if let Some(id) = state.selected_id {
-                if let Some(org) = sim.organisms.iter().find(|o| o.id == id && o.alive) {
-                    ui.label(format!("ID: {}", org.id));
-                    ui.label(format!("Age: {} ticks", org.age));
-                    ui.label(format!(
-                        "Energy: {:.1} / {:.0}",
-                        org.energy, sim.config.energy.maximum
-                    ));
-                    ui.label(format!("Position: ({:.0}, {:.0})", org.pos_x, org.pos_y));
-                    ui.label(format!("Heading: {:.1} deg", org.heading.to_degrees()));
-                    ui.label(format!("Hue: {:.0}", org.genome.color_hue));
-                    ui.label(format!("Body size: {:.2}", org.genome.body_size));
-                    ui.label(format!("Signal: {:.2}", org.signal));
-                    ui.label(format!("Mutation rate: {:.3}", org.genome.mutation_rate));
-                    ui.label(format!(
-                        "Brain: {} nodes ({} hidden), {} connections",
-                        org.brain.inputs + org.brain.hidden + org.brain.outputs,
-                        org.brain.hidden,
-                        org.brain.connection_count()
-                    ));
-                    ui.label(format!("Generation: {}", org.generation));
-                    ui.label(format!(
-                        "Parent: {}",
-                        org.parent_id
-                            .map(|id| id.to_string())
-                            .unwrap_or_else(|| "none (gen 0)".to_string())
-                    ));
-                    let total_intake = org.energy_from_food + org.energy_from_attacks;
-                    let trophic = if total_intake > 0.0 {
-                        1.0 + org.energy_from_attacks / total_intake
-                    } else {
-                        1.0
-                    };
-                    ui.label(format!("Trophic level: {:.2}", trophic));
-                    ui.label(format!(
-                        "Energy from: food {:.0} / attacks {:.0}",
-                        org.energy_from_food, org.energy_from_attacks
-                    ));
-                    // Brain output entropy (Shannon, 1948)
-                    let org_entropy: f64 = (0..sim_core::organism::NUM_OUTPUTS)
-                        .map(|o| sim_core::organism::shannon_entropy(&org.output_bins[o]))
-                        .sum::<f64>()
-                        / sim_core::organism::NUM_OUTPUTS as f64;
-                    ui.label(format!("Brain entropy: {:.3}", org_entropy));
+            let inspector_header = egui::CollapsingHeader::new("Inspector").default_open(true);
+            inspector_header.show(ui, |ui| {
+                if let Some(id) = state.selected_id {
+                    if let Some(org) = sim.organisms.iter().find(|o| o.id == id && o.alive) {
+                        ui.horizontal(|ui| {
+                            ui.label(format!("ID: {}", org.id));
+                            ui.label(format!("Gen: {}", org.generation));
+                            ui.label(format!("Age: {}", org.age));
+                        });
 
-                    if ui.button("Deselect").clicked() {
-                        state.selected_id = None;
+                        // Energy bar
+                        stat_bar(
+                            ui,
+                            "Energy",
+                            org.energy as f32,
+                            sim.config.energy.maximum as f32,
+                            Color32::from_rgb(210, 153, 34),
+                        );
+
+                        ui.horizontal(|ui| {
+                            ui.label(format!("Pos: ({:.0}, {:.0})", org.pos_x, org.pos_y));
+                            ui.label(format!("Hd: {:.0}°", org.heading.to_degrees()));
+                        });
+
+                        ui.horizontal(|ui| {
+                            ui.label(format!("Size: {:.2}", org.genome.body_size));
+                            ui.label(format!("Hue: {:.0}", org.genome.color_hue));
+                            ui.label(format!("Sig: {:.2}", org.signal));
+                        });
+
+                        ui.horizontal(|ui| {
+                            ui.label(format!(
+                                "Brain: {}h {}c",
+                                org.brain.hidden,
+                                org.brain.connection_count()
+                            ));
+                            ui.label(format!("Mut: {:.3}", org.genome.mutation_rate));
+                        });
+
+                        let total_intake = org.energy_from_food + org.energy_from_attacks;
+                        let trophic = if total_intake > 0.0 {
+                            1.0 + org.energy_from_attacks / total_intake
+                        } else {
+                            1.0
+                        };
+                        ui.horizontal(|ui| {
+                            ui.label(format!("Troph: {:.2}", trophic));
+                            ui.label(format!(
+                                "Food:{:.0} Atk:{:.0}",
+                                org.energy_from_food, org.energy_from_attacks
+                            ));
+                        });
+
+                        let org_entropy: f64 = (0..sim_core::organism::NUM_OUTPUTS)
+                            .map(|o| sim_core::organism::shannon_entropy(&org.output_bins[o]))
+                            .sum::<f64>()
+                            / sim_core::organism::NUM_OUTPUTS as f64;
+                        ui.label(format!("Brain entropy: {:.3}", org_entropy));
+
+                        ui.horizontal(|ui| {
+                            ui.label(format!(
+                                "Parent: {}",
+                                org.parent_id
+                                    .map(|id| id.to_string())
+                                    .unwrap_or_else(|| "—".to_string())
+                            ));
+                        });
+
+                        if ui.button("Deselect").clicked() {
+                            state.selected_id = None;
+                        }
+                    } else {
+                        ui.label("Organism died or not found.");
+                        if ui.button("Clear").clicked() {
+                            state.selected_id = None;
+                        }
                     }
                 } else {
-                    ui.label("Organism died or not found.");
-                    if ui.button("Clear selection").clicked() {
-                        state.selected_id = None;
-                    }
+                    ui.label("Click a creature to inspect.");
                 }
-            } else {
-                ui.label("Click a creature to inspect it.");
-            }
+            });
 
             // Push keyboard hints to the bottom
             ui.with_layout(Layout::bottom_up(Align::LEFT), |ui| {
