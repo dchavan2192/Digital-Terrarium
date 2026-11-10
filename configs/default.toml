@@ -11,7 +11,7 @@ seed = 42               # RNG seed — same seed, same run
 cell_size = 10.0        # Grid cell size in world units (world/cell_size = grid dims)
 max_per_cell = 1.0      # Maximum food a single cell can hold
 regrowth_rate = 0.0015  # Food regrown per cell per tick (base rate, modified by biomes)
-energy_per_food = 30.0  # Energy gained per 1.0 unit of food consumed
+energy_per_food = 15.0  # Energy gained per 1.0 unit of food consumed (halved from 30 to make predation viable)
 
 # Spatial resource gradients — ecological niches that drive adaptive radiation.
 # Each biome is a circular zone with a regrowth multiplier (smooth falloff from center).
@@ -79,12 +79,13 @@ child_energy = 30.0     # Energy the offspring starts with
 attack_range = 8.0            # Must be close to attack (roughly 2x body_radius)
 attack_cost = 5.0             # Energy spent per attack attempt (discourages spam)
 attack_damage = 20.0          # Base damage per successful hit
-energy_transfer_ratio = 0.5   # Attacker absorbs 50% of damage as energy (trophic loss)
+energy_transfer_ratio = 0.75  # Attacker absorbs 75% of damage as energy (raised from 0.5 to make predation viable)
 
 [sharing]
 # Energy sharing: Hamilton (1964) kin selection, Trivers (1971) reciprocal altruism
 share_range = 10.0            # Must be close to share (slightly > attack_range)
-share_amount = 5.0            # Energy transferred per share action
+share_amount = 5.0            # Energy the donor pays per share action
+benefit_multiplier = 1.5      # Recipient gets share_amount * 1.5 (Hamilton: B > C enables rB > C)
 
 [aging]
 # Gompertz-Makeham mortality: h(age) = λ + α·exp(β·age)

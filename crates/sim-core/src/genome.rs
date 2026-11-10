@@ -172,7 +172,8 @@ impl Genome {
     /// 2. Add connection (3%) — new edge between unconnected feed-forward pair
     /// 3. Add node (1%) — split existing connection with a new hidden node
     /// 4. Toggle connection (1%) — flip enabled/disabled
-    /// 5. Body/aging/color trait mutations (unchanged from previous)
+    /// 5. Prune connection (2%) — delete a random connection
+    /// 6. Body/aging/color trait mutations (unchanged from previous)
     pub fn reproduce(&self, rng: &mut impl Rng) -> Self {
         let mut child = self.clone();
 
@@ -199,6 +200,15 @@ impl Genome {
         if rng.r#gen::<f64>() < 0.01 && !child.connections.is_empty() {
             let idx = rng.gen_range(0..child.connections.len());
             child.connections[idx].enabled = !child.connections[idx].enabled;
+        }
+
+        // 4b. Prune connection (2% chance) — delete a random connection.
+        // Creates variance in brain complexity for selection to act on.
+        // Without this, NEAT topology grows monotonically and brain_cost
+        // cannot constrain complexity (see docs/EXPERIMENT_FINDINGS.md).
+        if rng.r#gen::<f64>() < 0.02 && child.connections.len() > 1 {
+            let idx = rng.gen_range(0..child.connections.len());
+            child.connections.remove(idx);
         }
 
         // 5. Mutate the mutation rate itself (meta-mutation)

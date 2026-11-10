@@ -190,8 +190,18 @@ pub struct CombatConfig {
 pub struct SharingConfig {
     /// Maximum range for energy sharing (world units).
     pub share_range: f64,
-    /// Amount of energy transferred per share action.
+    /// Amount of energy the donor pays per share action.
     pub share_amount: f64,
+    /// Multiplier applied to received energy: recipient gets share_amount * benefit_multiplier.
+    /// Models synergistic group benefits (e.g., shared warmth, group defense).
+    /// Must be >= 1.0 for Hamilton's rB > C to be satisfiable.
+    /// Citation: Hamilton (1964) "The Genetical Evolution of Social Behaviour"
+    #[serde(default = "default_benefit_multiplier")]
+    pub benefit_multiplier: f64,
+}
+
+fn default_benefit_multiplier() -> f64 {
+    1.5
 }
 
 /// Population density pressure — crowding increases metabolism.
