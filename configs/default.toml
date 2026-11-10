@@ -10,7 +10,7 @@ seed = 42               # RNG seed — same seed, same run
 [food]
 cell_size = 10.0        # Grid cell size in world units (world/cell_size = grid dims)
 max_per_cell = 1.0      # Maximum food a single cell can hold
-regrowth_rate = 0.0015  # Food regrown per cell per tick (base rate, modified by biomes)
+regrowth_rate = 0.0005  # Food regrown per cell per tick (cut from 0.0015 — real scarcity)
 energy_per_food = 15.0  # Energy gained per 1.0 unit of food consumed (halved from 30 to make predation viable)
 
 # Spatial resource gradients — ecological niches that drive adaptive radiation.
@@ -62,7 +62,7 @@ regrowth_multiplier = 0.3
 
 [creature]
 initial_count = 300     # Creatures spawned at tick 0
-hard_cap = 1500         # Maximum living creatures (births blocked above this)
+hard_cap = 500          # Maximum living creatures (cut from 1500 — forces competition)
 body_radius = 3.0       # Collision/eating radius in world units
 max_speed = 2.0         # Maximum movement speed (units/tick)
 max_turn = 0.2          # Maximum turn rate (radians/tick)
