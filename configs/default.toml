@@ -66,7 +66,7 @@ hard_cap = 1500         # Maximum living creatures (births blocked above this)
 body_radius = 3.0       # Collision/eating radius in world units
 max_speed = 2.0         # Maximum movement speed (units/tick)
 max_turn = 0.2          # Maximum turn rate (radians/tick)
-max_age = 3000          # Death by old age (ticks)
+max_age = 2000          # Death by old age (lowered from 3000 for faster evolutionary turnover)
 
 [creature.vision]
 ray_count = 5           # Number of vision rays cast
@@ -76,8 +76,8 @@ range = 60.0            # How far each ray sees (world units)
 [energy]
 starting = 60.0         # Energy a new creature begins with (tick 0 spawns)
 maximum = 200.0         # Energy cap — eating beyond this is wasted
-base_metabolism = 0.2   # Flat energy cost per tick just for being alive
-movement_cost = 0.08    # Multiplied by speed^2 per tick
+base_metabolism = 0.6   # Flat energy cost per tick (raised from 0.2 to create real scarcity)
+movement_cost = 0.15    # Multiplied by speed^2 per tick (raised from 0.08)
 brain_cost = 0.002      # Cost per neuron per tick — the key intelligence tax
 
 [reproduction]
