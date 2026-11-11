@@ -10,7 +10,7 @@ seed = 42
 [food]
 cell_size = 10.0
 max_per_cell = 1.0
-regrowth_rate = 0.0003          # Slow regrowth — eaten areas stay depleted visibly
+regrowth_rate = 0.001           # Moderate regrowth — visible depletion but survivable
 energy_per_food = 10.0          # But each bite is worth less (was 15)
 
 [food.seasons]
@@ -62,9 +62,9 @@ fov = 2.094
 range = 60.0
 
 [energy]
-starting = 40.0                 # Less starting energy (was 60) — must find food fast
+starting = 60.0                 # Enough to survive initial food search
 maximum = 150.0                 # Lower cap (was 200) — can't hoard as much
-base_metabolism = 1.0           # Very high burn rate (was 0.6)
+base_metabolism = 0.7           # High but survivable burn rate
 movement_cost = 0.2             # Expensive to move (was 0.15)
 brain_cost = 0.002
 
