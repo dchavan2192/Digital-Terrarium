@@ -26,9 +26,10 @@ fn window_conf() -> Conf {
     }
 }
 
-/// Default config embedded at compile time for WASM builds (no filesystem access).
+/// Intense config embedded at compile time for WASM builds (no filesystem access).
+/// Uses the intense config for a more dynamic demo experience.
 #[cfg(target_arch = "wasm32")]
-const EMBEDDED_CONFIG: &str = include_str!("../../../configs/default.toml");
+const EMBEDDED_CONFIG: &str = include_str!("../../../configs/intense.toml");
 
 #[macroquad::main(window_conf)]
 async fn main() {
