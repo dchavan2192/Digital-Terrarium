@@ -10,7 +10,7 @@ seed = 42
 [food]
 cell_size = 10.0
 max_per_cell = 1.0
-regrowth_rate = 0.003           # Abundant base food (6x the scarce config)
+regrowth_rate = 0.0003          # Slow regrowth — eaten areas stay depleted visibly
 energy_per_food = 10.0          # But each bite is worth less (was 15)
 
 [food.seasons]
@@ -28,13 +28,13 @@ max_active = 5                  # Up to 5 simultaneous (was 3)
 x = 250.0
 y = 250.0
 radius = 200.0
-regrowth_multiplier = 5.0       # Very lush oases (was 3.0)
+regrowth_multiplier = 2.0       # Very lush oases (was 3.0)
 
 [[food.biomes]]
 x = 750.0
 y = 750.0
 radius = 200.0
-regrowth_multiplier = 5.0
+regrowth_multiplier = 2.0
 
 [[food.biomes]]
 x = 500.0
