@@ -47,8 +47,8 @@ impl FoodGrid {
         let cols = (world.width / food.cell_size).ceil() as usize;
         let rows = (world.height / food.cell_size).ceil() as usize;
         let num_cells = cols * rows;
-        // Start every cell at max food so the world begins lush
-        let cells = vec![food.max_per_cell; num_cells];
+        // Initial food is sparse — will be set proportional to regrowth rate after biome calc
+        let mut cells = vec![0.0f64; num_cells];
 
         // Compute per-cell regrowth rates from biome zones
         let mut regrowth_rates = vec![food.regrowth_rate; num_cells];
@@ -76,6 +76,18 @@ impl FoodGrid {
                     regrowth_rates[idx] = (food.regrowth_rate * best_multiplier).max(0.0);
                 }
             }
+        }
+
+        // Initial food proportional to regrowth rate — biome zones start with food,
+        // barren zones start nearly empty. Creates patchy resources from tick 0.
+        let base = food.regrowth_rate;
+        for i in 0..num_cells {
+            let ratio = if base > 0.0 {
+                (regrowth_rates[i] / base).min(3.0) / 3.0
+            } else {
+                0.0
+            };
+            cells[i] = food.max_per_cell * ratio;
         }
 
         FoodGrid {
