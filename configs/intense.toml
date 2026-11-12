@@ -1,6 +1,6 @@
-# Terrarium — INTENSE Configuration
-# Abundant food but brutal survival costs. High population, frequent droughts,
-# aggressive crowding penalty. Designed to create maximum evolutionary pressure.
+# Terrarium — Demo Configuration
+# Balanced for an engaging live demo: visible scarcity, active cooperation,
+# but populations survive and evolve visibly. Not too easy, not extinction-level.
 
 [world]
 width = 1000.0
@@ -10,31 +10,31 @@ seed = 42
 [food]
 cell_size = 10.0
 max_per_cell = 1.0
-regrowth_rate = 0.001           # Moderate regrowth — visible depletion but survivable
-energy_per_food = 10.0          # But each bite is worth less (was 15)
+regrowth_rate = 0.002           # Moderate — visible depletion near clusters
+energy_per_food = 12.0          # Decent payoff per bite
 
 [food.seasons]
-amplitude = 0.5                 # Extreme seasons: 50%-150% swing (was 0.3)
-period = 5000.0                 # Faster cycles (was 10000)
+amplitude = 0.3                 # Mild seasons
+period = 8000.0
 
 [food.droughts]
-spawn_rate = 0.001              # 5x more frequent droughts (was 0.0002)
-duration = 2000                 # Shorter but more frequent
-radius = 200.0                  # Larger zones (was 150)
-severity = 0.02                 # Harsher: 2% regrowth (was 5%)
-max_active = 5                  # Up to 5 simultaneous (was 3)
+spawn_rate = 0.0003             # Occasional droughts — not constant
+duration = 2500
+radius = 150.0
+severity = 0.05                 # 5% regrowth, not 2%
+max_active = 2                  # At most 2 simultaneous
 
 [[food.biomes]]
 x = 250.0
 y = 250.0
 radius = 200.0
-regrowth_multiplier = 2.0       # Very lush oases (was 3.0)
+regrowth_multiplier = 3.0       # Lush oases — visible green zones
 
 [[food.biomes]]
 x = 750.0
 y = 750.0
 radius = 200.0
-regrowth_multiplier = 2.0
+regrowth_multiplier = 3.0
 
 [[food.biomes]]
 x = 500.0
@@ -46,15 +46,15 @@ regrowth_multiplier = 2.0
 x = 750.0
 y = 250.0
 radius = 180.0
-regrowth_multiplier = 0.1       # Nearly dead zone (was 0.3)
+regrowth_multiplier = 0.3       # Barren zone
 
 [creature]
-initial_count = 500             # More creatures at start (was 300)
-hard_cap = 1000                 # Higher cap for more competition (was 500)
+initial_count = 300
+hard_cap = 800                  # Room to grow but not overwhelming
 body_radius = 3.0
 max_speed = 2.0
 max_turn = 0.2
-max_age = 1500                  # Short lives = fast evolution (was 2000)
+max_age = 2500
 
 [creature.vision]
 ray_count = 5
@@ -62,22 +62,22 @@ fov = 2.094
 range = 60.0
 
 [energy]
-starting = 60.0                 # Enough to survive initial food search
-maximum = 150.0                 # Lower cap (was 200) — can't hoard as much
-base_metabolism = 0.7           # High but survivable burn rate
-movement_cost = 0.2             # Expensive to move (was 0.15)
+starting = 60.0
+maximum = 200.0
+base_metabolism = 0.4           # Noticeable burn but not brutal
+movement_cost = 0.1
 brain_cost = 0.002
 
 [reproduction]
-threshold = 80.0                # Higher bar to reproduce (was 60)
-parent_cost = 40.0              # Costs more to have kids (was 30)
-child_energy = 25.0             # Kids start weaker (was 30)
+threshold = 65.0
+parent_cost = 30.0
+child_energy = 30.0
 
 [combat]
 attack_range = 8.0
-attack_cost = 3.0               # Cheaper to attack (was 5) — predation more viable
-attack_damage = 25.0            # Hits harder (was 20)
-energy_transfer_ratio = 0.8     # Absorb 80% (was 0.75) — predation very rewarding
+attack_cost = 4.0
+attack_damage = 22.0
+energy_transfer_ratio = 0.75
 
 [sharing]
 share_range = 10.0
@@ -85,16 +85,16 @@ share_amount = 5.0
 benefit_multiplier = 1.5
 
 [aging]
-extrinsic_mortality = 0.0003    # Higher background death (was 0.0001)
-initial_senescence = 0.00005    # Faster aging (was 0.00001)
-aging_rate = 0.003              # Ages faster (was 0.002)
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00002
+aging_rate = 0.002
 
 [mutation]
-weight_probability = 0.15       # More mutation (was 0.1) — faster evolution
-weight_step = 0.3               # Bigger mutations (was 0.2)
+weight_probability = 0.12
+weight_step = 0.25
 
 [density_pressure]
-cost_per_neighbor = 0.05        # 5x crowding penalty (was 0.01) — punishes clustering hard
+cost_per_neighbor = 0.02
 
 [speciation]
 dynamic = true
