@@ -57,7 +57,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -85,7 +85,7 @@ fn config_loads_from_default_toml() {
     assert_eq!(cfg.world.width, 1000.0);
     assert_eq!(cfg.world.height, 1000.0);
     assert_eq!(cfg.creature.initial_count, 300);
-    assert_eq!(cfg.brain.inputs, 15);
+    assert_eq!(cfg.brain.inputs, 18);
     assert_eq!(cfg.brain.hidden, 8);
     assert_eq!(cfg.brain.outputs, 6);
 }
@@ -127,7 +127,7 @@ child_energy = 50.0
 weight_probability = 0.1
 weight_step = 0.2
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 [aging]
@@ -269,7 +269,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -312,8 +312,8 @@ fn brain_topology_matches_genome() {
         assert_eq!(org.brain.outputs, sim.config.brain.outputs);
         // Initial population should have 8 hidden nodes
         assert_eq!(org.genome.hidden_nodes.len(), 8);
-        // Connection count: bias→8h + 15i→8h + bias→6o + 8h→6o = 8+120+6+48 = 182
-        assert_eq!(org.brain.connection_count(), 182);
+        // Connection count: bias→8h + 18i→8h + bias→6o + 8h→6o = 8+144+6+48 = 206
+        assert_eq!(org.brain.connection_count(), 206);
     }
 }
 
@@ -329,7 +329,7 @@ fn food_grid_regrows() {
 
     // Regrow (no seasons in small_config, so multiplier = 1.0)
     let no_seasons = SeasonsConfig::default();
-    sim.food_grid.regrow(0, &no_seasons);
+    sim.food_grid.regrow(0, &no_seasons, false);
     assert!(sim.food_grid.cells[idx] > 0.0);
     assert!(sim.food_grid.cells[idx] <= sim.food_grid.regrowth_rate + 0.0001);
 }
@@ -379,7 +379,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -636,9 +636,10 @@ fn biome_aware_food_regrowth() {
         ],
         seasons: SeasonsConfig::default(),
         droughts: DroughtConfig::default(),
+        fruit: Default::default(),
     };
 
-    let mut grid = FoodGrid::new(&world, &food);
+    let mut grid = FoodGrid::new(&world, &food, &Default::default());
     let base_rate = food.regrowth_rate;
 
     // Cell at (col=3, row=3) → center (35, 35) is inside the very lush zone
@@ -695,7 +696,7 @@ fn biome_aware_food_regrowth() {
 
     let no_seasons = SeasonsConfig::default();
     for t in 0..10 {
-        grid.regrow(t, &no_seasons);
+        grid.regrow(t, &no_seasons, false);
     }
 
     let lush_food = grid.cells[lush_idx];
@@ -748,9 +749,10 @@ fn biome_no_zones_gives_uniform_regrowth() {
         biomes: vec![],
         seasons: SeasonsConfig::default(),
         droughts: DroughtConfig::default(),
+        fruit: Default::default(),
     };
 
-    let grid = FoodGrid::new(&world, &food);
+    let grid = FoodGrid::new(&world, &food, &Default::default());
     let cols = grid.cols;
     let rows = grid.rows;
 
@@ -823,22 +825,23 @@ fn seasonal_food_variation() {
         biomes: vec![],
         seasons: SeasonsConfig::default(), // not used for grid init
         droughts: DroughtConfig::default(),
+        fruit: Default::default(),
     };
-    let mut grid = FoodGrid::new(&world, &food);
+    let mut grid = FoodGrid::new(&world, &food, &Default::default());
 
     // Drain cell (0,0) and regrow at peak summer (tick=250, multiplier=1.5)
     grid.cells[0] = 0.0;
-    grid.regrow(250, &seasons);
+    grid.regrow(250, &seasons, false);
     let summer_food = grid.cells[0];
 
     // Drain again and regrow at peak winter (tick=750, multiplier=0.5)
     grid.cells[0] = 0.0;
-    grid.regrow(750, &seasons);
+    grid.regrow(750, &seasons, false);
     let winter_food = grid.cells[0];
 
     // Drain again and regrow at baseline (tick=0, multiplier=1.0)
     grid.cells[0] = 0.0;
-    grid.regrow(0, &seasons);
+    grid.regrow(0, &seasons, false);
     let baseline_food = grid.cells[0];
 
     // Summer > baseline > winter
@@ -935,7 +938,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -1040,7 +1043,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -1105,7 +1108,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -1193,7 +1196,7 @@ weight_probability = 0.3
 weight_step = 0.5
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -1305,7 +1308,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 
@@ -1371,7 +1374,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 15
+inputs = 18
 hidden = 8
 outputs = 6
 

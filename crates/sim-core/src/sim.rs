@@ -14,7 +14,9 @@
 use crate::config::Config;
 use crate::genome::Genome;
 use crate::organism::{Organism, OrganismId};
-use crate::world::{FoodGrid, SpatialGrid, wrap_coord, wraparound_delta};
+use crate::world::{
+    ElevationMap, FoodGrid, PheromoneGrid, SpatialGrid, wrap_coord, wraparound_delta,
+};
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
@@ -33,6 +35,12 @@ pub struct Simulation {
     pub tick: u64,
     pub organisms: Vec<Organism>,
     pub food_grid: FoodGrid,
+    /// Pheromone layer — stigmergic indirect communication (Wilson 1975).
+    /// Only actively updated when `config.pheromones.enabled`.
+    pub pheromone_grid: PheromoneGrid,
+    /// Elevation map — slope movement penalty (MacArthur & Wilson 1967).
+    /// Only active when `config.elevation.enabled`.
+    pub elevation_map: ElevationMap,
     pub spatial_grid: SpatialGrid,
     pub rng: ChaCha8Rng,
     next_id: OrganismId,
@@ -158,7 +166,16 @@ impl Simulation {
     /// Create a new simulation from config. Spawns the initial population.
     pub fn new(config: Config) -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(config.world.seed);
-        let food_grid = FoodGrid::new(&config.world, &config.food);
+        let food_grid = FoodGrid::new(&config.world, &config.food, &config.fruit);
+
+        // Pheromone grid uses the same cell size as the food grid for cache coherence.
+        // Citation: Wilson (1975), Deneubourg et al. (1990)
+        let pheromone_grid =
+            PheromoneGrid::new(&config.world, config.food.cell_size, &config.pheromones);
+
+        // Elevation map — multi-octave sine terrain.
+        // Citation: MacArthur & Wilson (1967), Wright (1943)
+        let elevation_map = ElevationMap::new(&config.world, &config.elevation);
 
         // Spatial grid cell size = vision range so neighbor queries check 3×3 cells
         let spatial_cell_size = config.creature.vision.range;
@@ -169,7 +186,14 @@ impl Simulation {
         let mut next_id: OrganismId = 0;
 
         for _ in 0..config.creature.initial_count {
-            let genome = Genome::random(&config.brain, &config.mutation, &config.aging, &mut rng);
+            let genome = Genome::random(
+                &config.brain,
+                &config.mutation,
+                &config.aging,
+                &config.temperature,
+                &config.fruit,
+                &mut rng,
+            );
             let brain = genome.build_brain();
             let org = Organism {
                 id: next_id,
@@ -198,6 +222,8 @@ impl Simulation {
             tick: 0,
             organisms,
             food_grid,
+            pheromone_grid,
+            elevation_map,
             spatial_grid,
             rng,
             next_id,
@@ -226,7 +252,6 @@ impl Simulation {
         let ray_count = self.config.creature.vision.ray_count;
         let fov = self.config.creature.vision.fov;
         let range = self.config.creature.vision.range;
-        let range_inv = 1.0 / range;
         let food_cell_size = self.config.food.cell_size;
         let world_w = self.config.world.width;
         let world_h = self.config.world.height;
@@ -238,6 +263,30 @@ impl Simulation {
         let movement_cost_factor = self.config.energy.movement_cost;
         let brain_cost_per_neuron = self.config.energy.brain_cost;
         let density_cost_per_neighbor = self.config.density_pressure.cost_per_neighbor;
+        let temp_enabled = self.config.temperature.enabled;
+        let temp_cost_factor = self.config.temperature.cost_factor;
+        let fruit_enabled = self.config.fruit.enabled;
+        let energy_per_fruit = self.config.fruit.energy_per_fruit;
+
+        // Day/night light level — sinusoidal oscillation [0, 1].
+        // L < 0.5 = night: vision range halved.
+        // Brain input (input 18) wired in FOURTH step.
+        // Citation: Kronfeld-Schor & Dayan (2003)
+        let elevation_enabled = self.config.elevation.enabled;
+        let daynight_enabled = self.config.daynight.enabled;
+        let light_level = if daynight_enabled && self.config.daynight.period > 0.0 {
+            let phase = std::f64::consts::TAU * self.tick as f64 / self.config.daynight.period;
+            (1.0 + phase.sin()) * 0.5
+        } else {
+            1.0
+        };
+        // Halve vision range at night; brain input deferred to FOURTH step
+        let effective_range = if daynight_enabled && light_level < 0.5 {
+            range * 0.5
+        } else {
+            range
+        };
+        let effective_range_inv = 1.0 / effective_range;
 
         let angle_step = if ray_count > 1 {
             fov / (ray_count - 1) as f64
@@ -260,13 +309,18 @@ impl Simulation {
         // Precompute acceptance threshold as cosine for dot-product comparison
         let cos_acceptance = acceptance.cos();
 
+        // Capture effective vision range so the closure uses the day/night-adjusted value
+        let vision_range = effective_range;
+        let vision_range_inv = effective_range_inv;
+
         // 2. Sense → Think → Act (parallelized with rayon)
         //
-        // This phase is read-only on organisms, food_grid, and spatial_grid.
+        // This phase is read-only on organisms, food_grid, spatial_grid, and pheromone_grid.
         // No RNG is used, so parallel execution preserves determinism.
         // Each organism independently: cast vision rays → run brain forward pass → produce Action.
         let organisms = &self.organisms;
         let food_grid = &self.food_grid;
+        let pheromone_grid = &self.pheromone_grid;
         let spatial_grid = &self.spatial_grid;
 
         let iter = 0..organism_count;
@@ -286,7 +340,7 @@ impl Simulation {
 
                 // Stack-allocated ray results
                 let mut ray_types = [-1.0f64; MAX_RAYS];
-                let mut closest_dists = [range; MAX_RAYS];
+                let mut closest_dists = [vision_range; MAX_RAYS];
 
                 // Precompute world-space ray direction unit vectors for this organism
                 let mut ray_dirs = [(0.0f64, 0.0f64); MAX_RAYS];
@@ -296,6 +350,8 @@ impl Simulation {
                 }
 
                 // Check food along rays (sample at cell_size intervals)
+                // When fruit is enabled, distinguish types:
+                //   0.0 = algae, -0.5 = fruit, 1.0 = creature, -1.0 = nothing
                 for r in 0..ray_count {
                     let (ray_dx, ray_dy) = ray_dirs[r];
                     let mut d = food_cell_size;
@@ -304,7 +360,13 @@ impl Simulation {
                         let sy = wrap_coord(oy + ray_dy * d, world_h);
                         if food_grid.food_at(sx, sy) > 0.1 {
                             closest_dists[r] = d;
-                            ray_types[r] = 0.0; // food
+                            ray_types[r] = 0.0; // algae
+                            break;
+                        }
+                        // Check fruit layer when enabled
+                        if fruit_enabled && food_grid.fruit_at(sx, sy) > 0.1 {
+                            closest_dists[r] = d;
+                            ray_types[r] = -0.5; // fruit (distinct from algae and creature)
                             break;
                         }
                         d += food_cell_size;
@@ -314,7 +376,7 @@ impl Simulation {
                 // Check creatures — dot-product ray test (no atan2)
                 // Also accumulate nearby signals and track nearest creature for kin recognition
                 // Count neighbors for density pressure — Allee (1931)
-                let range_sq = range * range;
+                let range_sq = vision_range * vision_range;
                 let mut signal_sum = 0.0f64;
                 let mut signal_weight = 0.0f64;
                 let mut nearest_dist_sq = f64::MAX;
@@ -386,7 +448,7 @@ impl Simulation {
                 // Normalize ray distances
                 let mut ray_distances = [0.0f64; MAX_RAYS];
                 for r in 0..ray_count {
-                    ray_distances[r] = closest_dists[r] * range_inv;
+                    ray_distances[r] = closest_dists[r] * vision_range_inv;
                 }
 
                 // Build sensor inputs on the stack
@@ -410,6 +472,25 @@ impl Simulation {
                 idx += 1;
                 // Kin similarity to nearest creature [-1, 1]
                 inputs[idx] = kin_similarity;
+                idx += 1;
+
+                // Input 16: local temperature [0, 1] — y/height (north=cold, south=warm)
+                // 0.0 = cold (north), 1.0 = warm (south). Active regardless of temp_enabled
+                // so the brain always has positional latitude information.
+                // Citation: Bergmann (1847), Allen (1877)
+                inputs[idx] = oy / world_h;
+                idx += 1;
+
+                // Input 17: local pheromone concentration [0, 1], normalized by max_level.
+                // 0.0 when pheromone system is disabled (grid stays zeroed).
+                // Citation: Wilson (1975), Deneubourg et al. (1990)
+                inputs[idx] = pheromone_grid.level_at(ox, oy);
+                idx += 1;
+
+                // Input 18: current light level [0, 1] — 1.0 = full day, 0.0 = darkest night.
+                // 1.0 when day/night system is disabled (always day).
+                // Citation: Kronfeld-Schor & Dayan (2003)
+                inputs[idx] = light_level;
 
                 let brain_inputs = &inputs[..organisms[i].brain.inputs];
                 let output = organisms[i].brain.forward(brain_inputs);
@@ -488,18 +569,50 @@ impl Simulation {
                 }
             }
 
-            // Move — larger creatures are slower (speed / body_size)
+            // Move — larger creatures are slower (speed / body_size).
+            // Elevation slope penalty: steep terrain reduces effective speed.
+            // Citation: MacArthur & Wilson (1967), Wright (1943)
             let body_size = org.genome.body_size;
-            let actual_speed = action.speed * max_speed / body_size;
-            org.pos_x += org.heading.cos() * actual_speed;
-            org.pos_y += org.heading.sin() * actual_speed;
-            org.pos_x = wrap_coord(org.pos_x, world_w);
-            org.pos_y = wrap_coord(org.pos_y, world_h);
+            let base_speed = action.speed * max_speed / body_size;
+            let cos_h = org.heading.cos();
+            let sin_h = org.heading.sin();
+            let next_x = wrap_coord(org.pos_x + cos_h * base_speed, world_w);
+            let next_y = wrap_coord(org.pos_y + sin_h * base_speed, world_h);
+            let actual_speed = if elevation_enabled {
+                let slope_mult = self
+                    .elevation_map
+                    .speed_multiplier(org.pos_x, org.pos_y, next_x, next_y);
+                base_speed * slope_mult
+            } else {
+                base_speed
+            };
+            org.pos_x = wrap_coord(org.pos_x + cos_h * actual_speed, world_w);
+            org.pos_y = wrap_coord(org.pos_y + sin_h * actual_speed, world_h);
 
-            // Eat
+            // Eat — algae (base food) + optional fruit layer
+            // Diet efficiency: specialists get ~100% from their food, generalists ~65%
+            // Citation: Grant & Grant (2006) Darwin's finches character displacement
             if action.eat > 0.0 {
-                let consumed = self.food_grid.eat_at(org.pos_x, org.pos_y, 1.0);
-                let food_energy = consumed * energy_per_food;
+                // Eat algae
+                let algae = self.food_grid.eat_at(org.pos_x, org.pos_y, 1.0);
+                let algae_efficiency = if fruit_enabled {
+                    // 0=algae specialist, 1=fruit specialist
+                    1.0 - 0.7 * org.genome.diet_preference
+                } else {
+                    1.0
+                };
+                let algae_energy = algae * energy_per_food * algae_efficiency;
+
+                // Eat fruit if enabled
+                let fruit_energy = if fruit_enabled {
+                    let fruit = self.food_grid.eat_fruit_at(org.pos_x, org.pos_y, 1.0);
+                    let fruit_efficiency = 1.0 - 0.7 * (1.0 - org.genome.diet_preference);
+                    fruit * energy_per_fruit * fruit_efficiency
+                } else {
+                    0.0
+                };
+
+                let food_energy = algae_energy + fruit_energy;
                 org.energy_from_food += food_energy;
                 org.energy += food_energy;
                 if org.energy > max_energy {
@@ -509,13 +622,40 @@ impl Simulation {
 
             // Metabolize — Kleiber's law: metabolism scales as body_size^0.75
             // Density pressure: crowding adds per-neighbor cost — Allee (1931)
+            // Temperature mismatch: extra cost when local temp deviates from preference
+            // Citation: Bergmann (1847), Allen (1877) — thermoregulation drives adaptation
             let movement_cost = movement_cost_factor * actual_speed * actual_speed;
             let brain_cost = brain_cost_per_neuron * org.brain.neuron_count() as f64;
             let size_metabolism = base_metabolism * body_size.powf(0.75);
             let crowding_cost = density_cost_per_neighbor * action.neighbor_count as f64;
-            org.energy -= size_metabolism + movement_cost + brain_cost + crowding_cost;
+            let temp_cost = if temp_enabled {
+                // Temperature = y/height: 0=north/cold, 1=south/warm
+                let local_temp = org.pos_y / world_h;
+                let mismatch = (local_temp - org.genome.preferred_temp).abs();
+                base_metabolism * temp_cost_factor * mismatch
+            } else {
+                0.0
+            };
+            org.energy -= size_metabolism + movement_cost + brain_cost + crowding_cost + temp_cost;
 
             org.age += 1;
+        }
+
+        // 3b. Pheromone update — deposit + decay
+        //
+        // Each living creature deposits pheromone at its current cell, then
+        // the entire grid decays multiplicatively. Net effect: concentration peaks
+        // where many creatures have recently been, fading within ~100 ticks.
+        // Brain input (input 17) wired in FOURTH step.
+        //
+        // Self-organization (Deneubourg 1990): a trail reinforcement loop emerges
+        // when creatures evolve to follow high-concentration paths.
+        // Citation: Wilson (1975), Deneubourg et al. (1990)
+        if self.config.pheromones.enabled {
+            for org in &self.organisms {
+                self.pheromone_grid.deposit(org.pos_x, org.pos_y);
+            }
+            self.pheromone_grid.decay();
         }
 
         // 4. Combat — predator-prey energy transfer
@@ -746,7 +886,8 @@ impl Simulation {
 
         // 8. Regrow food (with seasonal modulation + drought suppression)
         // Citation: Botkin (1990) "Forest Dynamics" — sinusoidal resource oscillation
-        self.food_grid.regrow(self.tick, &self.config.food.seasons);
+        self.food_grid
+            .regrow(self.tick, &self.config.food.seasons, fruit_enabled);
 
         // Update stats
         let population = self.organisms.len();
