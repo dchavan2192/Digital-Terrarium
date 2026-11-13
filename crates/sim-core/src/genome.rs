@@ -12,7 +12,7 @@
 //!   Evolutionary Acquisition of Neural Topologies" *ESANN*
 
 use crate::brain::Brain;
-use crate::config::{AgingConfig, BrainConfig, MutationConfig};
+use crate::config::{AgingConfig, BrainConfig, FruitConfig, MutationConfig, TemperatureConfig};
 use rand::Rng;
 
 /// A connection gene in the NEAT genome.
@@ -73,6 +73,17 @@ pub struct Genome {
     /// Relative body size [0.5, 3.0]. Affects speed, metabolism, combat.
     /// Citation: Kleiber (1932) metabolic allometry.
     pub body_size: f64,
+
+    /// Preferred temperature [0, 1]. 0 = cold (north), 1 = warm (south).
+    /// Metabolism penalty scales with mismatch to local temperature.
+    /// Bergmann (1847) / Allen (1877): temperature drives body-plan adaptation.
+    pub preferred_temp: f64,
+
+    /// Diet preference [0, 1]. 0 = algae specialist, 1 = fruit specialist.
+    /// Digestion efficiency: energy * (1.0 - 0.7 * |food_type - diet_preference|)
+    /// Specialists get ~100% from their food; generalists get ~65% from either.
+    /// Grant & Grant (2006): beak size in Darwin's finches is the textbook example.
+    pub diet_preference: f64,
 }
 
 impl Genome {
@@ -84,6 +95,8 @@ impl Genome {
         brain_config: &BrainConfig,
         mutation_config: &MutationConfig,
         aging_config: &AgingConfig,
+        _temperature_config: &TemperatureConfig,
+        _fruit_config: &FruitConfig,
         rng: &mut impl Rng,
     ) -> Self {
         let inputs = brain_config.inputs;
@@ -162,6 +175,8 @@ impl Genome {
             color_hue: rng.gen_range(0.0..360.0),
             aging_rate: aging_config.aging_rate,
             body_size: 1.0,
+            preferred_temp: rng.gen_range(0.0..1.0),
+            diet_preference: rng.gen_range(0.0..1.0),
         }
     }
 
@@ -235,7 +250,21 @@ impl Genome {
             child.body_size = child.body_size.clamp(0.5, 3.0);
         }
 
-        // 9. Small drift in color (kin marker)
+        // 9. Mutate preferred temperature — Bergmann (1847): temperature drives adaptation
+        // Selection pressure from the N-S gradient causes directional evolution
+        if rng.r#gen::<f64>() < 0.05 {
+            child.preferred_temp += rng.gen_range(-0.1..0.1);
+            child.preferred_temp = child.preferred_temp.clamp(0.0, 1.0);
+        }
+
+        // 10. Mutate diet preference — Grant & Grant (2006): character displacement
+        // Resource partitioning between algae and fruit specialists drives speciation
+        if rng.r#gen::<f64>() < 0.05 {
+            child.diet_preference += rng.gen_range(-0.1..0.1);
+            child.diet_preference = child.diet_preference.clamp(0.0, 1.0);
+        }
+
+        // 11. Small drift in color (kin marker)
         child.color_hue += rng.gen_range(-5.0..5.0);
         if child.color_hue < 0.0 {
             child.color_hue += 360.0;
@@ -450,6 +479,8 @@ impl Genome {
         let size_dist = (self.body_size - other.body_size).abs() / 2.5;
         let aging_dist = (self.aging_rate - other.aging_rate).abs() / 0.01;
         let mutation_dist = (self.mutation_rate - other.mutation_rate).abs();
+        let temp_dist = (self.preferred_temp - other.preferred_temp).abs();
+        let diet_dist = (self.diet_preference - other.diet_preference).abs();
 
         // NEAT-style weighted combination:
         // Structure dominates (different wiring = likely different species)
@@ -460,5 +491,7 @@ impl Genome {
             + 0.3 * size_dist
             + 0.3 * aging_dist
             + 0.2 * mutation_dist
+            + 0.2 * temp_dist
+            + 0.2 * diet_dist
     }
 }

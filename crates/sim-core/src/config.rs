@@ -30,6 +30,16 @@ pub struct Config {
     pub density_pressure: DensityPressureConfig,
     #[serde(default)]
     pub speciation: SpeciationConfig,
+    #[serde(default)]
+    pub temperature: TemperatureConfig,
+    #[serde(default)]
+    pub fruit: FruitConfig,
+    #[serde(default)]
+    pub pheromones: PheromoneConfig,
+    #[serde(default)]
+    pub daynight: DayNightConfig,
+    #[serde(default)]
+    pub elevation: ElevationConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,6 +74,8 @@ pub struct FoodConfig {
     /// (intermediate disturbance hypothesis)
     #[serde(default)]
     pub droughts: DroughtConfig,
+    #[serde(default)]
+    pub fruit: FruitConfig,
 }
 
 /// A circular zone with a modified food regrowth rate.
@@ -312,6 +324,196 @@ impl Default for SpeciationConfig {
             factor: 0.75,
             min_threshold: 0.1,
             max_threshold: 2.0,
+        }
+    }
+}
+
+/// Per-cell temperature gradient — cold in the north (y=0), warm in the south.
+///
+/// Each creature has an evolvable `preferred_temp` gene. When local temperature
+/// deviates from the preference, extra metabolic cost is incurred.
+///
+/// Bergmann's rule (1847): larger body = more thermal mass in cold climates.
+/// Allen's rule (1877): shorter extremities in cold = less surface area.
+/// Here those effects emerge from selection on body_size + preferred_temp combos.
+///
+/// Citation: Bergmann, C. (1847) "Über die Verhältnisse der Wärmeökonomie der Thiere
+///   zu ihrer Größe" *Göttinger Studien* 3(1):595-708
+/// Citation: Allen, J.A. (1877) "The influence of Physical Conditions in the
+///   Genesis of Species" *Radical Review* 1:108-140
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TemperatureConfig {
+    /// Whether the temperature gradient is active.
+    pub enabled: bool,
+    /// Extra metabolic multiplier per unit temperature mismatch.
+    /// temp_cost = base_metabolism * cost_factor * |local_temp - preferred_temp|
+    pub cost_factor: f64,
+}
+
+impl Default for TemperatureConfig {
+    fn default() -> Self {
+        TemperatureConfig {
+            enabled: false,
+            cost_factor: 0.5,
+        }
+    }
+}
+
+/// Two-food-type system: algae (base food) + fruit (biome-only).
+///
+/// Algae grows everywhere at the base regrowth rate. Fruit grows only inside
+/// biome zones at a multiplied rate, creating a resource that only specialists
+/// can exploit efficiently. Each creature has an evolvable diet_preference gene.
+///
+/// Digestion efficiency: energy * (1.0 - 0.7 * |food_type - diet_preference|)
+///   - Algae specialist (diet_preference=0): 100% algae, 30% fruit
+///   - Fruit specialist (diet_preference=1): 100% fruit, 30% algae
+///   - Generalist (diet_preference=0.5): 65% from either
+///
+/// This models character displacement and adaptive radiation, where population
+/// divergence along a resource axis reduces interspecific competition.
+///
+/// Citation: Grant & Grant (2006) "Evolution of Character Displacement in
+///   Darwin's Finches" *Science* 313(5784):224-226
+/// Citation: Schluter, D. (2000) "The Ecology of Adaptive Radiation" Oxford UP
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FruitConfig {
+    /// Whether the fruit food type is active.
+    pub enabled: bool,
+    /// Energy per unit of fruit consumed (before diet efficiency adjustment).
+    pub energy_per_fruit: f64,
+    /// Fruit regrowth rate multiplier applied on top of the biome's normal rate.
+    /// Fruit only appears inside biome zones (outside biomes: no fruit).
+    pub biome_rate_multiplier: f64,
+}
+
+impl Default for FruitConfig {
+    fn default() -> Self {
+        FruitConfig {
+            enabled: false,
+            energy_per_fruit: 20.0,
+            biome_rate_multiplier: 2.0,
+        }
+    }
+}
+
+/// Per-cell pheromone layer enabling stigmergic communication.
+///
+/// Each creature deposits pheromone at its current cell each tick. Pheromone
+/// decays multiplicatively, creating concentration gradients that encode
+/// past creature activity. Brains that attend to local pheromone level can
+/// evolve trail-following, territory marking, and predator-avoidance.
+///
+/// Self-organizing trail dynamics: a positive feedback loop emerges when
+/// creatures preferentially follow high-pheromone paths, reinforcing those
+/// paths — the classic Deneubourg mechanism.
+///
+/// Citation: Wilson, E.O. (1975) "Sociobiology: The New Synthesis" Harvard UP
+/// Citation: Deneubourg et al. (1990) "The Self-Organizing Exploratory Pattern
+///   of the Argentine Ant" *J. Insect Behavior* 3(2):159-168
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct PheromoneConfig {
+    /// Whether the pheromone system is active.
+    pub enabled: bool,
+    /// Amount of pheromone deposited per creature per tick.
+    pub deposit_rate: f64,
+    /// Multiplicative decay per tick. 0.99 ≈ 100-tick half-life.
+    pub decay_rate: f64,
+    /// Maximum pheromone level per cell (caps deposit to prevent overflow).
+    pub max_level: f64,
+}
+
+impl Default for PheromoneConfig {
+    fn default() -> Self {
+        PheromoneConfig {
+            enabled: false,
+            deposit_rate: 0.1,
+            decay_rate: 0.99,
+            max_level: 10.0,
+        }
+    }
+}
+
+/// Day/night cycle — sinusoidal light level modulates vision range.
+///
+/// Light level: `L = (1 + sin(2π * tick / period)) / 2`, oscillating [0, 1].
+/// During night (`L < 0.5`), effective vision range is halved, forcing
+/// creatures to rely on other senses (pheromones, signals) or stay put.
+///
+/// Ecological consequences:
+/// - Selection for temporal niche partitioning: diurnal vs. nocturnal strategies
+/// - Nocturnal predators may ambush sight-dependent prey
+/// - Pheromone trails become more valuable at night than visual scanning
+/// - Brain input (input 18) wired in FOURTH step
+///
+/// Citation: Kronfeld-Schor, N. & Dayan, T. (2003) "Partitioning of Time as
+///   an Ecological Resource" *Annual Review of Ecology, Evolution, and Systematics*
+///   34:153-181
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct DayNightConfig {
+    /// Whether the day/night cycle is active.
+    pub enabled: bool,
+    /// Number of ticks per full day/night cycle. 1000 ≈ 1 tick per minute equivalent.
+    pub period: f64,
+}
+
+impl Default for DayNightConfig {
+    fn default() -> Self {
+        DayNightConfig {
+            enabled: false,
+            period: 1000.0,
+        }
+    }
+}
+
+/// Elevation map — multi-octave sine height field, no external crates.
+///
+/// Height is computed as the sum of N sine waves at increasing frequencies and
+/// decreasing amplitudes (standard fBm-style terrain synthesis):
+///   h(x, y) = Σ_k (1/2^k) * sin(2^k * fx * x + φ_kx) * sin(2^k * fy * y + φ_ky)
+/// where fx, fy are base spatial frequencies derived from `seed`.
+///
+/// Movement penalty: each step the creature's effective speed is multiplied by
+///   1 / (1 + slope_factor * |height(to) - height(from)|)
+/// so organisms moving uphill (or downhill on steep terrain) are slower.
+/// This creates impassable ridges, sheltered valleys, and island-like patches
+/// that isolate subpopulations — enabling allopatric speciation.
+///
+/// No brain input is added for elevation (organisms feel it only through movement
+/// efficiency, selecting for topography-aware route planning indirectly).
+///
+/// Citation: MacArthur, R.H. & Wilson, E.O. (1967) "The Theory of Island
+///   Biogeography" Princeton UP — habitat fragmentation drives speciation
+/// Citation: Wright, S. (1943) "Isolation by Distance" *Genetics* 28(2):114-138
+/// Citation: Musgrave (1994) "The Synthesis and Rendering of Eroded Fractal Terrains"
+///   fBm (fractional Brownian motion) multi-octave noise method
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ElevationConfig {
+    /// Whether elevation affects movement speed.
+    pub enabled: bool,
+    /// Speed multiplier denominator per unit height difference.
+    /// effective_speed = base_speed / (1 + slope_factor * |Δh|)
+    /// At slope_factor=5.0, a height diff of 0.2 (steep) halves speed.
+    pub slope_factor: f64,
+    /// Number of octaves in the height field (more = more detail, slower init).
+    pub octaves: usize,
+    /// Seed offset for the height field frequencies and phases. Independent of
+    /// the main simulation seed so elevation is reproducible but separate.
+    pub seed: u64,
+}
+
+impl Default for ElevationConfig {
+    fn default() -> Self {
+        ElevationConfig {
+            enabled: false,
+            slope_factor: 5.0,
+            octaves: 4,
+            seed: 7777,
         }
     }
 }
