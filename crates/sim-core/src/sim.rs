@@ -262,6 +262,7 @@ impl Simulation {
         let base_metabolism = self.config.energy.base_metabolism;
         let movement_cost_factor = self.config.energy.movement_cost;
         let brain_cost_per_neuron = self.config.energy.brain_cost;
+        let brain_cost_per_connection = self.config.energy.connection_cost;
         let density_cost_per_neighbor = self.config.density_pressure.cost_per_neighbor;
         let temp_enabled = self.config.temperature.enabled;
         let temp_cost_factor = self.config.temperature.cost_factor;
@@ -625,7 +626,10 @@ impl Simulation {
             // Temperature mismatch: extra cost when local temp deviates from preference
             // Citation: Bergmann (1847), Allen (1877) — thermoregulation drives adaptation
             let movement_cost = movement_cost_factor * actual_speed * actual_speed;
-            let brain_cost = brain_cost_per_neuron * org.brain.neuron_count() as f64;
+            // Brain cost: soma (per-neuron) + synaptic (per-connection)
+            // Attwell & Laughlin (2001): synapses dominate neural energy budget by 50-85x
+            let brain_cost = brain_cost_per_neuron * org.brain.neuron_count() as f64
+                + brain_cost_per_connection * org.brain.connection_count() as f64;
             let size_metabolism = base_metabolism * body_size.powf(0.75);
             let crowding_cost = density_cost_per_neighbor * action.neighbor_count as f64;
             let temp_cost = if temp_enabled {

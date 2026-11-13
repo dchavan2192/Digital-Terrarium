@@ -78,7 +78,8 @@ starting = 60.0         # Energy a new creature begins with (tick 0 spawns)
 maximum = 200.0         # Energy cap — eating beyond this is wasted
 base_metabolism = 0.6   # Flat energy cost per tick (raised from 0.2 to create real scarcity)
 movement_cost = 0.15    # Multiplied by speed^2 per tick (raised from 0.08)
-brain_cost = 0.002      # Cost per neuron per tick — the key intelligence tax
+brain_cost = 0.001      # Cost per neuron (soma) per tick — cell bodies are cheap
+connection_cost = 0.005 # Cost per connection (synapse) per tick — Attwell & Laughlin (2001)
 
 [reproduction]
 threshold = 60.0        # Minimum energy to reproduce
@@ -168,7 +169,7 @@ cost_factor = 0.5       # Up to 50% extra metabolism at max mismatch (mismatch=1
 [pheromones]
 enabled = true
 deposit_rate = 0.1      # Pheromone added per creature per tick at its cell
-decay_rate = 0.99       # Multiplicative decay per tick (~100-tick half-life)
+decay_rate = 0.995      # Multiplicative decay per tick (~138-tick half-life) — Deneubourg (1990)
 max_level = 10.0        # Cell cap; prevents unbounded accumulation
 
 # Day/night cycle — sinusoidal light modulates effective vision range.
@@ -180,7 +181,7 @@ max_level = 10.0        # Cell cap; prevents unbounded accumulation
 # Citation: Kronfeld-Schor & Dayan (2003) Annual Review of Ecology 34:153-181
 [daynight]
 enabled = true
-period = 1000.0         # Ticks per full cycle (day + night = 1000 ticks)
+period = 40.0           # Ticks per full cycle — Kronfeld-Schor & Dayan (2003): cycle:lifespan ~1:60
 
 # Elevation map — multi-octave sine height field (no external crates).
 # h(x,y) = Σ_k (1/2^k) * sin(2^k*fx*x + φ) * sin(2^k*fy*y + φ)

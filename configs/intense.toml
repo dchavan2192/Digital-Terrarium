@@ -66,7 +66,8 @@ starting = 60.0
 maximum = 200.0
 base_metabolism = 0.4           # Noticeable burn but not brutal
 movement_cost = 0.1
-brain_cost = 0.002
+brain_cost = 0.001
+connection_cost = 0.005         # Per-synapse cost — Attwell & Laughlin (2001)
 
 [reproduction]
 threshold = 65.0

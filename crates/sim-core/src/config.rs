@@ -183,12 +183,33 @@ pub struct VisionConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+/// Energy parameters.
+///
+/// Brain cost is split into per-neuron and per-connection components following
+/// the neuroscience finding that synaptic (connection) cost dominates soma
+/// (neuron) cost by 50-85x in mammalian grey matter.
+///
+/// Citations:
+/// - Attwell & Laughlin (2001) "An Energy Budget for Signaling in the Grey Matter"
+///   *J. Cerebral Blood Flow & Metabolism* 21(10):1133-1145
+/// - Laughlin et al. (1998) "The Metabolic Cost of Neural Information"
+///   *Nature Neuroscience* 1(1):36-41
 pub struct EnergyConfig {
     pub starting: f64,
     pub maximum: f64,
     pub base_metabolism: f64,
     pub movement_cost: f64,
+    /// Per-neuron (soma) cost per tick. Small — cell bodies are metabolically cheap.
     pub brain_cost: f64,
+    /// Per-connection (synapse) cost per tick. Should be ~5-10x brain_cost.
+    /// This is the primary lever for constraining network complexity.
+    /// Citation: Attwell & Laughlin (2001) — synapses dominate neural energy budget.
+    #[serde(default = "default_connection_cost")]
+    pub connection_cost: f64,
+}
+
+fn default_connection_cost() -> f64 {
+    0.0
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

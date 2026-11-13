@@ -199,9 +199,10 @@ impl Genome {
             }
         }
 
-        // 2. Add connection (3% chance)
+        // 2. Add connection (2% chance — lowered from 3% to balance with 4% pruning)
         // Citation: Stanley & Miikkulainen (2002) — structural mutation adds connections
-        if rng.r#gen::<f64>() < 0.03 {
+        // Citation: Dolson & Park (2012) — prune rate should be 1.5-2x add rate
+        if rng.r#gen::<f64>() < 0.02 {
             child.mutate_add_connection(rng);
         }
 
@@ -217,11 +218,12 @@ impl Genome {
             child.connections[idx].enabled = !child.connections[idx].enabled;
         }
 
-        // 4b. Prune connection (2% chance) — delete a random connection.
-        // Creates variance in brain complexity for selection to act on.
-        // Without this, NEAT topology grows monotonically and brain_cost
-        // cannot constrain complexity (see docs/EXPERIMENT_FINDINGS.md).
-        if rng.r#gen::<f64>() < 0.02 && child.connections.len() > 1 {
+        // 4b. Prune connection (4% chance — doubled from 2%, now 2x the add rate).
+        // Dolson & Park (2012, Swarthmore) showed prune rate must exceed add rate
+        // to prevent monotonic complexity growth in continuous evolution.
+        // Combined with per-connection brain cost (Attwell & Laughlin 2001),
+        // this creates genuine selection pressure for efficient brain topology.
+        if rng.r#gen::<f64>() < 0.04 && child.connections.len() > 1 {
             let idx = rng.gen_range(0..child.connections.len());
             child.connections.remove(idx);
         }
