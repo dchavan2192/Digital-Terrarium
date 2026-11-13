@@ -76,10 +76,11 @@ range = 60.0            # How far each ray sees (world units)
 [energy]
 starting = 60.0         # Energy a new creature begins with (tick 0 spawns)
 maximum = 200.0         # Energy cap — eating beyond this is wasted
-base_metabolism = 0.6   # Flat energy cost per tick (raised from 0.2 to create real scarcity)
+base_metabolism = 0.3   # Flat energy cost per tick (lowered — connection_cost adds pressure now)
 movement_cost = 0.15    # Multiplied by speed^2 per tick (raised from 0.08)
 brain_cost = 0.001      # Cost per neuron (soma) per tick — cell bodies are cheap
-connection_cost = 0.005 # Cost per connection (synapse) per tick — Attwell & Laughlin (2001)
+connection_cost = 0.001 # Cost per connection (synapse) per tick — Attwell & Laughlin (2001)
+                        # At 200 connections = 0.2/tick brain cost (comparable to base_metabolism)
 
 [reproduction]
 threshold = 60.0        # Minimum energy to reproduce
