@@ -13,7 +13,7 @@ license = "MIT"
 authors = ["Dinesh Chavan"]
 
 [workspace.dependencies]
-sim-core = { path = "crates/sim-core" }
+sim-core = { path = "crates/sim-core", default-features = false }
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 rand = "0.8"

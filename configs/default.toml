@@ -128,6 +128,69 @@ min_threshold = 0.1           # Floor: prevents over-splitting
 max_threshold = 2.0           # Ceiling: prevents one giant species
 
 [brain]
-inputs = 15             # Sensor inputs: 5 rays × 2 (dist + type) + energy + heading + signal + body_size + kin_similarity
+inputs = 18             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light
 hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)
 outputs = 6             # turn, speed, eat, attack, signal, share
+
+# North-south temperature gradient — cold at y=0 (north), warm at y=world_height (south).
+# Each creature has an evolvable preferred_temp gene [0,1]. Metabolism penalty scales with
+# mismatch: temp_cost = base_metabolism * cost_factor * |local_temp - preferred_temp|
+# This drives Bergmann's rule (1847): larger body mass in cold climates for heat retention,
+# and allopatric speciation across the thermal gradient.
+# Citation: Bergmann (1847) "Über die Verhältnisse der Wärmeökonomie der Thiere zu ihrer Größe"
+# Citation: Allen (1877) "The influence of Physical Conditions in the Genesis of Species"
+# Fruit food type — grows only inside biome zones at 2x the biome rate.
+# Algae (the existing food) grows everywhere at the base regrowth rate.
+# Creatures have an evolvable diet_preference gene [0,1]: 0=algae specialist,
+# 1=fruit specialist. Generalists (0.5) get ~65% digestion efficiency from either.
+# This drives adaptive radiation: populations diverge along the diet axis,
+# reducing interspecific competition (character displacement).
+# Citation: Grant & Grant (2006) "Evolution of Character Displacement in Darwin's Finches"
+# Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
+[food.fruit]
+enabled = true
+energy_per_fruit = 20.0        # Energy per unit fruit (before diet efficiency)
+biome_rate_multiplier = 2.0    # Fruit regrowth = biome_rate × 2.0 (rich but limited)
+
+[temperature]
+enabled = true
+cost_factor = 0.5       # Up to 50% extra metabolism at max mismatch (mismatch=1.0)
+
+# Per-cell pheromone layer enabling stigmergic (indirect) communication.
+# Each creature deposits pheromone at its current cell each tick.
+# Pheromone decays multiplicatively, creating concentration gradients.
+# Brains attending to local pheromone can evolve trail-following, territory
+# marking, migration coordination, and predator-avoidance.
+# Self-organization: positive feedback loop when creatures follow
+# high-pheromone paths, reinforcing those paths — the Deneubourg mechanism.
+# Citation: Wilson (1975) "Sociobiology: The New Synthesis"
+# Citation: Deneubourg et al. (1990) J. Insect Behavior 3(2):159-168
+[pheromones]
+enabled = true
+deposit_rate = 0.1      # Pheromone added per creature per tick at its cell
+decay_rate = 0.99       # Multiplicative decay per tick (~100-tick half-life)
+max_level = 10.0        # Cell cap; prevents unbounded accumulation
+
+# Day/night cycle — sinusoidal light modulates effective vision range.
+# Light level = (1 + sin(2π * tick / period)) / 2, oscillating [0, 1].
+# During night (light < 0.5), vision range is halved.
+# Drives temporal niche partitioning: diurnal vs nocturnal strategies.
+# Pheromone trails become more valuable at night when vision fails.
+# Brain input (light level, input 18) wired in FOURTH step.
+# Citation: Kronfeld-Schor & Dayan (2003) Annual Review of Ecology 34:153-181
+[daynight]
+enabled = true
+period = 1000.0         # Ticks per full cycle (day + night = 1000 ticks)
+
+# Elevation map — multi-octave sine height field (no external crates).
+# h(x,y) = Σ_k (1/2^k) * sin(2^k*fx*x + φ) * sin(2^k*fy*y + φ)
+# Movement penalty: speed *= 1/(1 + slope_factor * |Δheight|)
+# Creates ridges, valleys and island-like patches that fragment populations
+# and drive allopatric speciation through isolation by distance.
+# Citation: MacArthur & Wilson (1967) "The Theory of Island Biogeography"
+# Citation: Wright (1943) "Isolation by Distance" Genetics 28(2):114-138
+[elevation]
+enabled = true
+slope_factor = 5.0      # At Δh=0.2 (steep), speed halves
+octaves = 4             # Number of sine octaves (detail level)
+seed = 7777             # Height map seed — independent of main sim seed
