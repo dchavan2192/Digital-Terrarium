@@ -88,6 +88,14 @@ activity_weight_cost = 0.0005  # Cost per unit of |weight × activation| per tic
 threshold = 60.0        # Minimum energy to reproduce
 parent_cost = 30.0      # Energy deducted from the parent
 child_energy = 30.0     # Energy the offspring starts with
+# Sexual reproduction: NEAT crossover between different-topology genomes.
+# The twofold cost of sex: both parents pay parent_cost.
+# Recombination prevents Muller's ratchet and speeds adaptation.
+# Citation: Maynard Smith (1978), Muller (1932), Stanley & Miikkulainen (2002) §3.2
+sexual = true               # Enable sexual reproduction (false = asexual clone only)
+mate_range = 15.0           # Max distance to find a mate
+crossover_rate = 0.7        # Probability of crossover vs clone (when mate available)
+fitness_bias = true         # More-fit parent contributes disjoint/excess genes (NEAT)
 
 [combat]
 # Predator-prey dynamics: Lotka-Volterra (1925/1926), Yaeger Polyworld (1994)

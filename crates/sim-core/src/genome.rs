@@ -427,6 +427,128 @@ impl Genome {
         Brain::from_neat(self.num_inputs, self.num_outputs, &hidden, &conns)
     }
 
+    /// NEAT crossover: produce offspring from two parents with potentially different topologies.
+    ///
+    /// - Matching genes (same from,to): randomly inherit from either parent (50/50)
+    /// - Disjoint/excess genes: inherit from the fitter parent only
+    /// - Hidden nodes: union of both parents
+    /// - Scalar traits: average of both parents
+    /// - Standard mutations applied to offspring
+    ///
+    /// Citation: Stanley & Miikkulainen (2002) §3.2, Maynard Smith (1978)
+    pub fn crossover(
+        parent_a: &Genome,
+        parent_b: &Genome,
+        a_is_fitter: bool,
+        rng: &mut impl Rng,
+    ) -> Self {
+        let (fitter, weaker) = if a_is_fitter {
+            (parent_a, parent_b)
+        } else {
+            (parent_b, parent_a)
+        };
+
+        let mut connections = Vec::new();
+        let ac = &parent_a.connections;
+        let bc = &parent_b.connections;
+        let mut i = 0;
+        let mut j = 0;
+
+        while i < ac.len() && j < bc.len() {
+            let a_key = (ac[i].from, ac[i].to);
+            let b_key = (bc[j].from, bc[j].to);
+
+            if a_key == b_key {
+                // Matching gene: 50/50 from either parent
+                if rng.r#gen::<bool>() {
+                    connections.push(ac[i]);
+                } else {
+                    connections.push(bc[j]);
+                }
+                i += 1;
+                j += 1;
+            } else if a_key < b_key {
+                // Disjoint from A: include only if A is fitter
+                if a_is_fitter {
+                    connections.push(ac[i]);
+                }
+                i += 1;
+            } else {
+                // Disjoint from B: include only if B is fitter
+                if !a_is_fitter {
+                    connections.push(bc[j]);
+                }
+                j += 1;
+            }
+        }
+        // Excess genes from the fitter parent
+        if a_is_fitter {
+            while i < ac.len() {
+                connections.push(ac[i]);
+                i += 1;
+            }
+        } else {
+            while j < bc.len() {
+                connections.push(bc[j]);
+                j += 1;
+            }
+        }
+
+        // Hidden nodes: union with dedup
+        let mut hidden_nodes = fitter.hidden_nodes.clone();
+        for node in &weaker.hidden_nodes {
+            if !hidden_nodes.iter().any(|n| n.id == node.id) {
+                hidden_nodes.push(*node);
+            }
+        }
+        // Prune orphan hidden nodes not referenced by any connection
+        hidden_nodes.retain(|n| connections.iter().any(|c| c.from == n.id || c.to == n.id));
+
+        let next_node_id = hidden_nodes
+            .iter()
+            .map(|n| n.id + 1)
+            .max()
+            .unwrap_or(fitter.next_node_id)
+            .max(fitter.next_node_id)
+            .max(weaker.next_node_id);
+
+        // Blend scalar traits
+        let mut child = Genome {
+            connections,
+            hidden_nodes,
+            next_node_id,
+            num_inputs: fitter.num_inputs,
+            num_outputs: fitter.num_outputs,
+            mutation_rate: (parent_a.mutation_rate + parent_b.mutation_rate) / 2.0,
+            mutation_step: (parent_a.mutation_step + parent_b.mutation_step) / 2.0,
+            color_hue: {
+                // Wraparound-aware hue blending
+                let diff = parent_b.color_hue - parent_a.color_hue;
+                if diff.abs() <= 180.0 {
+                    (parent_a.color_hue + parent_b.color_hue) / 2.0
+                } else if diff > 0.0 {
+                    ((parent_a.color_hue + parent_b.color_hue + 360.0) / 2.0) % 360.0
+                } else {
+                    ((parent_a.color_hue + parent_b.color_hue - 360.0) / 2.0 + 360.0) % 360.0
+                }
+            },
+            aging_rate: (parent_a.aging_rate + parent_b.aging_rate) / 2.0,
+            body_size: (parent_a.body_size + parent_b.body_size) / 2.0,
+            preferred_temp: (parent_a.preferred_temp + parent_b.preferred_temp) / 2.0,
+            diet_preference: (parent_a.diet_preference + parent_b.diet_preference) / 2.0,
+        };
+
+        // Sort connections for genome_distance efficiency
+        child
+            .connections
+            .sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
+
+        // Apply standard mutations
+        child = child.reproduce(rng);
+
+        child
+    }
+
     /// Compute compatibility distance between two NEAT genomes.
     ///
     /// Uses a merge-join on connections sorted by (from, to) to compute:

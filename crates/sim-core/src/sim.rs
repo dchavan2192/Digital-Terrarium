@@ -130,6 +130,10 @@ pub struct TickStats {
     /// Mean activity-dependent brain metabolic cost per organism.
     /// Citation: Attwell & Laughlin (2001)
     pub mean_brain_activity: f64,
+    /// Sexual reproduction births this tick. Citation: Maynard Smith (1978)
+    pub sexual_births: u64,
+    /// Asexual reproduction births this tick.
+    pub asexual_births: u64,
     /// Number of active drought zones.
     pub active_droughts: usize,
     /// Per-species breakdown with aggregate stats and trend.
@@ -824,7 +828,8 @@ impl Simulation {
             }
         }
 
-        // 6. Reproduce
+        // 6. Reproduce — asexual or sexual (NEAT crossover)
+        // Citation: Maynard Smith (1978), Muller (1932), Stanley & Miikkulainen (2002) §3.2
         let mut offspring: Vec<Organism> = Vec::new();
         let current_alive = self.organisms.iter().filter(|o| o.alive).count();
         let repro_threshold = self.config.reproduction.threshold;
@@ -832,40 +837,101 @@ impl Simulation {
         let child_energy = self.config.reproduction.child_energy;
         let hard_cap = self.config.creature.hard_cap;
         let body_radius = self.config.creature.body_radius;
+        let sexual = self.config.reproduction.sexual;
+        let mate_range = self.config.reproduction.mate_range;
+        let crossover_rate = self.config.reproduction.crossover_rate;
+        let fitness_bias = self.config.reproduction.fitness_bias;
+        let mut sexual_births = 0u64;
+        let mut asexual_births = 0u64;
 
-        for org in &mut self.organisms {
+        // Snapshot energy for mate eligibility (avoids borrow conflicts)
+        let energy_snapshot: Vec<(f64, bool)> =
+            self.organisms.iter().map(|o| (o.energy, o.alive)).collect();
+
+        for parent_idx in 0..self.organisms.len() {
+            let org = &self.organisms[parent_idx];
             if !org.alive {
                 continue;
             }
-            if org.energy >= repro_threshold && (current_alive + offspring.len()) < hard_cap {
-                org.energy -= parent_cost;
-                let child_genome = org.genome.reproduce(&mut self.rng);
-                let child_brain = child_genome.build_brain();
-
-                let offset_angle = self.rng.gen_range(0.0..std::f64::consts::TAU);
-                let offset_dist = body_radius * 2.0;
-                let child = Organism {
-                    id: self.next_id,
-                    pos_x: wrap_coord(org.pos_x + offset_angle.cos() * offset_dist, world_w),
-                    pos_y: wrap_coord(org.pos_y + offset_angle.sin() * offset_dist, world_h),
-                    heading: self.rng.gen_range(0.0..std::f64::consts::TAU),
-                    energy: child_energy,
-                    age: 0,
-                    genome: child_genome,
-                    brain: child_brain,
-                    alive: true,
-                    parent_id: Some(org.id),
-                    generation: org.generation + 1,
-                    signal: 0.0,
-                    energy_from_food: 0.0,
-                    energy_from_attacks: 0.0,
-                    output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
-                        crate::organism::NUM_OUTPUTS],
-                };
-                self.next_id += 1;
-                births += 1;
-                offspring.push(child);
+            if org.energy < repro_threshold || (current_alive + offspring.len()) >= hard_cap {
+                continue;
             }
+
+            let child_genome = if sexual {
+                // Try to find a mate nearby
+                let mut best_mate: Option<usize> = None;
+                let mut best_dist_sq = mate_range * mate_range;
+                let px = org.pos_x;
+                let py = org.pos_y;
+                self.spatial_grid.for_each_nearby(px, py, |j| {
+                    if j == parent_idx {
+                        return;
+                    }
+                    let (mate_energy, mate_alive) = energy_snapshot[j];
+                    if !mate_alive || mate_energy < repro_threshold * 0.5 {
+                        return;
+                    }
+                    let (mx, my) = (self.positions[j].0, self.positions[j].1);
+                    let dx = wraparound_delta(px, mx, world_w);
+                    let dy = wraparound_delta(py, my, world_h);
+                    let dist_sq = dx * dx + dy * dy;
+                    if dist_sq < best_dist_sq {
+                        best_dist_sq = dist_sq;
+                        best_mate = Some(j);
+                    }
+                });
+
+                if let Some(mate_idx) = best_mate {
+                    if self.rng.r#gen::<f64>() < crossover_rate {
+                        // Sexual reproduction with NEAT crossover
+                        let mate = &self.organisms[mate_idx];
+                        let a_is_fitter = if fitness_bias {
+                            org.energy >= mate.energy
+                        } else {
+                            self.rng.r#gen::<bool>()
+                        };
+                        sexual_births += 1;
+                        Genome::crossover(&org.genome, &mate.genome, a_is_fitter, &mut self.rng)
+                    } else {
+                        asexual_births += 1;
+                        org.genome.reproduce(&mut self.rng)
+                    }
+                } else {
+                    // No mate found — asexual fallback
+                    asexual_births += 1;
+                    org.genome.reproduce(&mut self.rng)
+                }
+            } else {
+                asexual_births += 1;
+                org.genome.reproduce(&mut self.rng)
+            };
+
+            let child_brain = child_genome.build_brain();
+            let offset_angle = self.rng.gen_range(0.0..std::f64::consts::TAU);
+            let offset_dist = body_radius * 2.0;
+            let org = &self.organisms[parent_idx]; // reborrow after rng usage
+            let child = Organism {
+                id: self.next_id,
+                pos_x: wrap_coord(org.pos_x + offset_angle.cos() * offset_dist, world_w),
+                pos_y: wrap_coord(org.pos_y + offset_angle.sin() * offset_dist, world_h),
+                heading: self.rng.gen_range(0.0..std::f64::consts::TAU),
+                energy: child_energy,
+                age: 0,
+                genome: child_genome,
+                brain: child_brain,
+                alive: true,
+                parent_id: Some(org.id),
+                generation: org.generation + 1,
+                signal: 0.0,
+                energy_from_food: 0.0,
+                energy_from_attacks: 0.0,
+                output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
+                    crate::organism::NUM_OUTPUTS],
+            };
+            self.next_id += 1;
+            self.organisms[parent_idx].energy -= parent_cost;
+            births += 1;
+            offspring.push(child);
         }
         self.organisms.extend(offspring);
 
@@ -1250,6 +1316,8 @@ impl Simulation {
             mean_crowding,
             speciation_threshold: species_threshold,
             mean_brain_activity,
+            sexual_births,
+            asexual_births,
             active_droughts: self.food_grid.droughts.len(),
             species: species_infos,
         };

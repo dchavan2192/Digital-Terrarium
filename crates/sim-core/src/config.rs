@@ -223,6 +223,25 @@ pub struct ReproductionConfig {
     pub threshold: f64,
     pub parent_cost: f64,
     pub child_energy: f64,
+    /// Enable sexual reproduction with NEAT crossover (Maynard Smith 1978).
+    #[serde(default)]
+    pub sexual: bool,
+    /// Max distance to find a mate (world units).
+    #[serde(default = "default_mate_range")]
+    pub mate_range: f64,
+    /// Probability of crossover vs asexual clone when mate is available.
+    #[serde(default = "default_crossover_rate")]
+    pub crossover_rate: f64,
+    /// Fitter parent contributes disjoint/excess genes (NEAT §3.2).
+    #[serde(default)]
+    pub fitness_bias: bool,
+}
+
+fn default_mate_range() -> f64 {
+    15.0
+}
+fn default_crossover_rate() -> f64 {
+    0.7
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
