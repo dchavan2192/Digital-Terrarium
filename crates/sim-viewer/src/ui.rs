@@ -308,6 +308,26 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
 
             ui.add_space(4.0);
 
+            // --- OEE (Open-Ended Evolution) ---
+            ui.label("Evolution");
+            ui.horizontal(|ui| {
+                ui.label(format!(
+                    "Novel:{} Active:{} D(t):{:.1}",
+                    stats.novel_traits, stats.active_traits, stats.mean_cumulative_activity
+                ));
+            });
+            ui.horizontal(|ui| {
+                ui.label(format!(
+                    "MaxGen:{} Lineages:{} Sex:{}/Asex:{}",
+                    stats.max_generation,
+                    stats.lineage_diversity,
+                    stats.sexual_births,
+                    stats.asexual_births
+                ));
+            });
+
+            ui.add_space(4.0);
+
             // --- Environment ---
             ui.label("Environment");
             ui.horizontal(|ui| {

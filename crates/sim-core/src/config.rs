@@ -40,6 +40,8 @@ pub struct Config {
     pub daynight: DayNightConfig,
     #[serde(default)]
     pub elevation: ElevationConfig,
+    #[serde(default)]
+    pub activity_tracking: ActivityTrackingConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -560,6 +562,27 @@ impl Default for ElevationConfig {
             slope_factor: 5.0,
             octaves: 4,
             seed: 7777,
+        }
+    }
+}
+
+/// Open-ended evolution activity tracking — Bedau & Packard (1991), Dolson et al. (2019).
+///
+/// Tracks structural novelty rate and cumulative activity D(t).
+/// If D(t) grows unboundedly, evolution is open-ended.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ActivityTrackingConfig {
+    pub enabled: bool,
+    /// Compute activity stats every N ticks (amortizes hashing cost).
+    pub window_size: u64,
+}
+
+impl Default for ActivityTrackingConfig {
+    fn default() -> Self {
+        ActivityTrackingConfig {
+            enabled: false,
+            window_size: 100,
         }
     }
 }

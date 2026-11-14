@@ -15,6 +15,7 @@
 //! - [`brain`] — Feed-forward neural network evaluated each tick.
 //! - [`sim`] — The simulation state and deterministic tick loop.
 
+pub mod activity;
 pub mod brain;
 pub mod config;
 pub mod genome;

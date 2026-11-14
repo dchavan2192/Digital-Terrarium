@@ -33,6 +33,11 @@ pub struct Organism {
     pub energy_from_food: f64,
     /// Cumulative energy gained from attacking other creatures (lifetime).
     pub energy_from_attacks: f64,
+    /// The gen-0 ancestor's ID — tracks which original organism this lineage descends from.
+    /// Citation: Dolson et al. (2019) "The MODES Toolbox"
+    pub root_ancestor_id: OrganismId,
+    /// Tick at which this organism was born (0 for initial population).
+    pub birth_tick: u64,
 
     /// Running activation histograms for brain output entropy.
     /// 6 outputs × 8 bins over [-1, 1], with exponential decay (τ ≈ 100 ticks).

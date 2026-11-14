@@ -57,6 +57,9 @@ pub struct Simulation {
     species_history: Vec<Vec<usize>>,
     /// Representative genomes from last tick for species continuity.
     species_representatives: Vec<crate::genome::Genome>,
+    /// Open-ended evolution activity tracker.
+    /// Citation: Bedau & Packard (1991), Dolson et al. (2019)
+    activity_tracker: crate::activity::ActivityTracker,
 }
 
 /// Per-species aggregate statistics.
@@ -136,6 +139,16 @@ pub struct TickStats {
     pub asexual_births: u64,
     /// Number of active drought zones.
     pub active_droughts: usize,
+    /// Novel structural topologies this window. Citation: Bedau & Packard (1991)
+    pub novel_traits: u64,
+    /// Distinct topologies currently alive.
+    pub active_traits: u64,
+    /// D(t) — mean cumulative activity. Unbounded growth = open-ended evolution.
+    pub mean_cumulative_activity: f64,
+    /// Maximum generation depth in the population.
+    pub max_generation: u64,
+    /// Lineage diversity: distinct root ancestors among living organisms.
+    pub lineage_diversity: usize,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -219,12 +232,17 @@ impl Simulation {
                 signal: 0.0,
                 energy_from_food: 0.0,
                 energy_from_attacks: 0.0,
+                root_ancestor_id: next_id,
+                birth_tick: 0,
                 output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
                     crate::organism::NUM_OUTPUTS],
             };
             organisms.push(org);
             next_id += 1;
         }
+
+        let activity_tracker =
+            crate::activity::ActivityTracker::new(config.activity_tracking.window_size);
 
         Simulation {
             config,
@@ -241,6 +259,7 @@ impl Simulation {
             actions: Vec::with_capacity(cap),
             species_history: Vec::new(),
             species_representatives: Vec::new(),
+            activity_tracker,
         }
     }
 
@@ -925,6 +944,8 @@ impl Simulation {
                 signal: 0.0,
                 energy_from_food: 0.0,
                 energy_from_attacks: 0.0,
+                root_ancestor_id: org.root_ancestor_id,
+                birth_tick: self.tick,
                 output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
                     crate::organism::NUM_OUTPUTS],
             };
@@ -1290,6 +1311,38 @@ impl Simulation {
             (0.0, 0.0, 0.0)
         };
 
+        // OEE activity tracking — Bedau & Packard (1991), Dolson et al. (2019)
+        if self.config.activity_tracking.enabled {
+            self.activity_tracker.update(
+                self.tick,
+                self.organisms
+                    .iter()
+                    .filter(|o| o.alive)
+                    .map(|o| crate::activity::topology_hash(&o.genome)),
+            );
+        }
+        let activity_stats = &self.activity_tracker.stats;
+
+        let max_generation = self
+            .organisms
+            .iter()
+            .filter(|o| o.alive)
+            .map(|o| o.generation)
+            .max()
+            .unwrap_or(0);
+
+        let lineage_diversity = {
+            let mut roots: Vec<u64> = self
+                .organisms
+                .iter()
+                .filter(|o| o.alive)
+                .map(|o| o.root_ancestor_id)
+                .collect();
+            roots.sort_unstable();
+            roots.dedup();
+            roots.len()
+        };
+
         self.stats = TickStats {
             tick: self.tick,
             population,
@@ -1319,6 +1372,11 @@ impl Simulation {
             sexual_births,
             asexual_births,
             active_droughts: self.food_grid.droughts.len(),
+            novel_traits: activity_stats.novel_traits,
+            active_traits: activity_stats.active_traits,
+            mean_cumulative_activity: activity_stats.mean_cumulative_activity,
+            max_generation,
+            lineage_diversity,
             species: species_infos,
         };
     }

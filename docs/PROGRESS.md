@@ -135,7 +135,7 @@
   - Mate-finding, crossover of different-topology genomes, twofold cost of sex
   - Enables recombination: faster adaptation, Muller's ratchet prevention
   - Citations: Maynard Smith (1978) "The Evolution of Sex", Muller (1932), Stanley & Miikkulainen (2002) §3.2
-- [ ] **Open-ended evolution (OEE) metrics** — MODES toolbox (Dolson et al. 2019)
+- [x] **Open-ended evolution (OEE) metrics** — MODES toolbox (Dolson et al. 2019)
   - Evolutionary activity statistics: novelty rate, cumulative activity D(t), active traits
   - Lineage tracking: generation depth, lineage diversity, coalescence
   - THE measurement that proves the sim produces genuine open-ended evolution

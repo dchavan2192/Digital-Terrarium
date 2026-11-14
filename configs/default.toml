@@ -206,3 +206,10 @@ enabled = true
 slope_factor = 5.0      # At Δh=0.2 (steep), speed halves
 octaves = 4             # Number of sine octaves (detail level)
 seed = 7777             # Height map seed — independent of main sim seed
+
+# Open-ended evolution activity tracking — Bedau & Packard (1991), Dolson et al. (2019)
+# Tracks structural novelty (topology hashes) and cumulative activity D(t).
+# If D(t) grows unboundedly, evolution is open-ended; if it plateaus, strategies converge.
+[activity_tracking]
+enabled = true
+window_size = 100       # Ticks between activity snapshots

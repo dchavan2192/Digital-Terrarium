@@ -1480,3 +1480,61 @@ fn brain_activity_cost_scales_with_usage() {
         "even low-weight brain has some activity"
     );
 }
+
+#[test]
+fn oee_activity_tracker_populates_stats() {
+    let mut config = load_config();
+    config.activity_tracking.enabled = true;
+    config.activity_tracking.window_size = 1;
+    let mut sim = Simulation::new(config);
+
+    for _ in 0..10 {
+        sim.step();
+    }
+
+    assert!(
+        sim.stats.active_traits > 0,
+        "should have active traits after 10 ticks"
+    );
+    assert!(
+        sim.stats.mean_cumulative_activity > 0.0,
+        "D(t) should be positive"
+    );
+    assert!(
+        sim.stats.lineage_diversity > 0,
+        "lineage diversity should be positive with living organisms"
+    );
+}
+
+#[test]
+fn child_inherits_root_ancestor_and_birth_tick() {
+    let mut config = load_config();
+    config.creature.initial_count = 50;
+    config.reproduction.threshold = 50.0;
+    config.energy.starting = 200.0;
+    let mut sim = Simulation::new(config);
+
+    for _ in 0..200 {
+        sim.step();
+    }
+
+    let children: Vec<_> = sim
+        .organisms
+        .iter()
+        .filter(|o| o.alive && o.generation > 0)
+        .collect();
+
+    if !children.is_empty() {
+        for child in &children {
+            assert!(
+                child.root_ancestor_id < child.id,
+                "root_ancestor_id should be from an earlier organism"
+            );
+        }
+        let any_nonzero_birth = children.iter().any(|c| c.birth_tick > 0);
+        assert!(
+            any_nonzero_birth,
+            "at least some children should have birth_tick > 0"
+        );
+    }
+}
