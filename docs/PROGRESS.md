@@ -2,7 +2,7 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-09
+**Last updated**: 2026-11-14
 
 ---
 
@@ -122,6 +122,44 @@
 ### Testing & Validation [ONGOING]
 - [x] **Biome-aware food regrowth integration test** — verifies FoodGrid with BiomeZone config produces per-cell regrowth rate variation; lush zones regrow faster than moderate zones, which regrow faster than neutral (no-zone) areas; also verifies uniform rates when no biomes configured
 - [x] **Seasonal food variation tests** — `seasonal_food_variation` verifies sinusoidal multiplier at tick 0 (baseline), peak summer (1+amplitude), peak winter (1-amplitude), and actual food accumulation at each phase; `seasonal_no_effect_when_amplitude_zero` verifies backward compatibility
+
+### Phase 7: Scientific Novelty — Publishable Mechanisms [IN PROGRESS]
+**Goal**: Implement features no other ALife platform has, targeting ALIFE 2027 submission.
+**Research council** (Nov 14, 2026) surveyed ALIFE 2023-2026 proceedings and identified 5 highest-impact features.
+
+- [ ] **Activity-dependent neural metabolism** — brain cost scales with ACTIVITY, not just structure
+  - Effective cost = structure_cost + Σ|weight × activation| per tick
+  - Selects for sparse coding: brains that activate few connections are cheaper
+  - Citations: Attwell & Laughlin (2001) "An Energy Budget for Signaling in the Grey Matter of the Brain", Niven & Laughlin (2008), Lennie (2003)
+- [ ] **Sexual reproduction with NEAT crossover** — the first major evolutionary transition
+  - Mate-finding, crossover of different-topology genomes, twofold cost of sex
+  - Enables recombination: faster adaptation, Muller's ratchet prevention
+  - Citations: Maynard Smith (1978) "The Evolution of Sex", Muller (1932), Stanley & Miikkulainen (2002) §3.2
+- [ ] **Open-ended evolution (OEE) metrics** — MODES toolbox (Dolson et al. 2019)
+  - Evolutionary activity statistics: novelty rate, cumulative activity D(t), active traits
+  - Lineage tracking: generation depth, lineage diversity, coalescence
+  - THE measurement that proves the sim produces genuine open-ended evolution
+  - Citations: Bedau & Packard (1991), Dolson et al. (2019) "The MODES Toolbox" *Artificial Life* 25(1):50-73, Taylor et al. (2016)
+- [ ] **Niche construction** — organisms modify their environment (ecological inheritance)
+  - Construction grid: organisms deposit/remove material that alters local food regrowth
+  - Creates a second inheritance system beyond the genome
+  - No neural-agent ALife platform has this — completely novel
+  - Citations: Odling-Smee, Laland & Feldman (2003) "Niche Construction: The Neglected Process in Evolution", Laland et al. (1999) PNAS 96:10242-10247
+- [ ] **Epigenetic inheritance** — heritable non-genetic state (methylation marks)
+  - Per-connection methylation [0,1] silences connections; responds to environmental stress
+  - Offspring inherit parental methylation with noise — transgenerational ecological memory
+  - Almost completely absent from ALife literature (only EpiAL, Sousa & Costa 2010)
+  - Citations: Jablonka & Lamb (2005) "Evolution in Four Dimensions", Heard & Martienssen (2014) Cell 157(1):95-109
+
+**Planned experiments** (each: feature ON vs OFF, 5+ seeds, 500k+ ticks):
+- [ ] OEE: Show D(t) grows unboundedly — Terrarium passes the "ALife test"
+- [ ] Niche construction: Do niche-constructing lineages survive droughts better?
+- [ ] Epigenetics: Do stress-primed offspring outperform naïve offspring post-drought?
+- [ ] Sexual vs asexual: Does sex accelerate adaptation speed and prevent Muller's ratchet?
+
+**Future high-impact** (post Phase 7):
+- [ ] Horizontal gene transfer (HGT) — connection gene exchange between organisms
+- [ ] Major evolutionary transition to multicellularity — group-level selection emerging from cooperation
 
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots

@@ -206,6 +206,12 @@ pub struct EnergyConfig {
     /// Citation: Attwell & Laughlin (2001) — synapses dominate neural energy budget.
     #[serde(default = "default_connection_cost")]
     pub connection_cost: f64,
+    /// Activity-dependent neural metabolism: cost per unit of |weight × activation|.
+    /// Real brains spend ~80% of energy on active signaling, not maintenance.
+    /// Selects for sparse coding — brains that activate few connections are cheaper.
+    /// Citation: Attwell & Laughlin (2001), Niven & Laughlin (2008), Lennie (2003).
+    #[serde(default)]
+    pub activity_weight_cost: f64,
 }
 
 fn default_connection_cost() -> f64 {

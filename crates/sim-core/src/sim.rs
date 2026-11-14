@@ -127,6 +127,9 @@ pub struct TickStats {
     /// Current speciation compatibility distance threshold.
     /// Citation: Stanley & Miikkulainen (2002)
     pub speciation_threshold: f64,
+    /// Mean activity-dependent brain metabolic cost per organism.
+    /// Citation: Attwell & Laughlin (2001)
+    pub mean_brain_activity: f64,
     /// Number of active drought zones.
     pub active_droughts: usize,
     /// Per-species breakdown with aggregate stats and trend.
@@ -145,6 +148,7 @@ struct Action {
     share: f64,
     alive: bool,
     neighbor_count: u32,
+    brain_activity: f64,
 }
 
 impl Default for Action {
@@ -158,6 +162,7 @@ impl Default for Action {
             share: 0.0,
             alive: false,
             neighbor_count: 0,
+            brain_activity: 0.0,
         }
     }
 }
@@ -263,6 +268,7 @@ impl Simulation {
         let movement_cost_factor = self.config.energy.movement_cost;
         let brain_cost_per_neuron = self.config.energy.brain_cost;
         let brain_cost_per_connection = self.config.energy.connection_cost;
+        let activity_weight_cost = self.config.energy.activity_weight_cost;
         let density_cost_per_neighbor = self.config.density_pressure.cost_per_neighbor;
         let temp_enabled = self.config.temperature.enabled;
         let temp_cost_factor = self.config.temperature.cost_factor;
@@ -494,7 +500,7 @@ impl Simulation {
                 inputs[idx] = light_level;
 
                 let brain_inputs = &inputs[..organisms[i].brain.inputs];
-                let output = organisms[i].brain.forward(brain_inputs);
+                let (output, brain_activity) = organisms[i].brain.forward(brain_inputs);
 
                 Action {
                     turn: output.turn,
@@ -505,6 +511,7 @@ impl Simulation {
                     share: output.share,
                     alive: true,
                     neighbor_count,
+                    brain_activity,
                 }
             })
             .collect();
@@ -520,6 +527,22 @@ impl Simulation {
                     .map(|a| a.neighbor_count as u64)
                     .sum();
                 total as f64 / alive_count as f64
+            } else {
+                0.0
+            }
+        };
+
+        // Compute mean brain activity (for stats)
+        let mean_brain_activity = {
+            let alive_count = self.actions.iter().filter(|a| a.alive).count();
+            if alive_count > 0 {
+                let total: f64 = self
+                    .actions
+                    .iter()
+                    .filter(|a| a.alive)
+                    .map(|a| a.brain_activity)
+                    .sum();
+                total / alive_count as f64
             } else {
                 0.0
             }
@@ -626,10 +649,11 @@ impl Simulation {
             // Temperature mismatch: extra cost when local temp deviates from preference
             // Citation: Bergmann (1847), Allen (1877) — thermoregulation drives adaptation
             let movement_cost = movement_cost_factor * actual_speed * actual_speed;
-            // Brain cost: soma (per-neuron) + synaptic (per-connection)
-            // Attwell & Laughlin (2001): synapses dominate neural energy budget by 50-85x
+            // Brain cost: soma + synapse maintenance + activity-dependent signaling
+            // Attwell & Laughlin (2001): ~80% of neural energy is active signaling
             let brain_cost = brain_cost_per_neuron * org.brain.neuron_count() as f64
-                + brain_cost_per_connection * org.brain.connection_count() as f64;
+                + brain_cost_per_connection * org.brain.connection_count() as f64
+                + activity_weight_cost * action.brain_activity;
             let size_metabolism = base_metabolism * body_size.powf(0.75);
             let crowding_cost = density_cost_per_neighbor * action.neighbor_count as f64;
             let temp_cost = if temp_enabled {
@@ -1225,6 +1249,7 @@ impl Simulation {
             mean_connections,
             mean_crowding,
             speciation_threshold: species_threshold,
+            mean_brain_activity,
             active_droughts: self.food_grid.droughts.len(),
             species: species_infos,
         };

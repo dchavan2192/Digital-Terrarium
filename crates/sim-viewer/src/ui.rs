@@ -298,8 +298,11 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
             ui.label("Brains");
             ui.horizontal(|ui| {
                 ui.label(format!(
-                    "Conn:{:.0} Entropy:{:.2} Div:{:.2}",
-                    stats.mean_connections, stats.mean_brain_entropy, stats.behavioral_diversity
+                    "Conn:{:.0} Act:{:.1} Ent:{:.2} Div:{:.2}",
+                    stats.mean_connections,
+                    stats.mean_brain_activity,
+                    stats.mean_brain_entropy,
+                    stats.behavioral_diversity
                 ));
             });
 

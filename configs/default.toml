@@ -81,6 +81,8 @@ movement_cost = 0.15    # Multiplied by speed^2 per tick (raised from 0.08)
 brain_cost = 0.001      # Cost per neuron (soma) per tick — cell bodies are cheap
 connection_cost = 0.001 # Cost per connection (synapse) per tick — Attwell & Laughlin (2001)
                         # At 200 connections = 0.2/tick brain cost (comparable to base_metabolism)
+activity_weight_cost = 0.0005  # Cost per unit of |weight × activation| per tick
+                               # Selects for sparse coding — Attwell & Laughlin (2001), Lennie (2003)
 
 [reproduction]
 threshold = 60.0        # Minimum energy to reproduce

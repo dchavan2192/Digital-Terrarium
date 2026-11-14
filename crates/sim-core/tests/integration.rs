@@ -2,6 +2,7 @@
 //!
 //! These verify that the simulation initializes, runs, and obeys its invariants.
 
+use sim_core::brain::Brain;
 use sim_core::config::{BiomeZone, DroughtConfig, FoodConfig, SeasonsConfig, WorldConfig};
 use sim_core::world::FoodGrid;
 use sim_core::{Config, Simulation};
@@ -1431,4 +1432,50 @@ share_amount = 5.0
     {
         assert_eq!(a.energy, b.energy, "energy should be identical");
     }
+}
+
+/// Brains with high-magnitude weights produce higher activity cost than near-zero weights.
+/// Citation: Attwell & Laughlin (2001) — active synaptic transmission dominates neural energy.
+#[test]
+fn brain_activity_cost_scales_with_usage() {
+    let num_inputs = 3;
+    let num_outputs = 2;
+
+    // High-weight brain: all connections have weight 2.0
+    let high_conns: Vec<(u16, u16, f64, bool)> = vec![
+        (0, 4, 2.0, true), // bias -> out0
+        (1, 4, 2.0, true), // in0 -> out0
+        (2, 4, 2.0, true), // in1 -> out0
+        (3, 4, 2.0, true), // in2 -> out0
+        (0, 5, 2.0, true), // bias -> out1
+        (1, 5, 2.0, true), // in0 -> out1
+    ];
+    let high_brain = Brain::from_neat(num_inputs, num_outputs, &[], &high_conns);
+
+    // Low-weight brain: same topology, near-zero weights
+    let low_conns: Vec<(u16, u16, f64, bool)> = vec![
+        (0, 4, 0.001, true),
+        (1, 4, 0.001, true),
+        (2, 4, 0.001, true),
+        (3, 4, 0.001, true),
+        (0, 5, 0.001, true),
+        (1, 5, 0.001, true),
+    ];
+    let low_brain = Brain::from_neat(num_inputs, num_outputs, &[], &low_conns);
+
+    let inputs = [0.5, 0.8, -0.3];
+    let (_, high_activity) = high_brain.forward(&inputs);
+    let (_, low_activity) = low_brain.forward(&inputs);
+
+    assert!(
+        high_activity > low_activity * 100.0,
+        "high-weight brain activity ({}) should be >100x low-weight ({})",
+        high_activity,
+        low_activity
+    );
+    assert!(high_activity > 0.0, "activity should be positive");
+    assert!(
+        low_activity > 0.0,
+        "even low-weight brain has some activity"
+    );
 }

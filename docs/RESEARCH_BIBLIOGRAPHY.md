@@ -149,14 +149,72 @@ Each entry includes how it influenced the implementation.
   - Framework: each transition creates new replicating units at a higher level.
   - Most tractable for Terrarium: solitary → colonial (builds on existing kin cooperation).
 
-## Open Problems (OEE = Open-Ended Evolution)
+## Open-Ended Evolution (OEE) & Activity Metrics
+
+- **Bedau, M.A. & Packard, N.H. (1991)** "Measurement of Evolutionary Activity, Teleology, and Life" *ALife II* pp.431-461
+  - Defined evolutionary activity statistics: cumulative activity D(t) as OEE indicator.
+  - If D(t) grows unboundedly, evolution is open-ended. Plateau = stagnation.
+
+- **Bedau, M.A. et al. (2000)** "Open Problems in Artificial Life" *Artificial Life* 6(4):363-376
+  - Defined the OEE research agenda: the 14 open problems. #1: Generate open-ended evolution.
 
 - **Taylor, T. et al. (2016)** "Open-Ended Evolution: Perspectives from the OEE Workshop"
   - No existing embodied ALife system has achieved sustained complexity growth.
-  - The Cambrian phase transition experiment would be a novel test.
+  - Requirements: unbounded novelty generation, persistent innovations, ongoing complexity increase.
 
 - **Dolson, E. et al. (2019)** "The MODES Toolbox" *Artificial Life* 25(1):50-73
-  - Multi-task environments produce indefinitely increasing complexity vs single-niche saturation.
+  - Four metrics: change, novelty, ecology, complexity. Multi-task environments produce indefinitely increasing complexity.
+  - First standardized framework for measuring OEE — our target instrumentation.
+
+- **Channon, A. & Bedau, M.A. (2024)** Editorial, *Artificial Life* special issue on OEE
+  - Calls for system-specific OEE analysis beyond generic EAS. Rich eco-evo systems are ideal candidates.
+
+## Niche Construction
+
+- **Odling-Smee, F.J., Laland, K.N. & Feldman, M.W. (2003)** *Niche Construction: The Neglected Process in Evolution* Princeton UP
+  - Organisms don't just adapt TO environments — they modify them, creating feedback loops.
+  - Ecological inheritance: environmental modifications persist across generations.
+
+- **Laland, K.N., Odling-Smee, F.J. & Feldman, M.W. (1999)** "Evolutionary consequences of niche construction" *PNAS* 96:10242-10247
+  - Niche construction can drive fixation of otherwise-neutral or deleterious alleles.
+  - Creates positive feedback loops that accelerate or redirect evolution.
+
+## Epigenetic Inheritance
+
+- **Jablonka, E. & Lamb, M.J. (2005)** *Evolution in Four Dimensions* MIT Press
+  - Four inheritance systems: genetic, epigenetic, behavioral, symbolic.
+  - Epigenetic inheritance enables rapid phenotypic response to environment without genome change.
+
+- **Heard, E. & Martienssen, R.A. (2014)** "Transgenerational Epigenetic Inheritance: Myths and Mechanisms" *Cell* 157(1):95-109
+  - Methylation marks can persist 3-14+ generations in plants, 2-3 in mammals.
+  - Stress-responsive methylation: drought, starvation, temperature shock all trigger heritable marks.
+
+- **Sousa, A. & Costa, E. (2010)** "EpiAL: An Epigenetic Approach for an Artificial Life Model"
+  - Only prior ALife work on epigenetics — simple model, no neural brains or ecology.
+  - Terrarium's implementation would be the first in an embodied, ecologically rich system.
+
+- **Day, T. & Bonduriansky, R. (2011)** "A unified approach to evolutionary consequences of genetic and nongenetic inheritance" *Am Nat* 178(2):E18-E36
+  - Nongenetic inheritance can maintain maladaptive traits or accelerate adaptation depending on context.
+
+## Sexual Reproduction & Recombination
+
+- **Maynard Smith, J. (1978)** *The Evolution of Sex* Cambridge UP
+  - The twofold cost of sex: why produce males? Recombination must provide >2x advantage.
+
+- **Muller, H.J. (1932)** "Some Genetic Aspects of Sex" *Am Nat* 66:118-138
+  - Muller's ratchet: asexual populations irreversibly accumulate deleterious mutations.
+  - Sexual recombination purges harmful mutations by combining good alleles from both parents.
+
+- **Weismann, A. (1889)** "The significance of sexual reproduction in the theory of natural selection"
+  - Recombination generates variation faster than mutation alone — the original argument for sex.
+
+## Horizontal Gene Transfer
+
+- **Vogan, A.A. & Higgs, P.G. (2011)** "The advantages and disadvantages of horizontal gene transfer" *Biology Direct* 6:1
+  - HGT accelerates innovation but can spread selfish genetic elements.
+
+- **Goldenfeld, N. & Woese, C.R. (2007)** "Biology's next revolution" *Nature* 445:369
+  - Early life was communal — HGT was the dominant mode of evolution before vertical inheritance.
 
 ## Parameter Guidance Summary
 

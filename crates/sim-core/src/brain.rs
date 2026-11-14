@@ -135,13 +135,16 @@ impl Brain {
         }
     }
 
-    /// Run a forward pass. Returns the output actions.
+    /// Run a forward pass. Returns (output actions, activity_sum).
+    ///
+    /// activity_sum = Σ|weight × source_activation| over all connections.
+    /// This is the metabolic cost of thinking — Attwell & Laughlin (2001).
     ///
     /// Uses stack-allocated activation buffer — zero heap allocation.
     /// Connections are pre-sorted so this is a single linear pass through the
     /// connection list, matching the topological evaluation order.
     #[inline]
-    pub fn forward(&self, inputs: &[f64]) -> BrainOutput {
+    pub fn forward(&self, inputs: &[f64]) -> (BrainOutput, f64) {
         debug_assert_eq!(inputs.len(), self.inputs);
 
         let mut act = [0.0f64; MAX_NODES];
@@ -150,6 +153,8 @@ impl Brain {
             act[i + 1] = v;
         }
 
+        let mut activity_sum = 0.0f64;
+
         // Evaluate nodes in topological order.
         // Connections are pre-sorted to match eval_order — single linear pass.
         let mut ci = 0;
@@ -157,7 +162,9 @@ impl Brain {
             let mut sum = 0.0;
             while ci < self.connections.len() && self.connections[ci].1 == node {
                 let (from, _, w) = self.connections[ci];
-                sum += act[from as usize] * w;
+                let signal = act[from as usize] * w;
+                activity_sum += signal.abs();
+                sum += signal;
                 ci += 1;
             }
             act[node as usize] = fast_tanh(sum);
@@ -165,14 +172,17 @@ impl Brain {
 
         // Read output nodes: (inputs+1)..=(inputs+outputs)
         let o = self.inputs + 1;
-        BrainOutput {
-            turn: act[o],                    // [-1, 1]
-            speed: (act[o + 1] + 1.0) * 0.5, // tanh [-1,1] → [0, 1]
-            eat: act[o + 2],                 // > 0.0 means try to eat
-            attack: act[o + 3],              // > 0.0 means try to attack
-            signal: act[o + 4],              // [-1, 1] broadcast signal
-            share: act[o + 5],               // > 0.0 means share energy
-        }
+        (
+            BrainOutput {
+                turn: act[o],                    // [-1, 1]
+                speed: (act[o + 1] + 1.0) * 0.5, // tanh [-1,1] → [0, 1]
+                eat: act[o + 2],                 // > 0.0 means try to eat
+                attack: act[o + 3],              // > 0.0 means try to attack
+                signal: act[o + 4],              // [-1, 1] broadcast signal
+                share: act[o + 5],               // > 0.0 means share energy
+            },
+            activity_sum,
+        )
     }
 
     /// Total number of neurons (hidden + output) for energy cost calculation.
