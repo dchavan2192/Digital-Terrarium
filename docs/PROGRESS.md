@@ -61,6 +61,33 @@ Every number in `README.md`, `ALIFE_2027_OUTLINE.md`, `EXPERIMENT_FINDINGS.md` a
     - There is no CONTRIBUTING.md or CITATION.cff.
     - `sim.rs` is a single 1,643-line file and will not absorb water, parasites and plasticity cleanly.
 
+### Second pass: line-by-line read of the core (2026-11-15)
+
+**Covered:** the whole tick loop in `sim.rs` (sensing, actions, metabolism, combat, sharing, reproduction, death, regrowth), the brain forward pass, genome mutation and crossover, and food-grid construction. **Not yet read:** the spatial index, the pheromone, elevation and construction grids, the stats and species code, `sim-wasm`, the viewer and the runner.
+
+**When each known bug entered** (first commit was 2026-11-07):
+- Sharing multiplier: commit `9795f27`, 2026-11-09. Every run since then had free energy.
+- Fruit never read: 2026-11-13, the day fruit was added.
+- Methylation saturation: 2026-11-14, the day epigenetics was added.
+- No code needs reverting; the fixes are forward. What resets is every result and every tuned parameter from 2026-11-09 on.
+
+**New bugs (code does not do what the config and docs say):**
+- [ ] B1. The "barren" biome does nothing to algae. `best_multiplier` starts at 1.0 and takes the maximum, so a multiplier of 0.3 never applies (`world.rs`, FoodGrid::new). Fruit still grows there at 0.6× the base rate, so the barren zone is richer than open ground. Known since Session 7 and never fixed.
+- [ ] B2. Fruit does not regrow in a cell whose algae is full: the `continue` for full algae comes before the fruit block (`world.rs`, regrow_with_construction).
+- [ ] B3. A lineage can add at most 29 neurons, ever. `next_node_id` only goes up and node ids are never reused, so add-node stops for good at `MAX_NODES` = 64 (`genome.rs:345`). At about 580 generations per 100k ticks, long runs will hit this wall, and structural novelty then falls by construction. This matters for any open-ended evolution claim.
+- [ ] B4. Attacking a victim whose energy is already negative gives negative damage: the attacker loses energy and its predation stats go down (`sim.rs:888`). Clamp at zero.
+- [ ] B5. Nothing validates `child_energy <= parent_cost`, so a config could create energy at birth. The defaults (30 and 30) are fine.
+
+**Design problems that distort results (decisions, not coding errors):**
+- D1. An attack costs 5 energy on every tick the attack output is positive, whether or not anything is in range. In the fixed-code runs attacks are 0.0 per tick: predation is extinct. Earlier "predation emerged" findings were under free energy.
+- D2. Construction costs up to 0.5 energy per tick (more than base metabolism, 0.3) whenever the output is outside ±0.01. That selects against the feature the niche-construction experiment is meant to study.
+- D3. Mutation is biased toward smaller brains: prune 4% against add 2%. Connection counts drift down with no selection at all, which confounds every brain-size result.
+- D4. Brain upkeep is about 0.25 energy per tick (215 connections) against base metabolism of 0.3, so thinking is over 40% of the resting budget.
+- D5. Eating is free, and a creature cannot sense food in its own cell (vision rays start one cell out). "Always eat" is optimal, so the eat output carries no decision.
+- D6. Hard-coded constants remain: diet efficiency 0.7, night vision ×0.5, the 30° kin threshold, offspring offset.
+
+**Why the world holds about 70 creatures.** It is arithmetic. Energy in: 10,000 cells × 0.0005 regrowth × about 1.3 (biomes) × 15 energy per food ≈ 100 energy per tick. Energy out: about 1.0–1.2 per creature per tick (0.3 metabolism, 0.25 brain, plus movement, temperature, crowding and construction). That gives 80–100 creatures; the runs show 65–88, with mean energy 28.7, below what a newborn starts with. A world of about 1,000 creatures needs regrowth near 0.006, or cheaper brains. So the 0.1 sweep should cover **0.002–0.008**, not 0.001–0.005.
+
 ### The consciousness goal
 
 **What cannot be done.** No simulation can prove that digital consciousness can be created. There is no accepted theory of consciousness and no agreed way to measure it, so no behaviour or network structure can settle the question. A project that claims otherwise will not be taken seriously, and the claim would be false.
@@ -90,7 +117,7 @@ UAL is the best first target. It is defined behaviourally, it was proposed as an
 Each stage ends in a gate. Do not start a stage until the previous gate is met.
 
 **Stage 0: a trustworthy instrument** (about 1–2 weeks)
-- [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.001–0.005 at `hard_cap = 2000`. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
+- [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.002–0.008 at `hard_cap = 2000`. Fix B1–B5 first, and decide D1–D3, because each changes the energy budget. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
 - [ ] 0.2 Energy ledger. Account for every source and sink each tick (food, fruit, metabolism, movement, brain, crowding, temperature, combat loss, sharing loss, reproduction, deaths, clamping at the energy cap). In debug builds, assert that the change in total energy equals the ledger. Expose the ledger in `TickStats`.
 - [ ] 0.3 Mechanism-effect tests. For every `enabled` flag and major parameter, an ON run and an OFF run must diverge within a set number of ticks. This catches the fruit class of bug.
 - [ ] 0.4 Persistence. Serde for `Genome`, `Organism` and simulation state; `--checkpoint-every` and `--resume` in sim-runner; periodic genome export. Test: 2,000 ticks straight must equal 1,000 + save + load + 1,000, bit for bit.
