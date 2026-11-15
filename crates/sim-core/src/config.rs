@@ -372,16 +372,23 @@ pub struct SharingConfig {
     pub share_range: f64,
     /// Amount of energy the donor pays per share action.
     pub share_amount: f64,
-    /// Multiplier applied to received energy: recipient gets share_amount * benefit_multiplier.
-    /// Models synergistic group benefits (e.g., shared warmth, group defense).
-    /// Must be >= 1.0 for Hamilton's rB > C to be satisfiable.
+    /// Fraction of the donated energy the recipient actually receives:
+    /// recipient gets `share_amount * transfer_efficiency`. Must be in (0, 1] so
+    /// sharing can never create energy (food is the only energy source).
+    ///
+    /// Hamilton's rB > C does NOT need energy to be created: B and C are fitness
+    /// effects, and a unit of energy is worth more to a starving recipient (near
+    /// death or below the reproduction threshold) than to a well-fed donor. The old
+    /// `benefit_multiplier = 1.5` let two neighbours net +2.5 energy/tick each by
+    /// sharing back and forth: a free-energy exploit, not kin selection.
+    /// The legacy key `benefit_multiplier` is still accepted but must also be <= 1.
     /// Citation: Hamilton (1964) "The Genetical Evolution of Social Behaviour"
-    #[serde(default = "default_benefit_multiplier")]
-    pub benefit_multiplier: f64,
+    #[serde(default = "default_transfer_efficiency", alias = "benefit_multiplier")]
+    pub transfer_efficiency: f64,
 }
 
-fn default_benefit_multiplier() -> f64 {
-    1.5
+fn default_transfer_efficiency() -> f64 {
+    0.9
 }
 
 /// Population density pressure — crowding increases metabolism.
@@ -812,6 +819,20 @@ impl Config {
 
     /// Sanity-check values that would cause panics or nonsense if wrong.
     fn validate(&self) -> Result<(), ConfigError> {
+        if !(self.sharing.transfer_efficiency > 0.0 && self.sharing.transfer_efficiency <= 1.0) {
+            return Err(ConfigError::Invalid(format!(
+                "sharing.transfer_efficiency (or legacy benefit_multiplier) must be in (0, 1] \
+                 so sharing conserves energy; got {}",
+                self.sharing.transfer_efficiency
+            )));
+        }
+        if !(0.0..=1.0).contains(&self.combat.energy_transfer_ratio) {
+            return Err(ConfigError::Invalid(format!(
+                "combat.energy_transfer_ratio must be in [0, 1] (a predator cannot gain more \
+                 energy than the prey loses); got {}",
+                self.combat.energy_transfer_ratio
+            )));
+        }
         if self.world.width <= 0.0 || self.world.height <= 0.0 {
             return Err(ConfigError::Invalid(
                 "world dimensions must be positive".into(),

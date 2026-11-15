@@ -2003,3 +2003,54 @@ fn cap_blocked_births_are_counted() {
     }
     assert!(sim.stats.total_cap_blocked_births >= total_after_one);
 }
+
+/// Energy conservation: with no food in the world, total living energy must never
+/// increase. Food is the only energy source (design principle 4). Regression for the
+/// sharing exploit where recipients got 1.5x the donor's cost.
+#[test]
+fn energy_never_increases_without_food() {
+    let mut config = load_config();
+    config.food.energy_per_food = 0.0;
+    config.food.fruit.enabled = false;
+    config.sharing.share_amount = 5.0;
+    config.sharing.transfer_efficiency = 1.0; // the most generous legal setting
+    let mut sim = Simulation::new(config);
+    let total = |s: &Simulation| -> f64 {
+        s.organisms
+            .iter()
+            .filter(|o| o.alive)
+            .map(|o| o.energy)
+            .sum()
+    };
+    let mut prev = total(&sim);
+    let mut shares_seen = 0usize;
+    for t in 0..400 {
+        sim.step();
+        shares_seen += sim.stats.shares;
+        let now = total(&sim);
+        assert!(
+            now <= prev + 1e-6,
+            "tick {t}: total energy rose from {prev:.4} to {now:.4} with no food"
+        );
+        prev = now;
+        if sim.is_extinct() {
+            break;
+        }
+    }
+    assert!(
+        shares_seen > 0,
+        "test should exercise sharing at least once"
+    );
+}
+
+/// Sharing that would create energy is rejected at config load.
+#[test]
+fn energy_creating_share_efficiency_is_rejected() {
+    let text = DEFAULT_CONFIG.replace("transfer_efficiency = 0.9", "transfer_efficiency = 1.5");
+    assert!(Config::parse(&text).is_err());
+    let legacy = DEFAULT_CONFIG.replace("transfer_efficiency = 0.9", "benefit_multiplier = 1.5");
+    assert!(
+        Config::parse(&legacy).is_err(),
+        "legacy key must obey the same bound"
+    );
+}

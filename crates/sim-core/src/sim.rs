@@ -909,7 +909,7 @@ impl Simulation {
         let mut kin_shares = 0usize;
         let share_range = self.config.sharing.share_range;
         let share_amount = self.config.sharing.share_amount;
-        let benefit_multiplier = self.config.sharing.benefit_multiplier;
+        let transfer_efficiency = self.config.sharing.transfer_efficiency;
         let share_range_sq = share_range * share_range;
 
         for i in 0..self.organisms.len() {
@@ -943,10 +943,11 @@ impl Simulation {
             });
 
             if let Some(target) = best_target {
-                // Donor pays share_amount, recipient gets share_amount * benefit_multiplier.
-                // When multiplier > 1, B > C so Hamilton's rB > C can be satisfied.
+                // Donor pays share_amount; recipient gets share_amount * transfer_efficiency
+                // (<= 1, validated), so sharing never creates energy. Any benefit to kin
+                // must come from energy being worth more to the recipient (Hamilton 1964).
                 self.organisms[i].energy -= share_amount;
-                let received = share_amount * benefit_multiplier;
+                let received = share_amount * transfer_efficiency;
                 self.organisms[target].energy =
                     (self.organisms[target].energy + received).min(max_energy);
                 shares += 1;

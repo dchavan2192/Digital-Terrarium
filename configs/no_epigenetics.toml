@@ -108,7 +108,7 @@ energy_transfer_ratio = 0.75  # Attacker absorbs 75% of damage as energy (raised
 # Energy sharing: Hamilton (1964) kin selection, Trivers (1971) reciprocal altruism
 share_range = 10.0            # Must be close to share (slightly > attack_range)
 share_amount = 5.0            # Energy the donor pays per share action
-benefit_multiplier = 1.5      # Recipient gets share_amount * 1.5 (Hamilton: B > C enables rB > C)
+transfer_efficiency = 0.9      # Recipient gets 90% of what the donor pays; must be <= 1 (energy conservation)
 
 [aging]
 # Gompertz-Makeham mortality: h(age) = λ + α·exp(β·age)

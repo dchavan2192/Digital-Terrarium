@@ -83,7 +83,7 @@ energy_transfer_ratio = 0.75
 [sharing]
 share_range = 10.0
 share_amount = 5.0
-benefit_multiplier = 1.5
+transfer_efficiency = 0.9      # Recipient gets 90% of what the donor pays; must be <= 1 (energy conservation)
 
 [aging]
 extrinsic_mortality = 0.0001
