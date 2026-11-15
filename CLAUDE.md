@@ -108,7 +108,7 @@ cargo test --workspace
 2. `cargo clippy --workspace -- -D warnings` — zero warnings
 3. `cargo test --workspace` — all tests pass
 4. Write a clear commit message describing *why*, not just *what*
-5. Add `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` to the commit message
+5. Add a `Co-Authored-By:` line naming the Claude model that did the work (currently `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`) to the commit message
 6. Do NOT push unless the user explicitly asks
 
 ## Simulation Tick Pipeline

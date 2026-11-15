@@ -2,11 +2,153 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-14
+**Last updated**: 2026-11-15
 
 ---
 
-## Current State
+## Audit and Roadmap (Fable 5.2, 2026-11-15): read this first
+
+This section supersedes "Current State" below, which describes the Session 2 codebase and is kept only as history. Phases 9–11 further down remain as detailed item lists; the stages here set their order.
+
+### Where the project stands
+
+The engineering is in good shape. The science has no standing results yet.
+
+**What is solid**
+- A deterministic, config-driven core (`sim-core`, about 4,600 lines) with no rendering code, 52 tests, and CI plus the Pages deploy green at `f009ab0`.
+- A headless runner with sweeps, a Pi workflow, and an explainable 3D web demo driven by the same engine through `sim-wasm`.
+- A literature base: `docs/research/PRIOR_ART.md`, `OEE_SHADOW_DESIGN.md`, and the bibliography.
+
+**What is not**
+
+On 2026-11-15 three silent bugs were found. Each one invalidates earlier results.
+
+| Bug | Effect | How it was found |
+|---|---|---|
+| Sharing paid the recipient 1.5× the donor's cost | Free energy; populations lived on it; the "87% cooperation" result was an exploit | The owner noticed creatures camping in the demo |
+| `[food.fruit]` was never read | Fruit was off in every run | The front-end engineer noticed a config flag reading false |
+| Newborns counted as stressed | Methylation saturated by tick 2,000 | Code audit |
+
+Every number in `README.md`, `ALIFE_2027_OUTLINE.md`, `EXPERIMENT_FINDINGS.md` and the session logs below predates these fixes. Treat the count of established results as zero.
+
+**First run with honest energetics** (Pi, commit `f009ab0`, `hard_cap = 2000`, 100k ticks, 3 seeds per rate, 12 runs):
+
+| `food.regrowth_rate` | Outcome |
+|---|---|
+| 0.0002 | Extinct in 3 of 3 (between ticks 8.8k and 27.8k) |
+| 0.0003 | Extinct in 2 of 3; the survivor held about 55 creatures and dipped to 1 |
+| 0.0004 | Survived in 3 of 3, holding about 63–77 creatures (lows of 16, 29 and 1) |
+| 0.0005 (current default) | Survived in 3 of 3, holding about 65–88 creatures (lows of 17, 7 and 24) |
+
+- The cap never blocked a birth in any run.
+- Sharing fell from about 350 per tick to well under 1 per tick.
+- **Conclusion:** the old ecosystem of 500–1,500 creatures was sustained by the sharing bug. With real energetics the default world supports about 70 creatures and sits close to extinction. Every parameter was tuned against the bug, so the ecology must be retuned before any experiment. The live demo now runs this sparse world too.
+
+### Findings, in priority order
+
+1. **Bugs are being found by luck, not by tests.** No test asserted that energy comes only from food, or that a config flag has any effect. Stage 0 adds an energy ledger and mechanism-effect tests.
+2. **No persistence.** `Genome` and `Organism` are not serialisable, and there is no checkpoint, resume or genome export. A week-long Pi run dies with a power cut. Evolved brains cannot be tested, compared across eras, or seeded from a connectome. Every later stage depends on this.
+3. **The brain cannot support the stated goal.** It is feed-forward only, holds at most 64 nodes (38 hidden after 19 inputs and 7 outputs), keeps no state between ticks, and does not learn within a life. Nothing that any theory of consciousness treats as relevant can arise in it.
+4. **The world does not pay for cognition.** Evolution builds only what the environment rewards. Today a reflex ("turn toward food, eat") is close to optimal, so brains have no reason to grow. Adding brain capacity without changing the ecology will produce nothing.
+5. **Crossover only mixes weights** (audit item G). The sex arm of any experiment is meaningless until a child can inherit structure from both parents.
+6. **Cross-platform determinism is untested.** `sim-core` makes 24 calls to platform maths functions (`powf`, `exp`, `sin` and others). "Same seed = same run" may hold only on one machine; Mac, Pi and browser runs may diverge.
+7. **Documentation asserts things that are stale or false.** README: population about 1,500, 30 tests, about 4,400 ticks/s. Outline abstract: "satisfying Bedau's criterion". `PRIOR_ART.md` lists the novelty claims to withdraw.
+8. **Statistical power.** With 3–5 seeds only very large effects are detectable. Plan for 10–20 seeds, with metrics chosen before the run.
+9. **The Pi is at its thermal limit.** It reached 85.6 °C and hard-throttled (`throttled=0xe0006`) with four concurrent runs and the fan at maximum.
+10. **Repo hygiene for open source.**
+    - `.claude/settings.local.json` is tracked on `main`.
+    - The owner's main checkout has diverged from `origin`; current work lives in `.worktrees/merge` on branch `merge-remote`.
+    - There is no CONTRIBUTING.md or CITATION.cff.
+    - `sim.rs` is a single 1,643-line file and will not absorb water, parasites and plasticity cleanly.
+
+### The consciousness goal
+
+**What cannot be done.** No simulation can prove that digital consciousness can be created. There is no accepted theory of consciousness and no agreed way to measure it, so no behaviour or network structure can settle the question. A project that claims otherwise will not be taken seriously, and the claim would be false.
+
+**What can be done.** Show which consciousness-relevant capacities evolve under ecological selection *without being designed in*, and which environmental pressures produce them. Most machine-consciousness work builds an architecture by hand. The evolutionary studies I know of (Edlund et al. 2011; Joshi, Tononi & Koch 2013; Albantakis et al. 2014) evolved tiny agents on single tasks, not an ecosystem. Whether this niche is really open needs its own prior-art pass (item 4.0).
+
+**Restated goal:** an open-source evolutionary testbed for the origins of consciousness-relevant capacities, with theory-derived tests anyone can run. A positive result is evidence about what it takes for those capacities to evolve. It is a step, and should be described as one.
+
+**Which theories give testable targets** (citations are from memory; verify before using them in a paper):
+
+| Framework | What it says matters | What Terrarium could measure |
+|---|---|---|
+| Unlimited Associative Learning (UAL): Ginsburg & Jablonka (2019); Birch, Ginsburg & Jablonka (2020) | Open-ended learning about novel, compound stimuli and actions, proposed as the evolutionary marker of minimal consciousness | A behavioural battery: trace conditioning, second-order conditioning, novel compound discrimination, reversal learning |
+| Recurrent processing: Lamme | Feedback loops | The fraction of brains with recurrent edges, and whether lesioning them costs fitness |
+| Global workspace: Baars; Dehaene, Lau & Kouider (2017) | A limited-capacity hub that broadcasts to many processes | Whether evolved networks form a bottleneck hub, and how broad the deficit is when it is lesioned |
+| Higher-order theories / metacognition | Monitoring one's own states | An opt-out task: does a creature decline a risky choice when its information is poor? |
+| Attention schema: Graziano; Wilterson & Graziano (2021) | A model of one's own attention | Later; needs an attention mechanism first |
+| Integrated information: Tononi | Causal integration (zero for feed-forward networks) | Integration proxies tracked over evolutionary time |
+| Indicator-properties report: Butlin, Long et al. (2023) | A checklist drawn from the theories above, plus agency and embodiment | A per-lineage scorecard |
+
+UAL is the best first target. It is defined behaviourally, it was proposed as an *evolutionary* transition, and "UAL evolved in an open-ended ecosystem" can be defended without taking a side on what consciousness is.
+
+**Ethics.** If indicators accumulate, the project needs a written precautionary policy before scaling up (Birch 2017, 2024). It is cheap to write now and awkward to retrofit.
+
+### Plan
+
+Each stage ends in a gate. Do not start a stage until the previous gate is met.
+
+**Stage 0: a trustworthy instrument** (about 1–2 weeks)
+- [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.001–0.005 at `hard_cap = 2000`. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
+- [ ] 0.2 Energy ledger. Account for every source and sink each tick (food, fruit, metabolism, movement, brain, crowding, temperature, combat loss, sharing loss, reproduction, deaths, clamping at the energy cap). In debug builds, assert that the change in total energy equals the ledger. Expose the ledger in `TickStats`.
+- [ ] 0.3 Mechanism-effect tests. For every `enabled` flag and major parameter, an ON run and an OFF run must diverge within a set number of ticks. This catches the fruit class of bug.
+- [ ] 0.4 Persistence. Serde for `Genome`, `Organism` and simulation state; `--checkpoint-every` and `--resume` in sim-runner; periodic genome export. Test: 2,000 ticks straight must equal 1,000 + save + load + 1,000, bit for bit.
+- [ ] 0.5 Cross-platform determinism. Hash the state after 5,000 ticks on Linux in CI, in WASM under node, and on the Pi. If the hashes differ, move the affected maths to a portable implementation (the `libm` crate).
+- [ ] 0.6 Truth pass on the docs. Fix README metrics and the outline abstract, and withdraw the claims `PRIOR_ART.md` lists. Start `docs/RESULTS.md`, where a result is listed only with its commit, config, seeds and analysis script. Nothing enters README unless it is in that file.
+- [ ] 0.7 Repo. Decide whether to untrack `.claude/settings.local.json` (owner's call), resync the main checkout, add CONTRIBUTING.md and CITATION.cff.
+- [ ] 0.8 Pi. Run 3 jobs at once or improve cooling. No multi-day run before 0.4.
+- **Gate:** tests green including 0.2–0.5, and a 10-seed baseline that reproduces on two machines.
+
+**Stage 1: first results that stand** (about 2–3 weeks of Pi time)
+- [ ] 1.1 Crossover with global innovation numbers, validated against neat-python or TensorNEAT.
+- [ ] 1.2 Neutral shadow model, following Polyworld's lockstep mode (Yaeger, Griffith & Sporns 2008) and `OEE_SHADOW_DESIGN.md`.
+- [ ] 1.3 `docs/PREREG.md`: hypotheses, metrics, seeds and analysis fixed before the runs.
+- [ ] 1.4 Factorial experiment: sex × niche construction × epigenetics, at least 10 seeds per cell, scored against the shadow, with a shuffled-methylation control.
+- [ ] 1.5 Cooperation re-test under energy-conserving sharing. A null result is a result.
+- [ ] 1.6 Model description in ODD format, using MODES metric names.
+- **Gate:** at least one effect that survives the shadow control and replicates. That is the ALIFE 2027 paper (check the submission date).
+
+**Stage 2: a brain that could support cognition** (about 3–4 weeks; can overlap Stage 1's Pi time)
+- [ ] 2.1 Recurrent connections (Phase 9b).
+- [ ] 2.2 Raise `MAX_NODES` from 64 to 256, so capacity is limited by energy cost and not by the buffer.
+- [ ] 2.3 Evolved neuromodulated plasticity (Phase 9c; Soltoggio et al. 2008).
+- [ ] 2.4 Cognitive test battery in sim-runner, run on exported genomes in fixed arenas: detour, delayed response, trace conditioning, reversal learning, second-order conditioning, novel compound discrimination. Report it as a UAL checklist.
+- **Gate:** the battery runs in CI on a reference genome; feed-forward creatures fail the memory tasks; evolved recurrent creatures pass at least one.
+
+**Stage 3: a world that pays for cognition** (about 4–6 weeks)
+- [ ] 3.0 Split `sim.rs` into one module per tick phase before adding mechanics.
+- [ ] 3.1 Water in low ground (Phase 10). Commuting between water and food rewards spatial memory.
+- [ ] 3.2 Cue-predicted resources whose meaning changes within a lifetime, for example a food type that turns toxic for a season. Evolution cannot hard-wire the answer, so learning is rewarded (Hinton & Nowlan 1987).
+- [ ] 3.3 Parasites (Phase 10).
+- [ ] 3.4 Individual recognition and repeated encounters, so reciprocity becomes possible (Trivers 1971).
+- [ ] 3.5 Predator–prey tournaments across eras (Cliff & Miller 1995).
+- **Gate:** learning or recurrent genotypes outcompete reflex genotypes in the new ecology and not in the old one. That shows cognition is being selected for, and is publishable by itself.
+
+**Stage 4: the indicator programme** (ongoing once Stages 2 and 3 are in)
+- [ ] 4.0 Prior-art pass on evolved-agent consciousness research, in the style of `PRIOR_ART.md`, before claiming the niche.
+- [ ] 4.1 Per-lineage scorecard over evolutionary time: recurrence, integration proxies, hub structure with lesion tests, the opt-out metacognition task, the UAL battery.
+- [ ] 4.2 Pre-registered experiments that discriminate between theories. Examples: does UAL arrive together with a jump in integration? Does a workspace-like hub appear only under multi-task pressure?
+- [ ] 4.3 `docs/ETHICS.md`: the precautionary policy and what would trigger a review.
+- [ ] 4.4 Scale. Once brains pass about 1,000 neurons the Pi is the wrong machine; batch the brain forward pass for a GPU and compare against JaxLife.
+- [ ] 4.5 Release the battery and scorecard as an open benchmark. Others are more likely to adopt that than the simulator.
+
+### What not to do
+- Do not claim consciousness, sentience or "fruit-fly level" anywhere.
+- Do not add water, parasites or other mechanics before Stage 0 and the Stage 1 experiments. Each one changes every baseline.
+- Do not start multi-day Pi runs before checkpointing exists.
+- Do not let unattended sessions write results into README. Results go through `docs/RESULTS.md`.
+
+### Next five actions
+1. Launch the 0.1 regrowth sweep. This needs the owner's go-ahead, because the Pi is hard-throttling.
+2. Build the 0.2 energy ledger and the 0.3 mechanism-effect tests.
+3. Build 0.4 persistence.
+4. Do the 0.6 truth pass on README and the outline.
+5. Build 1.1 innovation-number crossover.
+
+---
+
+## Current State (historical: Session 2 codebase, superseded by the audit above)
 
 ### What's Built and Working
 - [x] **sim-core**: World, food grid, spatial grid (counting-sort), brain (13->8->3 FF net), genome (evolvable weights + mutation rate + color hue), organism, deterministic tick loop
@@ -229,7 +371,8 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 **9a. Food-limited carrying capacity** (do FIRST, before the Phase 7 ablations)
 - [ ] Pi sweep of `food.regrowth_rate` (e.g. 0.0002–0.0005) with `creature.hard_cap` 1500–2000; pick the value where mean population ≈ 60–70% of the cap and the cap almost never binds
 - [x] New stats: `cap_blocked_births` / `total_cap_blocked_births` (should stay ~0); `sweep --set KEY=NUMBER` for fixed overrides
-- [ ] Launched via `analysis/launch_pi_phase9a.sh` (hard_cap=2000; regrowth 0.0002–0.0005 × 3 seeds × 100k ticks)
+- [x] Ran `analysis/launch_pi_phase9a.sh` on the fixed code (hard_cap=2000; regrowth 0.0002–0.0005 × 3 seeds × 100k ticks). Result: the range was far too low. Populations of 55–88 at best, extinction at 0.0002–0.0003, zero cap-blocked births. See the audit table at the top. Results on the Pi in `output/phase9a/`; pre-fix partial runs in `output/phase9a_prebugfix/`.
+- [ ] Follow-up sweep over 0.001–0.005 (audit item 0.1)
 - [ ] Check runs don't overshoot into extinction (all 5 seeds survive); keep the cap only as a performance backstop
 - [ ] Then run the Phase 7 ON/OFF ablations at this food-limited setting
 - Citations: Verhulst (1838) logistic growth; Allee (1931) density dependence; Lotka (1925) / Volterra (1926)
