@@ -224,7 +224,7 @@ impl Simulation {
     /// Create a new simulation from config. Spawns the initial population.
     pub fn new(config: Config) -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(config.world.seed);
-        let food_grid = FoodGrid::new(&config.world, &config.food, &config.fruit);
+        let food_grid = FoodGrid::new(&config.world, &config.food, &config.food.fruit);
 
         // Pheromone grid uses the same cell size as the food grid for cache coherence.
         // Citation: Wilson (1975), Deneubourg et al. (1990)
@@ -255,7 +255,7 @@ impl Simulation {
                 &config.mutation,
                 &config.aging,
                 &config.temperature,
-                &config.fruit,
+                &config.food.fruit,
                 &mut rng,
             );
             let brain = genome.build_brain();
@@ -341,8 +341,8 @@ impl Simulation {
         let density_cost_per_neighbor = self.config.density_pressure.cost_per_neighbor;
         let temp_enabled = self.config.temperature.enabled;
         let temp_cost_factor = self.config.temperature.cost_factor;
-        let fruit_enabled = self.config.fruit.enabled;
-        let energy_per_fruit = self.config.fruit.energy_per_fruit;
+        let fruit_enabled = self.config.food.fruit.enabled;
+        let energy_per_fruit = self.config.food.fruit.energy_per_fruit;
         let epigenetics_enabled = self.config.epigenetics.enabled;
         // Stress = reserves far below what is needed to breed (see EpigeneticsConfig).
         let epigenetics_stress_energy = self.config.epigenetic_stress_energy();

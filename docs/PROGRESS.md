@@ -180,6 +180,9 @@ The on/off switches themselves were verified to disable each feature cleanly, an
 - [x] Pi launch script: analysis/launch_pi_phase7.sh (sims run on the Pi only — never locally)
 - [ ] README OEE section (uncommitted): its numbers and images are unverified (the images don't exist). Replace with real Pi results.
 
+- [x] **Fruit was silently disabled in every run**: the sim read a top-level `fruit` table, but the config defines `[food.fruit]`. Fixed, with a regression test (2026-11-15). Earlier results ran without fruit.
+- [ ] sim-core v2 data for the demo: per-organism last action + target, death causes, energy-flow history, hidden activations (see the ABI doc's v2 table)
+
 ### Phase 8: Explainable 3D Web Demo [IN PROGRESS — started 2026-11-15]
 **Problem**: The current demo (macroquad triangles + egui panel) looks like a game; visitors can't tell what's happening, and the stats are hard to read.
 **Goal**: A portfolio-grade, explainable visualization that makes the science legible to a non-expert in 10 seconds.
@@ -200,10 +203,10 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 - Guided "tour" / legend overlay explaining creatures, colours, energy, evolution.
 
 **Work items**:
-- [ ] Design spec — docs/research/DEMO_UX_DESIGN.md (UX research agent)
-- [ ] crates/sim-wasm: C-ABI exports — init(config TOML), step(n), creature buffer, grids, stats JSON, events, inspect(id)
-- [ ] web/ front end (Three.js, pinned CDN version): scene, creatures, layers, dashboard, inspector, tour
-- [ ] Update deploy-pages.yml to build sim-wasm + ship the new front end
+- [x] Design spec — docs/research/DEMO_UX_DESIGN.md
+- [x] crates/sim-wasm: C-ABI exports (ABI: docs/research/SIM_WASM_ABI.md), with stable species tracking + derived events
+- [x] web/demo/ front end (Three.js 0.160.0): MVP done. v2 still open: charts tab, trails, share/construct cues, light theme
+- [x] Update deploy-pages.yml + ci.yml to build sim-wasm + ship the new front end
 - [ ] Portfolio card (/Users/dineshchavan/projects/portfolio-dhruv/ds.html): fix stale claims, link the new demo, add a screenshot
 - [ ] Visual QA in a browser (needs the user's OK — the demo runs the sim locally)
 - [ ] Deploy (push to main — needs the user's explicit OK)

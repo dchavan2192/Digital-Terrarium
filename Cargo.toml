@@ -4,6 +4,7 @@ members = [
     "crates/sim-core",
     "crates/sim-viewer",
     "crates/sim-runner",
+    "crates/sim-wasm",
 ]
 
 [workspace.package]

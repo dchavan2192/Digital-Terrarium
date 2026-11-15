@@ -10,3 +10,4 @@ analysis/.venv/
 # WASM build artifacts in web/ (built by CI, not committed)
 web/*.wasm
 web/mq_js_bundle.js
+web/demo/*.wasm

@@ -1961,3 +1961,24 @@ fn deterministic_with_all_phase7_features() {
     };
     assert_eq!(run(), run());
 }
+
+/// Regression: `[food.fruit]` in default.toml must actually enable fruit.
+/// Previously the sim read a separate top-level `fruit` table, so fruit was
+/// silently disabled in every run despite `enabled = true` in the config.
+#[test]
+fn food_fruit_section_enables_fruit() {
+    let config = load_config();
+    assert!(
+        config.food.fruit.enabled,
+        "[food.fruit] enabled=true must be honoured"
+    );
+    let mut sim = Simulation::new(config);
+    for _ in 0..50 {
+        sim.step();
+    }
+    let total_fruit: f64 = sim.food_grid.fruit_cells.iter().sum();
+    assert!(
+        total_fruit > 0.0,
+        "fruit grid should hold fruit when enabled"
+    );
+}

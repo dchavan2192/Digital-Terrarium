@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Terrarium · Evolving Ecosystem</title>
+  <meta name="description" content="An evolving ecosystem: creatures with neural-network brains compete for food, hunt, share and evolve, live in your browser. Same seed, same story.">
+  <meta name="theme-color" content="#141613">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23141613'/%3E%3Cellipse cx='12' cy='13' rx='6.5' ry='8.5' fill='%237FB59A'/%3E%3Ccircle cx='9.6' cy='8.6' r='1.4' fill='%23F4F1E8'/%3E%3Ccircle cx='14.4' cy='8.6' r='1.4' fill='%23F4F1E8'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="hdr">
+      <a class="wordmark" href="./" aria-label="Terrarium home">
+        <svg class="wordmark-pod" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13" rx="6.5" ry="8.5" fill="var(--accent-2)"/><circle cx="9.6" cy="8.6" r="1.3" fill="var(--bg)"/><circle cx="14.4" cy="8.6" r="1.3" fill="var(--bg)"/></svg>
+        <span>Terrarium</span>
+      </a>
+      <p class="hero">An evolving ecosystem: <span id="heroCap">500</span> creatures with neural-network brains compete for food, hunt, share and evolve, live in your browser.</p>
+      <div class="hdr-actions">
+        <span class="badge" id="mockBadge" hidden title="terrarium.wasm could not be loaded, so a JS stand-in with fake data is running. See the console.">Mock data</span>
+        <a class="link-sm" href="../classic.html">Classic viewer</a>
+        <a class="icon-btn" id="ghLink" href="https://github.com/dchavan2192/Digital-Terrarium" target="_blank" rel="noopener" aria-label="Source code on GitHub" data-icon="github"></a>
+        <button class="icon-btn" id="tourBtn" type="button" aria-label="Replay the guided tour (?)" data-icon="help"></button>
+        <button class="icon-btn phone-only" id="menuBtn" type="button" aria-label="Open the feed and species panel" aria-expanded="false" aria-controls="side" data-icon="menu"></button>
+      </div>
+    </header>
+
+    <section class="kpis" id="kpis" aria-label="Headline numbers">
+      <div class="legend-chip" title="Each colour is one species. A species keeps its colour for life.">
+        <span class="chip-label">Colour = species</span>
+        <span class="chip-swatches" id="chipSwatches"></span>
+      </div>
+    </section>
+
+    <main class="viewport" id="viewport" aria-label="Simulation view">
+      <div class="labels" id="labels" aria-hidden="true"></div>
+
+      <div class="vp-panel layers" id="layers" role="radiogroup" aria-label="Data layer">
+        <button class="vp-fab" id="layersFab" type="button" aria-label="Data layers" aria-expanded="false" data-icon="layers"></button>
+        <div class="vp-panel-body" id="layerList"></div>
+      </div>
+
+      <div class="vp-panel views" id="views" role="group" aria-label="Camera">
+        <button type="button" class="view-btn" data-view="orbit" aria-pressed="true" title="Orbit camera">
+          <span data-icon="orbit"></span><span class="view-label">Orbit</span></button>
+        <button type="button" class="view-btn" data-view="map" aria-pressed="false" title="Top-down map (M)">
+          <span data-icon="map"></span><span class="view-label">Map</span></button>
+        <button type="button" class="view-btn" data-view="follow" aria-pressed="false" title="Follow the selected creature (F)" disabled>
+          <span data-icon="locate"></span><span class="view-label">Follow</span></button>
+      </div>
+
+      <div class="legend-card" id="legend" aria-live="off"></div>
+
+      <div class="hover-tip" id="hoverTip" role="tooltip" hidden></div>
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+      <div class="debug" id="debug" hidden></div>
+      <div class="loading" id="loading">
+        <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13" rx="6.5" ry="8.5" fill="none" stroke="var(--accent-2)" stroke-width="1.2"/></svg>
+        <p id="loadingText">Growing the world…</p>
+      </div>
+    </main>
+
+    <button class="phone-latest phone-only" id="phoneLatestBtn" type="button" aria-controls="side" aria-expanded="false">
+      <span id="phoneLatest" class="phone-latest-text"></span>
+      <span class="phone-latest-chev" data-icon="chevronUp"></span>
+    </button>
+
+    <aside class="side" id="side" aria-label="Story and species">
+      <div class="sheet-handle" id="sheetHandle" aria-hidden="true"><i></i></div>
+      <div class="tabs" role="tablist" aria-label="Panels">
+        <button role="tab" id="tabFeed" aria-selected="true" aria-controls="feedPanel" type="button">What’s happening</button>
+        <button role="tab" id="tabSpecies" aria-selected="false" aria-controls="speciesPanel" type="button" tabindex="-1">Species</button>
+        <button class="icon-btn sheet-close" id="sheetClose" type="button" aria-label="Close panel" data-icon="x"></button>
+      </div>
+      <section class="panel" id="feedPanel" role="tabpanel" aria-labelledby="tabFeed">
+        <ol class="feed" id="feed" aria-live="polite" aria-relevant="additions"></ol>
+      </section>
+      <section class="panel" id="speciesPanel" role="tabpanel" aria-labelledby="tabSpecies" hidden>
+        <p class="panel-hint">Click a row to highlight that species in the world.</p>
+        <table class="species">
+          <thead><tr><th></th><th>Species</th><th>Alive</th><th title="Mean body size">Size</th><th title="Mean brain connections">Links</th><th title="Mean trophic level">Food chain</th><th title="Ticks since it appeared">Age</th></tr></thead>
+          <tbody id="speciesBody"></tbody>
+        </table>
+      </section>
+
+      <div class="inspector" id="inspector" role="dialog" aria-labelledby="inspTitle" hidden>
+        <div class="insp-head">
+          <h2 id="inspTitle">Creature</h2>
+          <button class="icon-btn" id="inspClose" type="button" aria-label="Close inspector (Esc)" data-icon="x"></button>
+        </div>
+        <p class="insp-meta" id="inspMeta"></p>
+        <p class="insp-doing" id="inspDoing" aria-live="polite"></p>
+        <section class="insp-sec">
+          <div class="insp-sec-head"><h3>Brain</h3>
+            <label class="toggle"><input type="checkbox" id="brainStrongest"> strongest 30 only</label></div>
+          <canvas id="brainCanvas" class="brain" aria-label="Neural network diagram: inputs on the left, hidden neurons in the middle, outputs on the right"></canvas>
+          <p class="caption" id="brainCaption"></p>
+          <p class="note" id="brainNote"></p>
+        </section>
+        <section class="insp-sec">
+          <h3 title="Energy is the only currency: food in; moving, thinking and breeding out.">Energy</h3>
+          <div class="meter" id="energyMeter"><i></i></div>
+          <p class="caption tnum" id="energyText"></p>
+          <div class="intake"><i id="intakeFood" class="in-food"></i><i id="intakeHunt" class="in-hunt"></i></div>
+          <p class="caption" id="intakeText"></p>
+          <p class="mini-head">Running costs per tick (estimated)</p>
+          <ul class="costs" id="costList"></ul>
+        </section>
+        <section class="insp-sec">
+          <h3>Traits</h3>
+          <dl class="traits" id="traits"></dl>
+        </section>
+        <section class="insp-sec">
+          <h3>Lineage</h3>
+          <p class="lineage mono" id="lineage"></p>
+          <p class="caption" id="children"></p>
+        </section>
+        <div class="insp-actions">
+          <button type="button" class="btn" id="inspFollow"><span data-icon="locate"></span> Follow</button>
+          <button type="button" class="btn" id="inspJump" hidden>Jump to parent</button>
+          <button type="button" class="btn btn-ghost" id="inspBack">Back to overview</button>
+        </div>
+      </div>
+    </aside>
+
+    <footer class="timebar" aria-label="Time controls">
+      <button class="icon-btn play" id="playBtn" type="button" aria-label="Pause (Space)" data-icon="pause"></button>
+      <div class="speeds" role="group" aria-label="Speed">
+        <button type="button" class="speed" data-speed="1" aria-pressed="true" title="1× = 15 ticks per second (key 1)">1×</button>
+        <button type="button" class="speed" data-speed="4" aria-pressed="false" title="4× = 60 ticks per second (key 2)">4×</button>
+        <button type="button" class="speed" data-speed="16" aria-pressed="false" title="16× = 240 ticks per second (key 3)">16×</button>
+      </div>
+      <div class="clock">
+        <span class="mono tnum hide-sm" id="tickText">Tick 0</span>
+        <span class="sep hide-sm">·</span>
+        <span class="tnum" id="dayText">Day 0</span>
+        <span class="dial" id="dial" title="At night creatures see half as far (Kronfeld-Schor & Dayan 2003)."><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><g id="dialRing"></g></svg><span id="dialIcon" data-icon="sun"></span></span>
+        <span class="season hide-sm" id="seasonText"></span>
+        <span class="sep hide-sm">·</span>
+        <span class="gen hide-sm tnum" id="genText" title="Generations since the random ancestors, deepest lineage">Gen 0</span>
+      </div>
+      <div class="seed">
+        <label for="seedInput" class="seed-label">Seed</label>
+        <input id="seedInput" class="mono tnum" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="seedHelp">
+        <span id="seedHelp" class="sr-only">Press Enter to restart with this seed. Same seed, same story.</span>
+        <button class="btn btn-sm" id="newSeedBtn" type="button" title="Restart with a new random seed"><span data-icon="reset"></span><span class="hide-sm"> New</span></button>
+        <button class="icon-btn" id="copyBtn" type="button" aria-label="Copy a link to this seed" title="Copy a link to this seed" data-icon="copy"></button>
+      </div>
+    </footer>
+  </div>
+
+  <div class="tooltip" id="kpiTip" role="tooltip" hidden></div>
+
+  <div class="tour" id="tour" hidden>
+    <div class="tour-spot" aria-hidden="true"></div>
+    <div class="tour-card" role="dialog" aria-modal="false" aria-labelledby="tourTitle">
+      <p class="tour-count mono"></p>
+      <h2 class="tour-title" id="tourTitle"></h2>
+      <p class="tour-body"></p>
+      <div class="tour-actions">
+        <button type="button" class="btn btn-ghost" data-tour="skip">Skip</button>
+        <span class="grow"></span>
+        <button type="button" class="btn btn-ghost" data-tour="back">Back</button>
+        <button type="button" class="btn btn-primary" data-tour="next">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <noscript><p class="noscript">This demo needs JavaScript and WebGL. The classic viewer is at <a href="../classic.html">classic.html</a>.</p></noscript>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

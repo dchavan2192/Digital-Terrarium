@@ -1,0 +1,29 @@
+[package]
+name = "sim-wasm"
+description = "Plain extern \"C\" WASM bindings for Terrarium's sim-core (no wasm-bindgen). Read-only views for the Three.js web demo."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+# cdylib -> target/wasm32-unknown-unknown/release/sim_wasm.wasm
+# rlib   -> lets native code / tests use the WasmSim wrapper directly.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Workspace entry already sets default-features = false -> no rayon (single-threaded WASM).
+sim-core = { workspace = true }
+serde = { workspace = true }
+serde_json = "1"
+# Merges configs/demo.toml (an overlay) onto the embedded default.toml.
+toml = { workspace = true }
+
+# rand 0.8 (std) pulls in getrandom 0.2, which refuses to compile for
+# wasm32-unknown-unknown unless a backend is chosen. The simulation never asks
+# for OS entropy (ChaCha8Rng is seeded from config.world.seed), so we pick the
+# "custom" backend and register a handler that always fails (see src/lib.rs).
+# This avoids the "js" feature, which would drag in wasm-bindgen imports.
+# Target-scoped, so native builds are unaffected.
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["custom"] }

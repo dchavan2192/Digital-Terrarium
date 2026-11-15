@@ -21,6 +21,7 @@ pub mod config;
 pub mod genome;
 pub mod organism;
 pub mod sim;
+pub mod view;
 pub mod world;
 
 pub use config::Config;

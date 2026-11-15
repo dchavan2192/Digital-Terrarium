@@ -1,0 +1,75 @@
+/* "Field Notebook, after dark" — palette and type tokens (DEMO_UX_DESIGN.md §8). */
+
+:root {
+  /* dark (default) */
+  --bg: #141613;
+  --bg-2: #1C1F1B;
+  --bg-3: #252923;
+  --line: #343A32;
+  --ink-1: #ECE8DD;
+  --ink-2: #B8B3A6;
+  --ink-3: #858174;
+  --accent: #C9A65B;   /* brass: focus rings, active toggles, sparkline dot */
+  --accent-2: #7FB59A; /* lichen: links, "on" states */
+  --alert: #E5484D;    /* attacks only */
+  --warn: #C98B3C;     /* droughts */
+  --honey: #F2C94C;    /* sharing */
+
+  /* species palette (§4.2), Okabe & Ito 2008 lifted for a dark UI */
+  --sp-0: #E69F00;
+  --sp-1: #56B4E9;
+  --sp-2: #7FD1AE;
+  --sp-3: #F0E442;
+  --sp-4: #4C8FD6;
+  --sp-5: #E07B39;
+  --sp-6: #CC79A7;
+  --sp-7: #D9D2C3;
+  --sp-other: #9A948A;
+
+  --berry: #C86B9A;
+  --scrim: rgba(8, 9, 8, 0.62);
+  --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+
+  /* type (§8.2) */
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --fs-12: 12px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-20: 20px;
+  --fs-28: 28px;
+  --fs-40: 40px;
+
+  /* motion (§8.4) */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --t-ui: 150ms;
+  --t-panel: 300ms;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --sheet-h: 40vh;
+  color-scheme: dark;
+}
+
+/* "paper" theme, for portfolio screenshots (toggle is v2; tokens ship now) */
+:root[data-theme="light"] {
+  --bg: #F4F1E8;
+  --bg-2: #EBE6D9;
+  --bg-3: #E0DACB;
+  --line: #CFC7B4;
+  --ink-1: #1E211C;
+  --ink-2: #4A4D44;
+  --ink-3: #6E6E62;
+  --accent: #8A6A22;
+  --accent-2: #3E7A5E;
+  --scrim: rgba(30, 33, 28, 0.45);
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-ui: 0ms;
+    --t-panel: 0ms;
+  }
+}

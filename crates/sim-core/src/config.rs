@@ -41,8 +41,6 @@ pub struct Config {
     #[serde(default)]
     pub temperature: TemperatureConfig,
     #[serde(default)]
-    pub fruit: FruitConfig,
-    #[serde(default)]
     pub pheromones: PheromoneConfig,
     #[serde(default)]
     pub daynight: DayNightConfig,

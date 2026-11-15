@@ -36,10 +36,18 @@ jobs:
       - name: Fetch macroquad JS runtime
         run: curl -sSL https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js -o web/mq_js_bundle.js
 
+      - name: Build sim-wasm for the 3D demo
+        run: |
+          cargo build -p sim-wasm --target wasm32-unknown-unknown --release
+          mkdir -p web/demo
+          cp target/wasm32-unknown-unknown/release/sim_wasm.wasm web/demo/terrarium.wasm
+          cp configs/demo.toml web/demo/demo.toml
+
       - name: Optimize WASM (if wasm-opt available)
         run: |
           if command -v wasm-opt &> /dev/null; then
             wasm-opt -Oz web/sim-viewer.wasm -o web/sim-viewer.wasm
+            wasm-opt -Oz --strip-debug web/demo/terrarium.wasm -o web/demo/terrarium.wasm
           fi
 
       - name: Upload Pages artifact
