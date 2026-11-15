@@ -1,5 +1,7 @@
 # Experiment Findings — November 2026
 
+> **Historical record — interpretations withdrawn (2026-11-15).** These runs predate corrected sharing energetics and other model fixes. The cooperation, kin-selection, population, and predation interpretations below are preserved as history, not established results. In particular, fitness benefits are not equal to raw transferred energy, so the historical claim that conservative sharing makes Hamilton’s condition impossible is unsupported. See [RESULTS.md](RESULTS.md) for current evidence status.
+
 Two rounds of experiments testing whether cooperation, predation, and brain
 complexity can emerge from pure natural selection.
 
