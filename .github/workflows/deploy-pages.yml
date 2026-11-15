@@ -27,6 +27,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      # Workspace tests link the native macroquad viewer's ALSA backend.
+      # Keep this prerequisite aligned with ci.yml, even for a WASM deploy.
+      - name: Install native test dependencies
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+
       # The live demo is linked from the portfolio, so a commit that fails its
       # tests must not replace the last good build.
       - name: Run tests
