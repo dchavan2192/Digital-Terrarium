@@ -24,10 +24,27 @@ struct Cli {
     command: Option<Commands>,
 
     /// Path to the TOML config file.
-    #[arg(short, long, default_value = "configs/default.toml")]
+    #[arg(
+        short,
+        long,
+        default_value = "configs/default.toml",
+        conflicts_with = "resume"
+    )]
     config: PathBuf,
 
-    /// Total ticks to simulate.
+    /// Resume an exact same-build simulation checkpoint (uses its embedded config).
+    #[arg(long)]
+    resume: Option<PathBuf>,
+
+    /// Save a complete checkpoint every N ticks, and at the end (single run only).
+    #[arg(long)]
+    checkpoint_every: Option<u64>,
+
+    /// Export living genomes every N ticks, and at the end (single run only).
+    #[arg(long)]
+    export_genomes_every: Option<u64>,
+
+    /// Absolute target tick (a resumed run executes only the remaining ticks).
     #[arg(short, long, default_value_t = 100_000)]
     ticks: u64,
 
@@ -81,6 +98,16 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
+    if cli.command.is_some()
+        && (cli.resume.is_some()
+            || cli.checkpoint_every.is_some()
+            || cli.export_genomes_every.is_some())
+    {
+        eprintln!(
+            "Error: resume/checkpoint/genome-export options currently apply to single runs only"
+        );
+        std::process::exit(1);
+    }
 
     let result = match cli.command {
         Some(Commands::Sweep {
@@ -102,7 +129,18 @@ fn main() {
             log_interval,
             &output,
         ),
-        None => run::run_single(&cli.config, cli.ticks, cli.log_interval, &cli.output).map(|_| ()),
+        None => run::run_single(
+            &cli.config,
+            cli.ticks,
+            cli.log_interval,
+            &cli.output,
+            &run::RunOptions {
+                resume: cli.resume,
+                checkpoint_every: cli.checkpoint_every,
+                export_genomes_every: cli.export_genomes_every,
+            },
+        )
+        .map(|_| ()),
     };
     if let Err(error) = result {
         eprintln!("Error: {error}");

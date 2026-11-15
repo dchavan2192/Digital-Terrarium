@@ -17,6 +17,7 @@
 
 pub mod activity;
 pub mod brain;
+pub mod checkpoint;
 pub mod config;
 pub mod genome;
 pub mod organism;

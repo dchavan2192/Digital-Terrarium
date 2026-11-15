@@ -119,3 +119,112 @@ fn repeated_invocations_preserve_both_completed_runs() {
         );
     }
 }
+
+fn only_session(output: &Path) -> PathBuf {
+    let mut sessions = std::fs::read_dir(output)
+        .unwrap()
+        .map(|e| e.unwrap().path());
+    let path = sessions.next().unwrap();
+    assert!(sessions.next().is_none());
+    path
+}
+
+#[test]
+fn resume_matches_uninterrupted_checkpoint_and_preserves_provenance() {
+    let straight = output("straight");
+    let first = output("split-first");
+    let resumed = output("split-resumed");
+    let args = [
+        "--ticks",
+        "12",
+        "--log-interval",
+        "5",
+        "--checkpoint-every",
+        "5",
+        "--export-genomes-every",
+        "5",
+    ];
+    let result = run(&args, &straight);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let result = run(&["--ticks", "5", "--checkpoint-every", "5"], &first);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let first_session = only_session(&first);
+    let checkpoint = first_session.join("checkpoint_seed42_tick5.json");
+    let result = run(
+        &[
+            "--resume",
+            checkpoint.to_str().unwrap(),
+            "--ticks",
+            "12",
+            "--log-interval",
+            "5",
+            "--checkpoint-every",
+            "5",
+            "--export-genomes-every",
+            "5",
+        ],
+        &resumed,
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let straight_session = only_session(&straight);
+    let resumed_session = only_session(&resumed);
+    assert_eq!(
+        std::fs::read(straight_session.join("checkpoint_seed42_tick12.json")).unwrap(),
+        std::fs::read(resumed_session.join("checkpoint_seed42_tick12.json")).unwrap(),
+        "resume must preserve complete state and RNG"
+    );
+    for tick in [5, 10, 12] {
+        assert!(
+            straight_session
+                .join(format!("genomes_seed42_tick{tick}.json"))
+                .exists()
+        );
+    }
+    assert!(resumed_session.join("genomes_seed42_tick12.json").exists());
+    let manifest: toml::Value = toml::from_str(
+        &std::fs::read_to_string(resumed_session.join("manifest_seed42.toml")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(manifest["starting_tick"].as_integer(), Some(5));
+    assert_eq!(manifest["completed_ticks"].as_integer(), Some(12));
+    assert_eq!(manifest["simulated_ticks"].as_integer(), Some(7));
+    assert_eq!(manifest["resumed_from"].as_str(), checkpoint.to_str());
+    assert_eq!(
+        manifest["core_build_id"].as_str(),
+        Some(sim_core::checkpoint::CORE_BUILD_ID)
+    );
+    let invalid = output("resume-past-target");
+    let result = run(
+        &["--resume", checkpoint.to_str().unwrap(), "--ticks", "5"],
+        &invalid,
+    );
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("absolute target"));
+    assert!(!invalid.exists());
+}
+
+#[test]
+fn invalid_resume_or_snapshot_interval_cannot_start_an_experiment() {
+    let out = output("invalid-checkpoint");
+    let result = run(&["--resume", "does-not-exist.json", "--ticks", "12"], &out);
+    assert!(!result.status.success());
+    assert!(!out.exists());
+    let result = run(&["--checkpoint-every", "0", "--ticks", "1"], &out);
+    assert!(!result.status.success());
+    assert!(!out.exists());
+    let result = run(&["--export-genomes-every", "0", "--ticks", "1"], &out);
+    assert!(!result.status.success());
+    assert!(!out.exists());
+}

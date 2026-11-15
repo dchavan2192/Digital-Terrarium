@@ -35,6 +35,7 @@ use crate::config::MAX_RAYS;
 const SPECIES_HISTORY_LEN: usize = 50;
 
 /// Complete simulation state. Owns all organisms, the world, and the RNG.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Simulation {
     pub config: Config,
     pub tick: u64,
@@ -54,6 +55,7 @@ pub struct Simulation {
     next_id: OrganismId,
 
     // Per-tick stats (updated at end of each tick)
+    #[serde(with = "crate::checkpoint::tick_stats")]
     pub stats: TickStats,
 
     // Reusable buffers to avoid allocation in the hot loop
@@ -79,7 +81,7 @@ pub struct Simulation {
 /// Computed each tick via NEAT-style compatibility distance clustering.
 /// Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through
 /// Augmenting Topologies" *Evolutionary Computation* 10(2):99-127
-#[derive(Debug, Clone, Default, serde::Serialize)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct SpeciesInfo {
     /// Species index (0-based, assigned during clustering).
     pub id: usize,
@@ -107,7 +109,7 @@ pub struct SpeciesInfo {
 }
 
 /// Summary statistics for the most recent tick.
-#[derive(Debug, Clone, Default, serde::Serialize)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct TickStats {
     pub tick: u64,
     pub population: usize,
@@ -301,7 +303,7 @@ impl EnergyLedger {
 }
 
 /// Compact action output — one per organism per tick.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
 struct Action {
     turn: f64,
     speed: f64,
@@ -1832,6 +1834,59 @@ impl Simulation {
             },
             species: species_infos,
         };
+    }
+
+    pub(crate) fn validate_checkpoint_internal(&self) -> Result<(), String> {
+        if self.organisms.len() > self.config.creature.hard_cap
+            || self.organisms.iter().any(|o| o.id >= self.next_id)
+            || self.stats.tick != self.tick
+            || (self.tick > 0 && self.stats.population != self.organisms.len())
+            || self.spatial_grid.world_width != self.config.world.width
+            || self.spatial_grid.world_height != self.config.world.height
+            || self.spatial_grid.cell_size != self.config.creature.vision.range
+        {
+            return Err("checkpoint population, IDs, stats or spatial dimensions disagree".into());
+        }
+        let mut ids = std::collections::HashSet::with_capacity(self.organisms.len());
+        if self.organisms.iter().any(|o| !ids.insert(o.id)) {
+            return Err("duplicate checkpoint organism ID".into());
+        }
+        if self
+            .positions
+            .iter()
+            .any(|&(x, y, _)| !x.is_finite() || !y.is_finite())
+            || self.actions.iter().any(|a| {
+                [
+                    a.turn,
+                    a.speed,
+                    a.eat,
+                    a.attack,
+                    a.signal,
+                    a.share,
+                    a.construct,
+                    a.brain_activity,
+                ]
+                .iter()
+                .any(|v| !v.is_finite())
+            })
+            || self
+                .species_history
+                .iter()
+                .any(|h| h.len() > SPECIES_HISTORY_LEN)
+        {
+            return Err("invalid checkpoint cached state".into());
+        }
+        for g in &self.species_representatives {
+            crate::checkpoint::validate_genome(g).map_err(|e| e.to_string())?;
+            if g.num_inputs != self.config.brain.inputs
+                || g.num_outputs != self.config.brain.outputs
+            {
+                return Err("species representative I/O mismatch".into());
+            }
+        }
+        self.activity_tracker
+            .validate_checkpoint(self.tick, self.config.activity_tracking.window_size)?;
+        Ok(())
     }
 
     /// Check if the population has gone extinct.

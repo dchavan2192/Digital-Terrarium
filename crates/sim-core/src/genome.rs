@@ -16,7 +16,7 @@ use crate::config::{AgingConfig, BrainConfig, FruitConfig, MutationConfig, Tempe
 use rand::Rng;
 
 /// A connection gene in the NEAT genome.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct ConnectionGene {
     /// Source node ID.
     pub from: u16,
@@ -34,7 +34,7 @@ pub struct ConnectionGene {
 
 /// A hidden node with its depth value for feed-forward ordering.
 /// Depth 0.0 = input layer, 1.0 = output layer, 0 < depth < 1 = hidden.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct HiddenNode {
     pub id: u16,
     pub depth: f64,
@@ -44,7 +44,7 @@ pub struct HiddenNode {
 pub const MAX_CONNECTIONS: usize = 512;
 
 /// The complete heritable state of a creature.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Genome {
     /// NEAT connection genes.
     pub connections: Vec<ConnectionGene>,

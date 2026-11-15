@@ -14,5 +14,6 @@ parallel = ["rayon"]
 serde = { workspace = true }
 toml = { workspace = true }
 rand = { workspace = true }
-rand_chacha = { workspace = true }
+rand_chacha = { workspace = true, features = ["serde1"] }
 rayon = { workspace = true, optional = true }
+serde_json = { version = "1", features = ["float_roundtrip"] }

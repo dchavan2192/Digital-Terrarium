@@ -14,3 +14,22 @@ The stats CSV begins after the first simulation step, avoiding the old synthetic
 The Phase 9a Pi script uses `pi@dchavan`, defaults to two worker threads, refuses to overwrite tracked remote edits or launch over an active simulation, and creates `output/phase9a/launch_.../session_.../`. Its `status`, `exit_code`, and `launcher.log` describe the detached job. The Phase 7 script similarly creates `output/phase7/launch_.../{sex,niche,epi}/session_.../sweep/`; this is four targeted arms, not a factorial study. Point analysis at the specific launch/session, rather than mixing repeated experiments.
 
 **Remaining scientific limitation:** the environment still shares an RNG stream with evolution. Equal seeds across feature arms do not guarantee identical drought schedules. Causal environmental comparisons need independent environmental streams or replayed schedules. Shared random inputs also do not automatically reduce variance in nonlinear ecological systems; see [Glasserman and Yao (1992), Some Guidelines and Guarantees for Common Random Numbers](https://business.columbia.edu/sites/default/files-efs/pubfiles/4261/glasserman_yao_guidelines.pdf).
+
+## Checkpoints, resume, and genome export
+
+Single runs support `--checkpoint-every N` and `--export-genomes-every N`. Each writes at absolute tick multiples of N **and at the final tick**, including extinction. Artifacts are named `checkpoint_seed42_tick1000.json` / `genomes_seed42_tick1000.json` inside the unique session. Specifying an interval of zero is an error. Sweeps currently do not accept these options.
+
+```bash
+# Run to tick 10000, retaining periodic complete state and living genomes.
+cargo run -p sim-runner --release -- --ticks 10000 \
+  --checkpoint-every 1000 --export-genomes-every 2000 --output output/pilot
+
+# Continue the exact state in a NEW session to absolute tick 20000.
+cargo run -p sim-runner --release -- \
+  --resume output/pilot/session_ID/checkpoint_seed42_tick10000.json \
+  --ticks 20000 --checkpoint-every 1000 --output output/continued
+```
+
+`--ticks` means the **absolute target tick**, not additional steps. A target at or behind the checkpoint tick is rejected before output creation. Resume uses the checkpoint's embedded configuration; explicit `--config` and `--resume` conflict. Extinct populations cannot be resumed. Genome export is an analysis artifact, not a substitute for a complete checkpoint.
+
+Checkpoints are compatible only with the same core source/build fingerprint, target, compiler, features, and build settings. Keep the release binary with the experiment; updating/rebuilding the engine can intentionally invalidate an older checkpoint. This is exact same-build continuation, **not** a claim of cross-platform numerical determinism. Manifests record the core build ID, checkpoint version, resume path, starting tick, absolute completed tick, and number of steps executed during this invocation.

@@ -42,7 +42,7 @@ pub const MAX_OUTPUTS: usize = 16;
 pub const MAX_INPUTS: usize = 64;
 
 /// A NEAT-style feed-forward neural network with arbitrary topology.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Brain {
     pub inputs: usize,
     pub hidden: usize,
@@ -60,7 +60,7 @@ pub struct Brain {
 }
 
 /// Output actions produced by the brain each tick.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct BrainOutput {
     /// Desired turn amount, normalized to [-1, 1]. Scaled by max_turn externally.
     pub turn: f64,

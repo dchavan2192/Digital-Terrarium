@@ -10,7 +10,7 @@ use crate::genome::Genome;
 pub type OrganismId = u64;
 
 /// A living creature in the simulation.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Organism {
     pub id: OrganismId,
     pub pos_x: f64,

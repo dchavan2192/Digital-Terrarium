@@ -31,6 +31,22 @@ pub fn validate_request(ticks: u64, log_interval: u64) -> RunResult<()> {
     Ok(())
 }
 
+#[derive(Debug, Default)]
+pub struct RunOptions {
+    pub resume: Option<PathBuf>,
+    pub checkpoint_every: Option<u64>,
+    pub export_genomes_every: Option<u64>,
+}
+
+impl RunOptions {
+    fn validate(&self) -> RunResult<()> {
+        if self.checkpoint_every == Some(0) || self.export_genomes_every == Some(0) {
+            return Err("checkpoint/export intervals must be positive".into());
+        }
+        Ok(())
+    }
+}
+
 #[derive(Serialize)]
 struct Manifest<'a> {
     schema_version: u32,
@@ -40,6 +56,13 @@ struct Manifest<'a> {
     target: &'static str,
     build_profile: &'static str,
     compiler: &'static str,
+    core_build_id: &'static str,
+    checkpoint_version: u32,
+    resumed_from: Option<String>,
+    starting_tick: u64,
+    simulated_ticks: u64,
+    checkpoint_every: Option<u64>,
+    export_genomes_every: Option<u64>,
     stats_schema_version: u32,
     topology_hash_version: u32,
     environmental_rng: &'static str,
@@ -59,11 +82,43 @@ pub fn run_single(
     ticks: u64,
     log_interval: u64,
     output: &Path,
+    options: &RunOptions,
 ) -> RunResult<(u64, bool)> {
+    options.validate()?;
     validate_request(ticks, log_interval)?;
-    let config = Config::from_file(config_path).map_err(|e| e.to_string())?;
+    let resumed = options
+        .resume
+        .as_ref()
+        .map(|path| {
+            Simulation::load_checkpoint(path)
+                .map_err(|e| format!("cannot resume {}: {e}", path.display()))
+        })
+        .transpose()?;
+    if let Some(sim) = &resumed {
+        if ticks <= sim.tick {
+            return Err(format!(
+                "--ticks is an absolute target: {ticks} must exceed checkpoint tick {}",
+                sim.tick
+            ));
+        }
+        if sim.is_extinct() {
+            return Err("cannot resume an extinct population".into());
+        }
+    }
+    let config = match &resumed {
+        Some(sim) => sim.config.clone(),
+        None => Config::from_file(config_path).map_err(|e| e.to_string())?,
+    };
     let session = create_session(output)?;
-    run_with_config(config, ticks, log_interval, &session, None)
+    execute(
+        config,
+        ticks,
+        log_interval,
+        &session,
+        None,
+        options,
+        resumed,
+    )
 }
 
 /// Writes one run into a unique session. Called only after all sweep jobs validate.
@@ -74,8 +129,31 @@ pub fn run_with_config(
     output: &Path,
     label: Option<&str>,
 ) -> RunResult<(u64, bool)> {
+    execute(
+        config,
+        ticks,
+        log_interval,
+        output,
+        label,
+        &RunOptions::default(),
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn execute(
+    config: Config,
+    ticks: u64,
+    log_interval: u64,
+    output: &Path,
+    label: Option<&str>,
+    options: &RunOptions,
+    resumed: Option<Simulation>,
+) -> RunResult<(u64, bool)> {
     validate_request(ticks, log_interval)?;
+    options.validate()?;
     config.validate().map_err(|e| e.to_string())?;
+    let starting_tick = resumed.as_ref().map_or(0, |sim| sim.tick);
     std::fs::create_dir_all(output).map_err(|e| e.to_string())?;
     let seed = config.world.seed;
     let suffix = label
@@ -92,19 +170,26 @@ pub fn run_with_config(
         .map_err(|e| format!("reserve {}: {e}", manifest_path.display()))?;
     let started = Instant::now();
     let mut manifest = Manifest {
-        schema_version: 1,
+        schema_version: 2,
         engine_version: env!("CARGO_PKG_VERSION"),
         source_revision: env!("TERRARIUM_SOURCE_REVISION"),
         source_dirty: env!("TERRARIUM_SOURCE_DIRTY"),
         target: env!("TERRARIUM_TARGET"),
         build_profile: env!("TERRARIUM_BUILD_PROFILE"),
         compiler: env!("TERRARIUM_COMPILER"),
+        core_build_id: sim_core::checkpoint::CORE_BUILD_ID,
+        checkpoint_version: sim_core::checkpoint::CHECKPOINT_VERSION,
+        resumed_from: options.resume.as_ref().map(|p| p.display().to_string()),
+        starting_tick,
+        simulated_ticks: 0,
+        checkpoint_every: options.checkpoint_every,
+        export_genomes_every: options.export_genomes_every,
         stats_schema_version: 2,
         topology_hash_version: config.activity_tracking.hash_version,
         environmental_rng: "shared_with_evolution; same seed does not synchronize droughts across feature arms",
         seed,
         requested_ticks: ticks,
-        completed_ticks: 0,
+        completed_ticks: starting_tick,
         log_interval,
         status: "running",
         survived: true,
@@ -121,7 +206,7 @@ pub fn run_with_config(
         file.sync_all().map_err(|e| e.to_string())
     };
     write_manifest(&mut manifest_file, &manifest)?;
-    let mut completed_ticks = 0;
+    let mut completed_ticks = starting_tick;
     let mut survived = true;
     // Catch simulation panics so artifacts say failed, not complete. A killed process
     // leaves status=running, which is explicitly incomplete and must not enter analysis.
@@ -141,9 +226,9 @@ pub fn run_with_config(
             .open(&csv_path)
             .map_err(|e| e.to_string())?;
         let mut writer = csv::Writer::from_writer(csv_file);
-        let mut sim = Simulation::new(config.clone());
-        println!("[seed={seed}] Starting {ticks} ticks");
-        for t in 1..=ticks {
+        let mut sim = resumed.unwrap_or_else(|| Simulation::new(config.clone()));
+        println!("[seed={seed}] Starting at tick {starting_tick}, absolute target {ticks}");
+        for t in starting_tick + 1..=ticks {
             sim.step();
             completed_ticks = sim.tick;
             survived = !sim.is_extinct();
@@ -151,6 +236,25 @@ pub fn run_with_config(
                 writer
                     .serialize(&sim.stats)
                     .map_err(|e| format!("write stats: {e}"))?;
+            }
+            let final_step = !survived || t == ticks;
+            if options
+                .checkpoint_every
+                .is_some_and(|interval| t % interval == 0 || final_step)
+            {
+                let path = output.join(format!("checkpoint_{suffix}_tick{t}.json"));
+                sim.save_checkpoint(&path)
+                    .map_err(|e| format!("checkpoint: {e}"))?;
+                println!("Checkpoint: {}", path.display());
+            }
+            if options
+                .export_genomes_every
+                .is_some_and(|interval| t % interval == 0 || final_step)
+            {
+                let path = output.join(format!("genomes_{suffix}_tick{t}.json"));
+                sim.export_genomes(&path)
+                    .map_err(|e| format!("genome export: {e}"))?;
+                println!("Genomes: {}", path.display());
             }
             if !survived {
                 break;
@@ -171,6 +275,7 @@ pub fn run_with_config(
         ),
     };
     manifest.completed_ticks = completed_ticks;
+    manifest.simulated_ticks = completed_ticks - starting_tick;
     manifest.survived = survived;
     manifest.elapsed_seconds = started.elapsed().as_secs_f64();
     manifest.status = if error.is_some() {

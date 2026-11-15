@@ -70,6 +70,7 @@ pub fn topology_hash_legacy(genome: &Genome) -> u64 {
 }
 
 /// Record for a single structural trait (topology).
+#[derive(serde::Serialize, serde::Deserialize)]
 struct ActivityRecord {
     #[allow(dead_code)]
     first_seen: u64,
@@ -79,6 +80,7 @@ struct ActivityRecord {
 }
 
 /// Tracks evolutionary activity statistics over time.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ActivityTracker {
     traits: HashMap<u64, ActivityRecord>,
     window_size: u64,
@@ -88,7 +90,7 @@ pub struct ActivityTracker {
 }
 
 /// Snapshot of activity metrics computed each window.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct ActivityStats {
     /// New structural topologies seen this window.
     pub novel_traits: u64,
@@ -169,6 +171,25 @@ impl ActivityTracker {
             total_cumulative_activity: total_cumulative,
             total_traits_ever,
         };
+    }
+}
+
+impl ActivityTracker {
+    pub(crate) fn validate_checkpoint(&self, tick: u64, window_size: u64) -> Result<(), String> {
+        if self.window_size == 0
+            || self.window_size != window_size
+            || self.last_update_tick > tick
+            || !self.stats.mean_cumulative_activity.is_finite()
+            || self.stats.active_traits > self.stats.total_traits_ever
+            || self.stats.total_traits_ever != self.traits.len() as u64
+            || self
+                .traits
+                .values()
+                .any(|r| r.first_seen > r.last_seen || r.last_seen > tick)
+        {
+            return Err("invalid checkpoint activity tracker".into());
+        }
+        Ok(())
     }
 }
 

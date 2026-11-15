@@ -15,7 +15,7 @@ use crate::config::{
 /// a different regrowth rate, creating ecological niches that drive speciation.
 ///
 /// Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FoodGrid {
     pub cols: usize,
     pub rows: usize,
@@ -45,7 +45,7 @@ pub struct FoodGrid {
 }
 
 /// A currently active drought zone.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ActiveDrought {
     pub x: f64,
     pub y: f64,
@@ -322,7 +322,7 @@ impl FoodGrid {
 /// Citation: Wilson, E.O. (1975) "Sociobiology: The New Synthesis"
 /// Citation: Deneubourg et al. (1990) "The Self-Organizing Exploratory Pattern
 ///   of the Argentine Ant" *J. Insect Behavior* 3(2):159–168
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PheromoneGrid {
     pub cols: usize,
     pub rows: usize,
@@ -398,7 +398,7 @@ impl PheromoneGrid {
 /// Citation: MacArthur & Wilson (1967) "The Theory of Island Biogeography"
 /// Citation: Wright (1943) "Isolation by Distance" Genetics 28(2):114-138
 /// Citation: Musgrave (1994) fBm multi-octave noise for terrain synthesis
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ElevationMap {
     octaves: usize,
     slope_factor: f64,
@@ -471,7 +471,7 @@ impl ElevationMap {
 ///
 /// Uses a flat index buffer instead of Vec-per-cell to avoid allocation churn.
 /// Each cell stores a (start, count) into a shared index buffer.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SpatialGrid {
     pub cols: usize,
     pub rows: usize,
@@ -629,7 +629,7 @@ pub fn wraparound_delta(a: f64, b: f64, size: f64) -> f64 {
 ///
 /// Citation: Odling-Smee, Laland & Feldman (2003) "Niche Construction"
 /// Citation: Laland et al. (1999) PNAS 96:10242-10247
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ConstructionGrid {
     pub cols: usize,
     pub rows: usize,
@@ -711,4 +711,127 @@ impl ConstructionGrid {
 pub fn wrap_coord(v: f64, size: f64) -> f64 {
     let v = v % size;
     if v < 0.0 { v + size } else { v }
+}
+
+// Checkpoint integrity checks live with the private grid storage. They inspect
+// rather than rebuild it: restoring must not normalize or consume random state.
+fn checkpoint_grid_len(cols: usize, rows: usize, cell_size: f64) -> Result<usize, String> {
+    if cols == 0 || rows == 0 || !cell_size.is_finite() || cell_size <= 0.0 {
+        return Err("invalid checkpoint grid dimensions".into());
+    }
+    cols.checked_mul(rows)
+        .ok_or_else(|| "checkpoint grid dimensions overflow".into())
+}
+
+fn checkpoint_values(values: &[f64], len: usize, nonnegative: bool) -> Result<(), String> {
+    if values.len() != len
+        || values
+            .iter()
+            .any(|v| !v.is_finite() || (nonnegative && *v < 0.0))
+    {
+        return Err("invalid checkpoint grid storage".into());
+    }
+    Ok(())
+}
+
+impl FoodGrid {
+    pub(crate) fn validate_checkpoint(&self, config: &crate::Config) -> Result<(), String> {
+        let len = checkpoint_grid_len(self.cols, self.rows, self.cell_size)?;
+        if self.cols != (config.world.width / config.food.cell_size).ceil() as usize
+            || self.rows != (config.world.height / config.food.cell_size).ceil() as usize
+            || self.cell_size != config.food.cell_size
+            || self.max_per_cell != config.food.max_per_cell
+            || self.regrowth_rate != config.food.regrowth_rate
+            || self.world_width != config.world.width
+            || self.world_height != config.world.height
+        {
+            return Err("checkpoint food grid differs from config".into());
+        }
+        checkpoint_values(&self.cells, len, true)?;
+        checkpoint_values(&self.fruit_cells, len, true)?;
+        checkpoint_values(&self.regrowth_rates, len, true)?;
+        checkpoint_values(&self.fruit_regrowth_rates, len, true)?;
+        for d in &self.droughts {
+            if !d.x.is_finite()
+                || !d.y.is_finite()
+                || !d.radius.is_finite()
+                || d.radius <= 0.0
+                || !d.severity.is_finite()
+                || !(0.0..=1.0).contains(&d.severity)
+            {
+                return Err("invalid checkpoint drought".into());
+            }
+        }
+        Ok(())
+    }
+}
+impl PheromoneGrid {
+    pub(crate) fn validate_checkpoint(&self, config: &crate::Config) -> Result<(), String> {
+        let len = checkpoint_grid_len(self.cols, self.rows, self.cell_size)?;
+        if self.cols != (config.world.width / config.food.cell_size).ceil() as usize
+            || self.rows != (config.world.height / config.food.cell_size).ceil() as usize
+            || self.cell_size != config.food.cell_size
+            || !self.deposit_rate.is_finite()
+            || !self.decay_rate.is_finite()
+            || !self.max_level.is_finite()
+        {
+            return Err("invalid checkpoint pheromone parameters".into());
+        }
+        checkpoint_values(&self.cells, len, true)
+    }
+}
+impl ConstructionGrid {
+    pub(crate) fn validate_checkpoint(&self, config: &crate::Config) -> Result<(), String> {
+        let len = checkpoint_grid_len(self.cols, self.rows, self.cell_size)?;
+        if self.cols != (config.world.width / config.food.cell_size).ceil() as usize
+            || self.rows != (config.world.height / config.food.cell_size).ceil() as usize
+            || self.cell_size != config.food.cell_size
+            || !self.deposit_rate.is_finite()
+            || !self.decay_rate.is_finite()
+            || !self.max_level.is_finite()
+            || !self.regrowth_bonus.is_finite()
+        {
+            return Err("invalid checkpoint construction parameters".into());
+        }
+        checkpoint_values(&self.cells, len, false)
+    }
+}
+impl ElevationMap {
+    pub(crate) fn validate_checkpoint(&self) -> Result<(), String> {
+        if self.params.len() != self.octaves
+            || !self.slope_factor.is_finite()
+            || self
+                .params
+                .iter()
+                .any(|&(a, b, c, d)| [a, b, c, d].iter().any(|v| !v.is_finite()))
+        {
+            return Err("invalid checkpoint elevation parameters".into());
+        }
+        Ok(())
+    }
+}
+impl SpatialGrid {
+    pub(crate) fn validate_checkpoint(&self) -> Result<(), String> {
+        let len = checkpoint_grid_len(self.cols, self.rows, self.cell_size)?;
+        if self.cell_ranges.len() != len
+            || self.counts.len() != len
+            || !self.world_width.is_finite()
+            || !self.world_height.is_finite()
+            || self.world_width <= 0.0
+            || self.world_height <= 0.0
+            || self.cols != (self.world_width / self.cell_size).ceil() as usize
+            || self.rows != (self.world_height / self.cell_size).ceil() as usize
+        {
+            return Err("invalid checkpoint spatial grid".into());
+        }
+        for &(start, count) in &self.cell_ranges {
+            if (start as usize)
+                .checked_add(count as usize)
+                .is_none_or(|end| end > self.indices.len())
+            {
+                return Err("checkpoint spatial cell range out of bounds".into());
+            }
+        }
+        Ok(())
+    }
 }
