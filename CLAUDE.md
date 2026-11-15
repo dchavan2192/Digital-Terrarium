@@ -74,8 +74,8 @@ terrarium/
 - **Rust 2024 edition.** The keyword `gen` is reserved — use `r#gen` when calling `rand::Rng::gen`.
 - **`cargo fmt --all`** before every commit. CI enforces this.
 - **`cargo clippy -- -D warnings`** must pass. CI treats warnings as errors.
-- **`cargo test --workspace`** must pass. Currently 47 integration tests + 4 activity.rs unit tests + 1 doc test.
-- **Brain I/O is fixed by the sensor layout**: `brain.inputs = 2 × ray_count + 9` (19 with 5 rays) and `brain.outputs = 7`. `Config::validate` rejects anything else.
+- **`cargo test --workspace`** must pass. Currently 54 integration tests + 4 activity.rs unit tests + 1 doc test.
+- **Brain I/O is fixed by the sensor layout**: `brain.inputs = 2 × ray_count + 10` (20 with 5 rays) and `brain.outputs = 7`. `Config::validate` rejects anything else.
 - Keep `#[inline]` on hot-path functions in world.rs and brain.rs.
 - Stack-allocate in the tick loop. No `Vec` allocations per organism per tick — use fixed-size arrays with `MAX_*` constants.
 - Prefer `.min()` / `.max()` / `.clamp()` over if-else for bounds.
@@ -115,9 +115,9 @@ cargo test --workspace
 
 1. Rebuild spatial index (counting-sort)
 2. For each organism (rayon-parallel, read-only, no RNG): sense (vision rays, kin similarity, signal, temperature, pheromone, light, niche level) → think (NEAT brain forward) → produce Action
-3. Apply actions: turn, move (elevation slope penalty), eat algae/fruit, metabolize; epigenetic methylation under stress (energy < `stress_repro_fraction × reproduction.threshold`) and in-place refresh of the living brain's weights `w·(1−m)`
+3. Apply actions: turn, move (elevation slope penalty; speed × `feeding_speed_factor` while the eat output is on), eat algae/fruit, metabolize; epigenetic methylation under stress (energy < `stress_repro_fraction × reproduction.threshold`) and in-place refresh of the living brain's weights `w·(1−m)`
 4. Pheromone deposit + decay; niche construction deposit/degrade + decay
-5. Combat: attack nearest neighbor, size-scaled damage, 75% energy transfer
+5. Combat: attack nearest neighbor, size-scaled damage, 75% energy transfer. `attack_cost` is paid only when a strike lands on a target in range (`idle_attack_cost`, default 0, otherwise)
 6. Sharing: donate energy to nearest neighbor (recipient gets `transfer_efficiency` ≤ 1 of it — energy is conserved; kin benefit must come from energy being worth more to the recipient)
 7. Reproduce: energy > threshold → asexual clone or sexual NEAT crossover. In sexual births the mate pays `mate_cost` too (twofold cost of sex), and each organism mates at most once per tick. Child inherits methylation + Gaussian epimutation noise
 8. Die: energy <= 0, max age, or Gompertz-Makeham probabilistic mortality
@@ -127,8 +127,8 @@ cargo test --workspace
 
 ## Neural Network (NEAT)
 
-- **Topology**: Variable — starts fully connected (19→8→7), evolves via add-connection (2%), add-node (1%), toggle (1%), prune-connection (4%); all in `[mutation]`
-- **19 Inputs**: 5 vision rays × 2 (distance + type) + energy + heading + signal + body_size + kin_similarity + temperature + pheromone + light + niche_level
+- **Topology**: Variable — starts fully connected (20→8→7), evolves via add-connection (2%), add-node (1%), toggle (1%), prune-connection (2%); all in `[mutation]`. Rates are balanced for about zero neutral drift in connection count
+- **20 Inputs**: 5 vision rays × 2 (distance + type) + energy + heading + signal + body_size + kin_similarity + temperature + pheromone + light + niche_level + food_here (food in the creature's own cell)
 - **7 Outputs**: turn [-1,1], speed [0,1], eat, attack, signal [-1,1], share, construct [-1,1]
 - **Epigenetics**: effective weight = `weight × (1 − methylation)`, applied both at birth and to the living brain
 - **Activation**: fast_tanh (Pade approximant, ~3-5x faster than std)
@@ -162,6 +162,10 @@ All in `configs/default.toml`. Key ones:
 | `reproduction.sexual` | true | NEAT crossover with a nearby mate |
 | `reproduction.mate_cost` | 30 (= parent_cost) | Mate's cost per sexual birth — twofold cost of sex |
 | `creature.hard_cap` | 500 | Max living creatures |
+| `creature.feeding_speed_factor` | 0.5 | Speed multiplier in feeding mode (handling vs searching, Holling 1959) |
+| `combat.idle_attack_cost` | 0.0 | Cost of attacking with no target in range (5 = old rule) |
+| `mutation.prune_probability` | 0.02 | Balanced against add rates (0.04 = old shrink bias) |
+| `niche_construction.activation_threshold` | 0.2 | Construct outputs below this do nothing and cost nothing |
 | `speciation.dynamic` | true | Auto-compute species threshold from genome variance |
 | `epigenetics.stress_repro_fraction` | 0.25 | Stressed when energy < 0.25 × reproduction.threshold |
 | `niche_construction.regrowth_bonus` | 0.5 | Cell regrowth × (1 + level × bonus) |

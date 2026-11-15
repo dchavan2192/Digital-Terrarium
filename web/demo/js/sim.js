@@ -224,7 +224,7 @@ export function normaliseConfig(c = {}) {
     pheromonesEnabled: c.pheromones ? c.pheromones.enabled !== false : false,
     constructionEnabled: c.niche_construction ? c.niche_construction.enabled !== false : false,
     temperatureEnabled: en.temperature !== false,
-    inputs: num(c.brain?.inputs, 19),
+    inputs: num(c.brain?.inputs, 20),
     outputs: num(c.brain?.outputs, 7),
     inputLabels: c.brain?.input_labels || null,
     outputLabels: c.brain?.output_labels || null,

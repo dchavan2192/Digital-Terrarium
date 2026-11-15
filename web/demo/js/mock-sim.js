@@ -81,7 +81,7 @@ const DEFAULTS = {
   energy: { starting: 60, maximum: 200, base_metabolism: 0.3, movement_cost: 0.15, brain_cost: 0.001, connection_cost: 0.001 },
   reproduction: { threshold: 60, parent_cost: 30, child_energy: 30 },
   combat: { attack_range: 8, attack_cost: 5, attack_damage: 20, energy_transfer_ratio: 0.75 },
-  brain: { inputs: 19, hidden: 8, outputs: 7 },
+  brain: { inputs: 20, hidden: 8, outputs: 7 },
   daynight: { enabled: true, period: 600 },
   elevation: { enabled: true, slope_factor: 5, octaves: 4, seed: 7777 },
   pheromones: { enabled: true, max_level: 10 },
@@ -99,7 +99,7 @@ function deepMerge(base, over) {
   return out;
 }
 
-const INPUT_TAIL = ['energy', 'heading', 'heard_signal', 'body_size', 'kin_similarity', 'temperature', 'pheromone', 'light', 'niche_level'];
+const INPUT_TAIL = ['energy', 'heading', 'heard_signal', 'body_size', 'kin_similarity', 'temperature', 'pheromone', 'light', 'niche_level', 'food_here'];
 const OUTPUTS = ['turn', 'speed', 'eat', 'attack', 'signal', 'share', 'construct'];
 
 // Flag bits — identical to SIM_WASM_ABI.md §4.2.

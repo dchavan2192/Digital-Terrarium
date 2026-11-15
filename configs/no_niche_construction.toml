@@ -1,3 +1,5 @@
+# SUPERSEDED: prefer `sim-runner sweep --param epigenetics.enabled` / `niche_construction.enabled`
+# on configs/default.toml. This full copy does not track later changes to default.toml.
 # Terrarium — Default Configuration
 # Every tunable number lives here. No magic constants in the code.
 # Copy this file and change one section at a time for experiments.
@@ -140,7 +142,7 @@ min_threshold = 0.1           # Floor: prevents over-splitting
 max_threshold = 2.0           # Ceiling: prevents one giant species
 
 [brain]
-inputs = 19             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light + niche_level
+inputs = 20             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light + niche_level + food_here
 hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)
 outputs = 7             # turn, speed, eat, attack, signal, share, construct
 

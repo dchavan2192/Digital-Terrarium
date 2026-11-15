@@ -183,6 +183,14 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         "sharing.share_range" => config.sharing.share_range = value,
         "sharing.share_amount" => config.sharing.share_amount = value,
 
+        // Rule parameters changed on 2026-11-15 (old values reproduce the old rules)
+        "combat.idle_attack_cost" => config.combat.idle_attack_cost = value,
+        "niche_construction.activation_threshold" => {
+            config.niche_construction.activation_threshold = value
+        }
+        "mutation.prune_probability" => config.mutation.prune_probability = value,
+        "creature.feeding_speed_factor" => config.creature.feeding_speed_factor = value,
+
         // Feature toggles (0 = off, nonzero = on) for ON/OFF ablation experiments
         "reproduction.sexual" => config.reproduction.sexual = value != 0.0,
         "niche_construction.enabled" => config.niche_construction.enabled = value != 0.0,
@@ -227,6 +235,10 @@ fn print_supported_params() {
         "combat.attack_cost",
         "combat.attack_damage",
         "combat.energy_transfer_ratio",
+        "combat.idle_attack_cost",
+        "niche_construction.activation_threshold",
+        "mutation.prune_probability",
+        "creature.feeding_speed_factor",
         "reproduction.sexual",
         "niche_construction.enabled",
         "epigenetics.enabled",
