@@ -15,6 +15,8 @@ Data layout (written by `sim-runner sweep`):
   <root>/epi/sweep/stats_seed{N}_epigenetics.enabled=0.000000_seed{N}.csv
 
 The baseline (sexual=1) runs are the shared control for all three comparisons.
+Nested session directories are discovered beneath each arm; select exactly one
+launch with --root. Incomplete/failed session artifacts are excluded.
 
 Usage:
     analysis/.venv/bin/python analysis/analyze_phase7.py
@@ -134,13 +136,34 @@ def read_stats_csv(path):
 
 def load_group(root, subdir, param, value):
     """Load all seeds of one experimental arm. Returns {seed: DataFrame}."""
-    pattern = os.path.join(root, subdir, "sweep", f"stats_seed*_{param}={value:.6f}_seed*.csv")
+    pattern = os.path.join(root, subdir, "**", f"stats_seed*_{param}={value:.6f}_seed*.csv")
     runs = {}
-    for path in sorted(glob.glob(pattern)):
+    for path in sorted(glob.glob(pattern, recursive=True)):
         m = re.search(r"_seed(\d+)\.csv$", path)
         if not m:
             continue
         seed = int(m.group(1))
+        if seed in runs:
+            raise ValueError(f"Duplicate seed {seed} in {subdir}; point --root at one launch, not an archive of sessions")
+        # New artifacts must be finished. Missing manifests are accepted only for
+        # legacy flat sweep outputs, with an explicit provenance warning.
+        manifest_path = os.path.join(os.path.dirname(path), os.path.basename(path).replace("stats_", "manifest_", 1).removesuffix(".csv") + ".toml")
+        if os.path.isfile(manifest_path):
+            import tomllib
+            try:
+                with open(manifest_path, "rb") as f:
+                    manifest = tomllib.load(f)
+            except (OSError, tomllib.TOMLDecodeError) as exc:
+                warn(f"{manifest_path}: invalid manifest: {exc}; skipping")
+                continue
+            if manifest.get("status") not in ("completed", "extinct"):
+                warn(f"{path}: run status is {manifest.get('status')!r}; skipping incomplete/failed result")
+                continue
+        elif any(part.startswith("session_") for part in path.split(os.sep)):
+            warn(f"{path}: session artifact has no manifest; skipping")
+            continue
+        else:
+            warn(f"{path}: historical artifact without provenance manifest")
         df = read_stats_csv(path)
         if df is None or len(df) < 3:
             warn(f"{os.path.relpath(path)}: empty or <3 rows (still running?), skipping")

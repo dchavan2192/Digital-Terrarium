@@ -57,6 +57,15 @@ jobs:
         run: |
           printf '{"sha":"%s","date":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > web/demo/version.json
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify the actual demo binary and presentation
+        run: |
+          node --experimental-default-type=module --test web/demo/tests/*.test.mjs
+          node --experimental-default-type=module web/demo/tests/wasm-smoke.mjs
+
       - name: Optimize WASM (if wasm-opt available)
         run: |
           if command -v wasm-opt &> /dev/null; then

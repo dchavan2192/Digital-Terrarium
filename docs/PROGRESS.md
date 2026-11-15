@@ -6,9 +6,24 @@
 
 ---
 
-## Active development session — 2026-11-15
+## Active development session — 2026-11-15 (stopping-point handoff)
 
-Local work has been reconciled with upstream before further implementation. [The earlier local audit](AUDIT_2026-11-15.md) reviewed `26c0ec8`, which was 14 commits behind upstream; its sharing and negative-damage findings are already fixed upstream. The staged roadmap below remains authoritative pending the research council and implementation checks. Long simulations (>3 minutes) run on `pi@dchavan`; this session is authorized to commit and push completed tasks and update the linked portfolio demo.
+Read [SESSION_HANDOFF_2026-11-15.md](SESSION_HANDOFF_2026-11-15.md) first to resume. The local checkout was reconciled with 14 incoming commits before development; earlier local sharing/negative-damage findings were already fixed upstream.
+
+Completed this session:
+- [x] Conflict-resolved clean baseline committed and pushed; portfolio pending source preserved separately.
+- [x] 0.2 Measured per-tick organism-reserve ledger, adversarial energy tests, and live demo Energy tab.
+- [x] 0.3 Ten forced mechanism fixtures for nine enabled flags, including OFF noninterference; scope in the scientific council note.
+- [x] 0.4 Same-build checkpoint/resume, atomic checkpoint writes, genome export, exact split-run and live-brain-lag tests. Sweep checkpoint options remain unsupported.
+- [x] Generated sweep validation, non-overwriting sessions, source/build/config/status manifests, failure-safe two-worker Pi launchers.
+- [x] 0.6 Public claim corrections, results registry, primary-source council review and draft (not registered) study protocol.
+- [x] Pages ALSA prerequisite fixed; portfolio card updated to capabilities and limitations; Energy-tab deployment verified green.
+- [x] UI tour placement/focus and KPI width improvements; real WASM/energy smoke and presentation tests added to deployment gate.
+- [ ] 0.1 Short six-run Pi ecology pilot active; no new defaults chosen. Completion and validation seeds still required.
+- [ ] 0.5 Cross-platform state equivalence untested. Checkpoints explicitly require compatible build/target.
+- [ ] Independent environment RNG/replayed drought schedules, node-history/crossover fixes, broader UI visual QA.
+
+No recurrence, plasticity, large factorial study or multi-day experiment started. Chrome access host remained unavailable despite connection attempts; no claim of visual browser verification. Existing historical stage lists below remain historical where this section supersedes them.
 
 ## Audit and Roadmap (Fable 5.2, 2026-11-15): read this first
 
@@ -160,11 +175,11 @@ Each stage ends in a gate. Do not start a stage until the previous gate is met.
 
 **Stage 0: a trustworthy instrument** (about 1–2 weeks)
 - [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.002–0.012 at `hard_cap = 2000`, on the 2026-11-15 rules. B3 (the 29-neuron lifetime cap) is still open. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
-- [ ] 0.2 Energy ledger. Account for every source and sink each tick (food, fruit, metabolism, movement, brain, crowding, temperature, combat loss, sharing loss, reproduction, deaths, clamping at the energy cap). In debug builds, assert that the change in total energy equals the ledger. Expose the ledger in `TickStats`.
-- [ ] 0.3 Mechanism-effect tests. For every `enabled` flag and major parameter, an ON run and an OFF run must diverge within a set number of ticks. This catches the fruit class of bug.
-- [ ] 0.4 Persistence. Serde for `Genome`, `Organism` and simulation state; `--checkpoint-every` and `--resume` in sim-runner; periodic genome export. Test: 2,000 ticks straight must equal 1,000 + save + load + 1,000, bit for bit.
+- [x] 0.2 Energy ledger (implemented this session; scope above). Account for every source and sink each tick (food, fruit, metabolism, movement, brain, crowding, temperature, combat loss, sharing loss, reproduction, deaths, clamping at the energy cap). In debug builds, assert that the change in total energy equals the ledger. Expose the ledger in `TickStats`.
+- [x] 0.3 Mechanism-effect tests. Forced, matched fixtures exercise all nine enabled flags and test scoped OFF noninterference. Do not require arbitrary ecosystem divergence when a mechanism is inactive; see the council note for coverage limits.
+- [x] 0.4 Persistence (same-build single-run checkpoint/resume implemented; sweeps pending). Serde for `Genome`, `Organism` and simulation state; `--checkpoint-every` and `--resume` in sim-runner; periodic genome export. Test: 2,000 ticks straight must equal 1,000 + save + load + 1,000, bit for bit.
 - [ ] 0.5 Cross-platform determinism. Hash the state after 5,000 ticks on Linux in CI, in WASM under node, and on the Pi. If the hashes differ, move the affected maths to a portable implementation (the `libm` crate).
-- [ ] 0.6 Truth pass on the docs. Fix README metrics and the outline abstract, and withdraw the claims `PRIOR_ART.md` lists. Start `docs/RESULTS.md`, where a result is listed only with its commit, config, seeds and analysis script. Nothing enters README unless it is in that file.
+- [x] 0.6 Truth pass on the docs (completed this session). Fix README metrics and the outline abstract, and withdraw the claims `PRIOR_ART.md` lists. Start `docs/RESULTS.md`, where a result is listed only with its commit, config, seeds and analysis script. Nothing enters README unless it is in that file.
 - [ ] 0.7 Repo. Decide whether to untrack `.claude/settings.local.json` (owner's call), resync the main checkout, add CONTRIBUTING.md and CITATION.cff.
 - [ ] 0.8 Pi. Run 3 jobs at once or improve cooling. No multi-day run before 0.4.
 - **Gate:** tests green including 0.2–0.5, and a 10-seed baseline that reproduces on two machines.
@@ -176,7 +191,7 @@ Each stage ends in a gate. Do not start a stage until the previous gate is met.
 - [ ] 1.4 Factorial experiment: sex × niche construction × epigenetics, at least 10 seeds per cell, scored against the shadow, with a shuffled-methylation control.
 - [ ] 1.5 Cooperation re-test under energy-conserving sharing. A null result is a result.
 - [ ] 1.6 Model description in ODD format, using MODES metric names.
-- **Gate:** at least one effect that survives the shadow control and replicates. That is the ALIFE 2027 paper (check the submission date).
+- **Gate:** a controlled, reproducible estimate (including an informative null), appropriate uncertainty and independent validation. Neutral-shadow comparisons are required for activity selection-versus-drift claims, not every ecological endpoint.
 
 **Stage 2: a brain that could support cognition** (about 3–4 weeks; can overlap Stage 1's Pi time)
 - [ ] 2.1 Recurrent connections (Phase 9b).
