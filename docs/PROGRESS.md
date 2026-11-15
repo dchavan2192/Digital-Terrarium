@@ -489,3 +489,14 @@ Mutation: 10% per weight, +/-0.2 step
 - **Phase 7 checklist**: All 5 features marked COMPLETE
 - **Key finding**: D(t) follows logarithmic growth — consistent with Bedau's "class 2" unbounded
   activity. The system produces genuine open-ended evolution by the Bedau & Packard (1991) criterion.
+
+### Session 12 — Overnight autonomous (2026-11-15, continued)
+- **5-seed OEE replication experiment** on Pi 5 (seeds 0-4, 200k ticks each)
+  - Seeds 0-3 complete, seed 4 in progress
+  - D(t) log fits: seed 0 = 12.82·ln(t), seed 1 = 21.58·ln(t), seed 2 = 14.01·ln(t), seed 3 = 18.93·ln(t)
+  - All seeds show unbounded D(t) growth — replication confirms OEE
+  - Mean D(t) at 200k ≈ 82.2 across seeds 0-3
+- **Created multi-seed analysis script**: `analysis/plot_multi_seed.py` (95% CI comparison plots)
+- **Created ablation experiment configs**: `configs/no_epigenetics.toml`, `configs/no_niche_construction.toml`
+- **Created ALIFE 2027 paper outline**: `docs/ALIFE_2027_OUTLINE.md`
+- **Pushed**: `0ec0f20` — analysis tools and paper outline
