@@ -500,3 +500,15 @@ Mutation: 10% per weight, +/-0.2 step
 - **Created ablation experiment configs**: `configs/no_epigenetics.toml`, `configs/no_niche_construction.toml`
 - **Created ALIFE 2027 paper outline**: `docs/ALIFE_2027_OUTLINE.md`
 - **Pushed**: `0ec0f20` — analysis tools and paper outline
+
+### Session 13 — Overnight autonomous (2026-11-15, continued)
+- **Epigenetics ablation experiment running** on Pi 5 (5 seeds × 200k ticks, no_epigenetics.toml)
+  - Seed 0 complete (835.2s, faster than baseline — no methylation computation)
+  - Seeds 1-4 in progress
+- **Created ablation analysis script**: `analysis/plot_ablation.py`
+  - D(t) comparison with 95% CI between baseline and ablation conditions
+  - Population stability (CV) comparison
+  - Mann-Whitney U statistical tests for significance
+- **Updated ALIFE 2027 outline**: D(t) numbers updated to confirmed 5-seed data (~15.5·ln(t))
+- **Updated README** with OEE results section — multi-seed plots and summary statistics
+- **Pushed**: `f04f7e4` (ablation script + outline), `c4bbd95` (README OEE section)

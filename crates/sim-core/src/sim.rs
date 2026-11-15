@@ -639,8 +639,8 @@ impl Simulation {
                 ];
                 for (o, &raw_val) in raw_outputs.iter().enumerate().take(NUM_OUTPUTS) {
                     // Exponential decay of existing bin counts
-                    for b in 0..NUM_ENTROPY_BINS {
-                        org.output_bins[o][b] *= ENTROPY_DECAY;
+                    for bin_val in org.output_bins[o].iter_mut().take(NUM_ENTROPY_BINS) {
+                        *bin_val *= ENTROPY_DECAY;
                     }
                     // Increment current bin
                     let bin = activation_to_bin(raw_val);
@@ -1364,8 +1364,8 @@ impl Simulation {
             let mut total_connections = 0.0;
             for org in &self.organisms {
                 let mut org_entropy = 0.0;
-                for o in 0..NUM_OUTPUTS {
-                    org_entropy += shannon_entropy(&org.output_bins[o]);
+                for bins in org.output_bins.iter().take(NUM_OUTPUTS) {
+                    org_entropy += shannon_entropy(bins);
                 }
                 total_entropy += org_entropy / NUM_OUTPUTS as f64;
                 total_connections += org.brain.connection_count() as f64;
