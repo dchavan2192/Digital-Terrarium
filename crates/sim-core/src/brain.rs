@@ -50,6 +50,10 @@ pub struct Brain {
     /// Enabled connections sorted for evaluation: (from_node_id, to_node_id, weight).
     /// Sorted by target node's evaluation order, then by source node.
     pub connections: Vec<(u16, u16, f64)>,
+    /// For each entry of `connections`, the index of the originating gene in the
+    /// `connections` slice passed to [`Brain::from_neat`] (= genome connection index).
+    /// Lets [`Brain::refresh_weights`] patch weights in place without allocating.
+    pub gene_index: Vec<u16>,
     /// Non-input node IDs in topological (evaluation) order.
     /// Hidden nodes sorted by depth, then output nodes.
     pub eval_order: Vec<u16>,
@@ -118,22 +122,27 @@ impl Brain {
         }
 
         // Filter enabled connections and sort by (target_eval_pos, source_id)
-        let mut sorted: Vec<(u16, u16, f64)> = connections
+        // Keep the gene index alongside each edge so weights can be patched later.
+        let mut sorted: Vec<(u16, u16, f64, u16)> = connections
             .iter()
-            .filter(|c| c.3) // enabled only
-            .map(|&(f, t, w, _)| (f, t, w))
+            .enumerate()
+            .filter(|(_, c)| c.3) // enabled only
+            .map(|(gi, &(f, t, w, _))| (f, t, w, gi as u16))
             .collect();
         sorted.sort_by(|a, b| {
             node_eval_pos[a.1 as usize]
                 .cmp(&node_eval_pos[b.1 as usize])
                 .then(a.0.cmp(&b.0))
         });
+        let gene_index = sorted.iter().map(|c| c.3).collect();
+        let sorted = sorted.into_iter().map(|(f, t, w, _)| (f, t, w)).collect();
 
         Brain {
             inputs: num_inputs,
             hidden: hidden_nodes.len(),
             outputs: num_outputs,
             connections: sorted,
+            gene_index,
             eval_order,
         }
     }
@@ -187,6 +196,18 @@ impl Brain {
             },
             activity_sum,
         )
+    }
+
+    /// Re-apply effective weights from the genome without reallocating.
+    ///
+    /// `effective_weight(gene_idx)` returns the weight for the gene at that index
+    /// (e.g. `weight × (1 − methylation)`). Topology is unchanged — only valid while
+    /// the genome's connection list is the one this brain was built from.
+    #[inline]
+    pub fn refresh_weights(&mut self, mut effective_weight: impl FnMut(usize) -> f64) {
+        for (c, &gi) in self.connections.iter_mut().zip(self.gene_index.iter()) {
+            c.2 = effective_weight(gi as usize);
+        }
     }
 
     /// Total number of neurons (hidden + output) for energy cost calculation.

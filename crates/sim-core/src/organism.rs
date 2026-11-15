@@ -38,9 +38,13 @@ pub struct Organism {
     pub root_ancestor_id: OrganismId,
     /// Tick at which this organism was born (0 for initial population).
     pub birth_tick: u64,
+    /// Clade founder for windowed lineage diversity: the ancestor (or self) that was
+    /// alive at the most recent `activity_tracking.lineage_window` checkpoint.
+    /// Inherited from the initiating parent; reset to own id at each checkpoint.
+    pub clade_id: OrganismId,
 
     /// Running activation histograms for brain output entropy.
-    /// 6 outputs × 8 bins over [-1, 1], with exponential decay (τ ≈ 100 ticks).
+    /// 7 outputs × 8 bins over [-1, 1], with exponential decay (τ ≈ 100 ticks).
     /// Citation: Shannon (1948) "A Mathematical Theory of Communication"
     pub output_bins: [[f64; NUM_ENTROPY_BINS]; NUM_OUTPUTS],
 }

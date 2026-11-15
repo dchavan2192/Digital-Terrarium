@@ -582,7 +582,7 @@ fn neat_topology_evolves() {
 
     // At minimum, connection counts should vary (add-connection and toggle mutations)
     assert!(
-        unique_conns.len() >= 1,
+        !unique_conns.is_empty(),
         "expected connection count variation, got {:?}",
         unique_conns,
     );
@@ -1559,4 +1559,405 @@ fn niche_construction_modifies_environment() {
         any_nonzero,
         "construction grid should have non-zero cells after 50 ticks"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7.5 correctness fixes
+// ---------------------------------------------------------------------------
+
+/// D: an old 15-input / 6-output config must be rejected with a clear error.
+#[test]
+fn config_rejects_mismatched_brain_io() {
+    let old = DEFAULT_CONFIG
+        .replace("inputs = 19", "inputs = 15")
+        .replace("outputs = 7", "outputs = 6");
+    let err = Config::parse(&old).expect_err("15/6 brain should be rejected");
+    assert!(err.to_string().contains("brain.inputs"), "got: {err}");
+
+    let bad_out = DEFAULT_CONFIG.replace("outputs = 7", "outputs = 6");
+    let err = Config::parse(&bad_out).expect_err("6 outputs should be rejected");
+    assert!(err.to_string().contains("brain.outputs"), "got: {err}");
+}
+
+/// D: every shipped config must validate.
+#[test]
+fn shipped_configs_validate() {
+    let intense = include_str!("../../../configs/intense.toml");
+    Config::parse(intense).expect("configs/intense.toml should be valid");
+    load_config();
+}
+
+/// K: omitted mutation keys default to the previously hard-coded values.
+#[test]
+fn mutation_probabilities_default_to_legacy_values() {
+    let cfg = small_config();
+    assert_eq!(cfg.mutation.add_connection_probability, 0.02);
+    assert_eq!(cfg.mutation.add_node_probability, 0.01);
+    assert_eq!(cfg.mutation.toggle_probability, 0.01);
+    assert_eq!(cfg.mutation.prune_probability, 0.04);
+    assert_eq!(cfg.mutation.trait_probability, 0.05);
+    assert_eq!(cfg.niche_construction.activation_threshold, 0.01);
+    assert_eq!(cfg.reproduction.mate_energy_fraction, 0.5);
+    assert_eq!(
+        cfg.reproduction.effective_mate_cost(),
+        cfg.reproduction.parent_cost
+    );
+}
+
+/// A: stress is relative to reproduction.threshold; a config whose stress level is
+/// at or above child_energy (every newborn stressed) is rejected.
+#[test]
+fn epigenetic_stress_level_must_be_below_child_energy() {
+    let mut text = DEFAULT_CONFIG.replace(
+        "stress_repro_fraction = 0.25",
+        "stress_repro_fraction = 0.6",
+    );
+    assert!(
+        Config::parse(&text).is_err(),
+        "0.6 × 60 = 36 >= 30 must fail"
+    );
+    text = DEFAULT_CONFIG.to_string();
+    assert!(Config::parse(&text).is_ok());
+}
+
+/// A: organisms well above the stress level gain no methylation.
+#[test]
+fn well_fed_organisms_are_not_stressed() {
+    let mut config = small_config();
+    config.epigenetics.enabled = true;
+    config.epigenetics.stress_repro_fraction = 0.1; // 15 energy; everyone starts at 100
+    let mut sim = Simulation::new(config);
+    for _ in 0..5 {
+        sim.step();
+    }
+    for org in &sim.organisms {
+        if org.energy > 20.0 && org.generation == 0 {
+            assert!(
+                org.genome.connections.iter().all(|c| c.methylation == 0.0),
+                "well-fed organism should have no methylation"
+            );
+        }
+    }
+}
+
+/// B: with epigenetics on, the living brain always carries w·(1−m).
+#[test]
+fn methylation_reaches_living_brain() {
+    let mut config = small_config();
+    config.epigenetics.enabled = true;
+    config.epigenetics.stress_repro_fraction = 0.9; // 135 > starting 100: all stressed
+    config.epigenetics.methylation_rate = 0.05;
+    config.epigenetics.brain_update_interval = 1;
+    let mut sim = Simulation::new(config);
+    for _ in 0..10 {
+        sim.step();
+    }
+    let mut any_methylated = false;
+    for org in &sim.organisms {
+        let rebuilt = org.genome.build_brain();
+        assert_eq!(rebuilt.connections.len(), org.brain.connections.len());
+        for (a, b) in rebuilt.connections.iter().zip(org.brain.connections.iter()) {
+            assert_eq!((a.0, a.1), (b.0, b.1));
+            assert!(
+                (a.2 - b.2).abs() < 1e-12,
+                "brain weight not methylation-adjusted"
+            );
+        }
+        any_methylated |= org.genome.connections.iter().any(|c| c.methylation > 0.0);
+    }
+    assert!(any_methylated, "stressed organisms should have methylation");
+}
+
+/// B: refresh_weights patches in place and matches a rebuild.
+#[test]
+fn brain_refresh_weights_matches_rebuild() {
+    let config = small_config();
+    let mut sim = Simulation::new(config);
+    let org = &mut sim.organisms[0];
+    for (k, c) in org.genome.connections.iter_mut().enumerate() {
+        c.methylation = (k % 10) as f64 / 10.0;
+    }
+    let genome = org.genome.clone();
+    org.brain.refresh_weights(|gi| genome.effective_weight(gi));
+    let rebuilt = genome.build_brain();
+    for (a, b) in rebuilt.connections.iter().zip(org.brain.connections.iter()) {
+        assert!((a.2 - b.2).abs() < 1e-12);
+    }
+}
+
+/// C: inheritance_noise = 0 must not panic, and methylation stays in [0, 1].
+#[test]
+fn zero_inheritance_noise_does_not_panic() {
+    let mut config = small_config();
+    config.epigenetics.enabled = true;
+    config.epigenetics.inheritance_noise = 0.0;
+    config.reproduction.threshold = 110.0;
+    config.reproduction.parent_cost = 40.0;
+    config.energy.starting = 120.0; // above threshold → births from tick 1
+    config.epigenetics.stress_repro_fraction = 0.25;
+    let mut sim = Simulation::new(config);
+    for _ in 0..200 {
+        sim.step();
+    }
+    assert!(
+        sim.stats.total_births > 0,
+        "test needs births to exercise inheritance"
+    );
+    for org in &sim.organisms {
+        for c in &org.genome.connections {
+            assert!((0.0..=1.0).contains(&c.methylation));
+        }
+    }
+}
+
+/// A/B/C: epigenetics disabled ⇒ methylation is exactly zero everywhere.
+#[test]
+fn epigenetics_disabled_leaves_methylation_zero() {
+    let mut config = load_config();
+    config.epigenetics.enabled = false;
+    let mut sim = Simulation::new(config);
+    for _ in 0..100 {
+        sim.step();
+    }
+    assert_eq!(sim.stats.mean_methylation, 0.0);
+    for org in &sim.organisms {
+        assert!(org.genome.connections.iter().all(|c| c.methylation == 0.0));
+    }
+}
+
+/// E: niche construction multiplies actual regrowth — no regrowth inside a total drought,
+/// boosted regrowth outside one.
+#[test]
+fn niche_construction_respects_drought() {
+    use sim_core::config::{FruitConfig, NicheConstructionConfig};
+    use sim_core::world::{ActiveDrought, ConstructionGrid};
+    let world = WorldConfig {
+        width: 100.0,
+        height: 100.0,
+        seed: 1,
+    };
+    let food = FoodConfig {
+        cell_size: 10.0,
+        max_per_cell: 1.0,
+        regrowth_rate: 0.01,
+        energy_per_food: 10.0,
+        biomes: vec![],
+        seasons: SeasonsConfig::default(),
+        droughts: DroughtConfig::default(),
+        fruit: FruitConfig::default(),
+    };
+    let nc = NicheConstructionConfig {
+        enabled: true,
+        regrowth_bonus: 1.0,
+        ..Default::default()
+    };
+    let mut cg = ConstructionGrid::new(&world, 10.0, &nc);
+    for c in cg.cells.iter_mut() {
+        *c = 1.0; // fully built → multiplier 2.0
+    }
+    let no_seasons = SeasonsConfig::default();
+
+    // Outside drought: built cells regrow at 2× the base rate.
+    let mut grid = FoodGrid::new(&world, &food, &FruitConfig::default());
+    for c in grid.cells.iter_mut() {
+        *c = 0.0;
+    }
+    grid.regrow_with_construction(0, &no_seasons, false, Some(&cg));
+    assert!(
+        (grid.cells[0] - 0.02).abs() < 1e-12,
+        "got {}",
+        grid.cells[0]
+    );
+
+    // Total drought covering the world: no regrowth despite construction.
+    let mut grid = FoodGrid::new(&world, &food, &FruitConfig::default());
+    for c in grid.cells.iter_mut() {
+        *c = 0.0;
+    }
+    grid.droughts.push(ActiveDrought {
+        x: 50.0,
+        y: 50.0,
+        radius: 1.0e6,
+        severity: 0.0,
+        ticks_remaining: 10,
+    });
+    grid.regrow_with_construction(0, &no_seasons, false, Some(&cg));
+    let centre = 5 * grid.cols + 5;
+    assert!(
+        grid.cells[centre] < 1e-6,
+        "constructed cell regrew inside a drought: {}",
+        grid.cells[centre]
+    );
+}
+
+/// E: mean_construction_level is mean |level| (no cancellation).
+#[test]
+fn construction_level_stat_is_absolute() {
+    let mut config = load_config();
+    config.niche_construction.enabled = true;
+    let mut sim = Simulation::new(config);
+    for _ in 0..30 {
+        sim.step();
+    }
+    assert!(sim.stats.mean_construction_level >= 0.0);
+    assert!(sim.stats.mean_construction_level >= sim.stats.net_construction_level.abs() - 1e-12);
+}
+
+fn mating_config() -> Config {
+    let mut config = small_config();
+    config.creature.initial_count = 3;
+    config.reproduction.sexual = true;
+    config.reproduction.crossover_rate = 1.0;
+    config.reproduction.threshold = 60.0;
+    config.reproduction.parent_cost = 30.0;
+    config.reproduction.child_energy = 20.0;
+    config.energy.starting = 100.0;
+    config.combat.attack_cost = 0.0;
+    config.combat.attack_damage = 0.0;
+    config.sharing.share_amount = 0.0;
+    config.aging.extrinsic_mortality = 0.0;
+    config.aging.initial_senescence = 0.0;
+    // No food income, so energy changes in one tick are exactly the
+    // reproduction cost plus a small metabolic burn (< 1 unit here).
+    config.food.energy_per_food = 0.0;
+    config
+}
+
+/// F: the mate pays too, and each organism mates at most once per tick.
+#[test]
+fn sexual_reproduction_costs_both_parents_once_per_tick() {
+    let mut sim = Simulation::new(mating_config());
+    for (k, org) in sim.organisms.iter_mut().enumerate() {
+        org.pos_x = 50.0 + 2.0 * k as f64;
+        org.pos_y = 50.0;
+    }
+    sim.step();
+    assert_eq!(sim.stats.births, 2);
+    assert_eq!(sim.stats.sexual_births, 1, "only one pair can form");
+    assert_eq!(
+        sim.stats.asexual_births, 1,
+        "third organism falls back to asexual"
+    );
+    // All three parents paid ~30 (plus a few units of metabolism).
+    for org in sim.organisms.iter().filter(|o| o.generation == 0) {
+        assert!(
+            org.energy < 70.0 + 1e-9 && org.energy > 68.0,
+            "parent energy {} should reflect a 30-unit reproduction cost",
+            org.energy
+        );
+    }
+    assert_eq!(sim.stats.total_sexual_births, 1);
+    assert_eq!(sim.stats.total_asexual_births, 1);
+}
+
+/// F: mate_cost is configurable (0 restores the old initiator-only accounting).
+#[test]
+fn mate_cost_zero_means_mate_does_not_pay() {
+    let mut config = mating_config();
+    config.creature.initial_count = 2;
+    config.reproduction.mate_cost = Some(0.0);
+    let mut sim = Simulation::new(config);
+    sim.organisms[0].pos_x = 50.0;
+    sim.organisms[0].pos_y = 50.0;
+    sim.organisms[1].pos_x = 52.0;
+    sim.organisms[1].pos_y = 50.0;
+    sim.step();
+    assert_eq!(sim.stats.sexual_births, 1);
+    let parents: Vec<f64> = sim
+        .organisms
+        .iter()
+        .filter(|o| o.generation == 0)
+        .map(|o| o.energy)
+        .collect();
+    assert!(
+        parents.iter().any(|&e| e > 98.0),
+        "mate should not pay: {parents:?}"
+    );
+    assert!(
+        parents.iter().any(|&e| e < 70.0 + 1e-9 && e > 68.0),
+        "initiator pays: {parents:?}"
+    );
+}
+
+/// H: cumulative birth counters are consistent with total_births.
+#[test]
+fn cumulative_birth_mode_counters() {
+    let mut config = load_config();
+    config.reproduction.sexual = true;
+    let mut sim = Simulation::new(config);
+    let mut sex = 0u64;
+    let mut asex = 0u64;
+    for _ in 0..300 {
+        sim.step();
+        sex += sim.stats.sexual_births;
+        asex += sim.stats.asexual_births;
+    }
+    assert_eq!(sim.stats.total_sexual_births, sex);
+    assert_eq!(sim.stats.total_asexual_births, asex);
+    assert_eq!(sex + asex, sim.stats.total_births);
+}
+
+/// H: windowed lineage diversity is bounded by the population at the previous
+/// checkpoint and is not stuck at the founder count.
+#[test]
+fn windowed_lineage_diversity() {
+    let mut config = load_config();
+    config.activity_tracking.lineage_window = 50;
+    let mut sim = Simulation::new(config);
+    let mut pop_at_checkpoint = sim.organisms.len();
+    for _ in 0..300 {
+        sim.step();
+        if sim.tick.is_multiple_of(50) {
+            assert!(sim.stats.lineage_diversity <= pop_at_checkpoint);
+            assert!(sim.stats.lineage_diversity > 0 || sim.organisms.is_empty());
+            pop_at_checkpoint = sim.organisms.len();
+            for o in &sim.organisms {
+                assert_eq!(o.clade_id, o.id, "clades reset at checkpoint");
+            }
+        }
+    }
+    assert!(sim.stats.founder_lineages > 0);
+}
+
+/// H: topology hash v2 is independent of gene order; v1 (legacy) is not required to be.
+#[test]
+fn topology_hash_is_order_independent() {
+    use sim_core::activity::{topology_hash, topology_hash_versioned};
+    let sim = Simulation::new(small_config());
+    let g = sim.organisms[0].genome.clone();
+    let mut shuffled = g.clone();
+    shuffled.connections.reverse();
+    assert_eq!(topology_hash(&g), topology_hash(&shuffled));
+    assert_eq!(
+        topology_hash_versioned(&g, 2),
+        topology_hash_versioned(&shuffled, 2)
+    );
+    // Different wiring → different hash.
+    let mut pruned = g.clone();
+    pruned.connections.pop();
+    assert_ne!(topology_hash(&g), topology_hash(&pruned));
+}
+
+/// Determinism still holds with every Phase 7 feature on.
+#[test]
+fn deterministic_with_all_phase7_features() {
+    let run = || {
+        let mut config = load_config();
+        config.reproduction.sexual = true;
+        config.epigenetics.enabled = true;
+        config.niche_construction.enabled = true;
+        config.activity_tracking.enabled = true;
+        let mut sim = Simulation::new(config);
+        for _ in 0..200 {
+            sim.step();
+        }
+        (
+            sim.organisms.len(),
+            sim.stats.total_births,
+            sim.stats.mean_methylation,
+            sim.stats.mean_construction_level,
+            sim.organisms.iter().map(|o| o.energy).sum::<f64>(),
+        )
+    };
+    assert_eq!(run(), run());
 }

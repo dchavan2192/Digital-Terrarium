@@ -13,6 +13,14 @@
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
+/// Maximum number of vision rays the tick loop supports (stack arrays).
+pub const MAX_RAYS: usize = 16;
+/// Scalar (non-ray) sensor inputs wired in sim.rs: energy, heading, heard signal,
+/// body size, kin similarity, temperature, pheromone, light, niche level.
+pub const NUM_SCALAR_INPUTS: usize = 9;
+/// Brain outputs read by sim.rs: turn, speed, eat, attack, signal, share, construct.
+pub const NUM_BRAIN_OUTPUTS: usize = 7;
+
 /// Top-level configuration. Mirrors the TOML structure exactly.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -241,6 +249,28 @@ pub struct ReproductionConfig {
     /// Fitter parent contributes disjoint/excess genes (NEAT §3.2).
     #[serde(default)]
     pub fitness_bias: bool,
+    /// Energy the *mate* pays for a sexual birth. `None` (key omitted) = same as
+    /// `parent_cost`, so a sexually produced offspring costs the pair twice what an
+    /// asexual offspring costs its single parent while carrying only half of each
+    /// parent's genes — the twofold cost of sex.
+    /// Citation: Maynard Smith (1978) "The Evolution of Sex" Cambridge UP
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mate_cost: Option<f64>,
+    /// A potential mate must hold at least `threshold × mate_energy_fraction` energy.
+    /// (Was hard-coded 0.5 before Phase 7.5.)
+    #[serde(default = "default_mate_energy_fraction")]
+    pub mate_energy_fraction: f64,
+}
+
+impl ReproductionConfig {
+    /// Effective energy cost paid by the mate in a sexual birth.
+    pub fn effective_mate_cost(&self) -> f64 {
+        self.mate_cost.unwrap_or(self.parent_cost)
+    }
+}
+
+fn default_mate_energy_fraction() -> f64 {
+    0.5
 }
 
 fn default_mate_range() -> f64 {
@@ -250,10 +280,48 @@ fn default_crossover_rate() -> f64 {
     0.7
 }
 
+/// Mutation parameters.
+///
+/// Structural-mutation probabilities are per offspring (one Bernoulli draw each).
+/// Defaults reproduce the pre-Phase-7.5 hard-coded values exactly.
+/// Citation: Stanley & Miikkulainen (2002) — NEAT structural mutations;
+/// Dolson & Park (2012) — prune rate should exceed add rate to curb bloat.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MutationConfig {
     pub weight_probability: f64,
     pub weight_step: f64,
+    /// Probability of an add-connection mutation per offspring.
+    #[serde(default = "default_add_connection_probability")]
+    pub add_connection_probability: f64,
+    /// Probability of an add-node (connection split) mutation per offspring.
+    #[serde(default = "default_add_node_probability")]
+    pub add_node_probability: f64,
+    /// Probability of toggling one connection's enabled flag per offspring.
+    #[serde(default = "default_toggle_probability")]
+    pub toggle_probability: f64,
+    /// Probability of deleting one connection per offspring.
+    #[serde(default = "default_prune_probability")]
+    pub prune_probability: f64,
+    /// Per-trait probability of mutating each scalar trait (mutation rate/step,
+    /// aging rate, body size, preferred temperature, diet preference).
+    #[serde(default = "default_trait_probability")]
+    pub trait_probability: f64,
+}
+
+fn default_add_connection_probability() -> f64 {
+    0.02
+}
+fn default_add_node_probability() -> f64 {
+    0.01
+}
+fn default_toggle_probability() -> f64 {
+    0.01
+}
+fn default_prune_probability() -> f64 {
+    0.04
+}
+fn default_trait_probability() -> f64 {
+    0.05
 }
 
 /// Gompertz-Makeham aging parameters.
@@ -580,6 +648,15 @@ pub struct ActivityTrackingConfig {
     pub enabled: bool,
     /// Compute activity stats every N ticks (amortizes hashing cost).
     pub window_size: u64,
+    /// Lineage-diversity window in ticks. Every `lineage_window` ticks the living
+    /// organisms become clade founders; `lineage_diversity` reports how many of the
+    /// organisms alive one window ago still have living descendants (or are alive).
+    /// Unlike founder (gen-0) counts this does not trivially coalesce to 1.
+    /// Always computed (independent of `enabled`); no RNG, no effect on dynamics.
+    pub lineage_window: u64,
+    /// Topology-hash version: 2 = order-independent commutative hash (default),
+    /// 1 = legacy order-dependent FNV chain (for comparing with old runs).
+    pub hash_version: u32,
 }
 
 /// Niche construction — organisms modify their local environment.
@@ -606,6 +683,8 @@ pub struct NicheConstructionConfig {
     pub regrowth_bonus: f64,
     /// Energy cost per unit of construction activity.
     pub energy_cost: f64,
+    /// Dead zone: |construct output| must exceed this to build/degrade (was hard-coded 0.01).
+    pub activation_threshold: f64,
 }
 
 /// Epigenetic inheritance — heritable non-genetic methylation marks.
@@ -621,24 +700,45 @@ pub struct NicheConstructionConfig {
 #[serde(default)]
 pub struct EpigeneticsConfig {
     pub enabled: bool,
-    /// Energy fraction below which stress methylation kicks in.
+    /// An organism is "stressed" when its energy is below
+    /// `stress_repro_fraction × reproduction.threshold`, i.e. when its reserves are
+    /// far below what it needs to breed (state-dependent life history). Must stay
+    /// below `child_energy / threshold` or every newborn is born stressed.
+    /// Replaces the old `stress_threshold` (fraction of energy.maximum), which
+    /// classified every newborn as stressed; that key is now ignored if present.
+    /// Citation: McNamara & Houston (1996) Nature 380:215-221;
+    /// Wingfield et al. (1998) Am. Zool. 38:191-206 (emergency life-history stage).
+    pub stress_repro_fraction: f64,
+    /// DEPRECATED — ignored by the simulation since Phase 7.5 (it measured stress as
+    /// energy / energy.maximum, which made every newborn "stressed"). Kept only so
+    /// downstream code that still reads it compiles; use
+    /// [`Config::epigenetic_stress_energy`] instead. Not serialized.
+    #[serde(skip_serializing)]
     pub stress_threshold: f64,
     /// Maximum methylation gain per tick under stress.
     pub methylation_rate: f64,
     /// Passive demethylation per tick when not stressed.
     pub demethylation_rate: f64,
-    /// Noise σ added to methylation during inheritance.
+    /// Gaussian σ of epimutation noise added to *existing* marks (m > 0) at
+    /// inheritance. Unmarked sites stay unmarked. 0 = faithful inheritance.
     pub inheritance_noise: f64,
+    /// Re-apply effective weights `w·(1−m)` to the living brain every N ticks of
+    /// age (1 = every tick). Within-lifetime plasticity: methylation silences
+    /// expression in the soma, not only in offspring.
+    /// Citation: Jablonka & Lamb (2005); Day & Sweatt (2010) Nat. Neurosci. 13:1319.
+    pub brain_update_interval: u64,
 }
 
 impl Default for EpigeneticsConfig {
     fn default() -> Self {
         EpigeneticsConfig {
             enabled: false,
+            stress_repro_fraction: 0.25,
             stress_threshold: 0.3,
             methylation_rate: 0.005,
             demethylation_rate: 0.001,
             inheritance_noise: 0.02,
+            brain_update_interval: 1,
         }
     }
 }
@@ -652,6 +752,7 @@ impl Default for NicheConstructionConfig {
             max_level: 1.0,
             regrowth_bonus: 0.5,
             energy_cost: 0.5,
+            activation_threshold: 0.01,
         }
     }
 }
@@ -661,6 +762,8 @@ impl Default for ActivityTrackingConfig {
         ActivityTrackingConfig {
             enabled: false,
             window_size: 100,
+            lineage_window: 1000,
+            hash_version: 2,
         }
     }
 }
@@ -686,6 +789,12 @@ impl BrainConfig {
 }
 
 impl Config {
+    /// Absolute energy below which an organism counts as epigenetically stressed:
+    /// `epigenetics.stress_repro_fraction × reproduction.threshold`.
+    pub fn epigenetic_stress_energy(&self) -> f64 {
+        self.epigenetics.stress_repro_fraction * self.reproduction.threshold
+    }
+
     /// Load configuration from a TOML file.
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
         let text = std::fs::read_to_string(path.as_ref())
@@ -730,6 +839,55 @@ impl Config {
         }
         if self.brain.inputs == 0 || self.brain.hidden == 0 || self.brain.outputs == 0 {
             return Err(ConfigError::Invalid("brain layer sizes must be > 0".into()));
+        }
+        // The sensor/actuator layout is fixed by sim.rs: 2 values per vision ray
+        // + 9 scalar senses, and 7 actions. A mismatch silently miswires the brain
+        // (e.g. an old 15/6 config reads a hidden node as `construct`).
+        if self.creature.vision.ray_count == 0 || self.creature.vision.ray_count > MAX_RAYS {
+            return Err(ConfigError::Invalid(format!(
+                "creature.vision.ray_count must be in 1..={MAX_RAYS}"
+            )));
+        }
+        let expected_inputs = 2 * self.creature.vision.ray_count + NUM_SCALAR_INPUTS;
+        if self.brain.inputs != expected_inputs {
+            return Err(ConfigError::Invalid(format!(
+                "brain.inputs = {} but the simulation provides {} sensor inputs \
+                 (2 × ray_count {} + {} scalar senses); set brain.inputs = {}",
+                self.brain.inputs,
+                expected_inputs,
+                self.creature.vision.ray_count,
+                NUM_SCALAR_INPUTS,
+                expected_inputs
+            )));
+        }
+        if self.brain.outputs != NUM_BRAIN_OUTPUTS {
+            return Err(ConfigError::Invalid(format!(
+                "brain.outputs = {} but the simulation reads {} actions \
+                 (turn, speed, eat, attack, signal, share, construct); set brain.outputs = {}",
+                self.brain.outputs, NUM_BRAIN_OUTPUTS, NUM_BRAIN_OUTPUTS
+            )));
+        }
+        if self.epigenetics.enabled {
+            let stress_level = self.epigenetic_stress_energy();
+            if stress_level >= self.reproduction.child_energy {
+                return Err(ConfigError::Invalid(format!(
+                    "epigenetics stress level (stress_repro_fraction × threshold = {stress_level}) \
+                     must be below reproduction.child_energy ({}) or every newborn is stressed",
+                    self.reproduction.child_energy
+                )));
+            }
+            if self.epigenetics.inheritance_noise < 0.0 {
+                return Err(ConfigError::Invalid(
+                    "epigenetics.inheritance_noise must be >= 0".into(),
+                ));
+            }
+        }
+        if let Some(mc) = self.reproduction.mate_cost
+            && mc < 0.0
+        {
+            return Err(ConfigError::Invalid(
+                "reproduction.mate_cost must be >= 0".into(),
+            ));
         }
         Ok(())
     }

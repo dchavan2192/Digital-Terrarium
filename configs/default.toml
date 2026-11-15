@@ -96,6 +96,10 @@ sexual = true               # Enable sexual reproduction (false = asexual clone 
 mate_range = 15.0           # Max distance to find a mate
 crossover_rate = 0.7        # Probability of crossover vs clone (when mate available)
 fitness_bias = true         # More-fit parent contributes disjoint/excess genes (NEAT)
+mate_cost = 30.0            # Energy the mate pays per sexual birth (= parent_cost → twofold cost of sex)
+                            # Maynard Smith (1978): pair pays 2x per offspring, each passes on half its genes
+mate_energy_fraction = 0.5  # Mate needs >= threshold × this energy to be eligible
+# Each organism takes part in at most one sexual mating per tick.
 
 [combat]
 # Predator-prey dynamics: Lotka-Volterra (1925/1926), Yaeger Polyworld (1994)
@@ -120,6 +124,13 @@ aging_rate = 0.002            # β — default aging rate (evolvable via genome)
 [mutation]
 weight_probability = 0.1  # Chance each weight mutates during reproduction
 weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
+# Structural mutations (per offspring). Stanley & Miikkulainen (2002) NEAT;
+# Dolson & Park (2012): prune rate should exceed add rate to curb complexity bloat.
+add_connection_probability = 0.02  # Add a new feed-forward edge
+add_node_probability = 0.01        # Split an edge with a new hidden node
+toggle_probability = 0.01          # Flip one edge's enabled flag
+prune_probability = 0.04           # Delete one edge (2x add rate)
+trait_probability = 0.05           # Per-trait chance to mutate each scalar trait
 
 [density_pressure]
 # Population density pressure: crowding increases metabolism.
@@ -217,8 +228,9 @@ enabled = true
 deposit_rate = 0.05     # Material deposited per tick when construct output is active
 decay_rate = 0.999      # Slow decay — environment remembers for ~1000 ticks
 max_level = 1.0         # Maximum construction level per cell
-regrowth_bonus = 0.5    # Regrowth multiplier per unit level (1.0 + level * bonus)
+regrowth_bonus = 0.5    # Cell regrowth × (1.0 + level * bonus); multiplies biome/season/drought rate
 energy_cost = 0.5       # Cost per unit of |construct| output
+activation_threshold = 0.01  # Dead zone: |construct| must exceed this to build/degrade
 
 # Epigenetic inheritance — heritable non-genetic methylation marks.
 # Under stress (low energy), active connections accumulate methylation that
@@ -228,10 +240,16 @@ energy_cost = 0.5       # Cost per unit of |construct| output
 # Citation: Heard & Martienssen (2014) Cell 157(1):95-109
 [epigenetics]
 enabled = true
-stress_threshold = 0.3  # Energy/max_energy below which stress methylation activates
+# Stress = energy < stress_repro_fraction × reproduction.threshold (here 0.25×60 = 15),
+# i.e. reserves far below what breeding needs — the "emergency life-history stage".
+# Must stay below child_energy (30) so newborns are not born stressed.
+# Citation: McNamara & Houston (1996) Nature 380:215-221; Wingfield et al. (1998) Am. Zool. 38:191-206
+stress_repro_fraction = 0.25
 methylation_rate = 0.005  # Methylation gain per tick under stress
 demethylation_rate = 0.001  # Passive methylation loss per tick when not stressed
-inheritance_noise = 0.02  # σ of noise added to methylation during reproduction
+inheritance_noise = 0.02  # Gaussian σ of epimutation noise on existing marks (m > 0) at reproduction
+brain_update_interval = 1  # Re-apply w·(1−m) to the living brain every N ticks (within-lifetime plasticity)
+                           # Citation: Day & Sweatt (2010) Nat. Neurosci. 13:1319
 
 # Open-ended evolution activity tracking — Bedau & Packard (1991), Dolson et al. (2019)
 # Tracks structural novelty (topology hashes) and cumulative activity D(t).
@@ -239,3 +257,5 @@ inheritance_noise = 0.02  # σ of noise added to methylation during reproduction
 [activity_tracking]
 enabled = true
 window_size = 100       # Ticks between activity snapshots
+lineage_window = 1000   # lineage_diversity = # of organisms alive 1 window ago with living descendants
+hash_version = 2        # Topology hash: 2 = order-independent (default), 1 = legacy order-dependent

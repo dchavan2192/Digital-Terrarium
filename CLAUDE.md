@@ -22,13 +22,16 @@ terrarium/
 │   │   ├── src/
 │   │   │   ├── lib.rs     # Public API: re-exports Config, Simulation, SpeciesInfo
 │   │   │   ├── config.rs  # Typed TOML config with validation
-│   │   │   ├── world.rs   # FoodGrid (biomes, seasons, droughts), SpatialGrid, wraparound math
-│   │   │   ├── organism.rs # Organism struct, entropy tracking
-│   │   │   ├── genome.rs  # NEAT genome: connections, hidden nodes, pruning, traits, distance
-│   │   │   ├── brain.rs   # NEAT feed-forward net (variable topology), stack-allocated forward pass
+│   │   │   ├── world.rs   # FoodGrid (biomes, seasons, droughts), Pheromone/Elevation/Construction grids, SpatialGrid, wraparound math
+│   │   │   ├── organism.rs # Organism struct, lineage ids (root/clade), entropy tracking
+│   │   │   ├── genome.rs  # NEAT genome: connections, hidden nodes, crossover, methylation, traits, distance
+│   │   │   ├── brain.rs   # NEAT feed-forward net (variable topology), stack-allocated forward pass, in-place weight refresh
+│   │   │   ├── activity.rs # OEE activity stats (Bedau & Packard): topology hash, novelty, cumulative activity
+│   │   │   ├── view.rs    # Read-only view helpers for the WASM front end
 │   │   │   └── sim.rs     # Simulation state + deterministic tick loop + species clustering
 │   │   └── tests/
-│   │       └── integration.rs  # 22 tests: config, determinism, energy, bounds, biomes, seasons
+│   │       └── integration.rs  # 43 tests: config, determinism, energy, bounds, biomes, seasons, Phase 7/7.5 features
+│   ├── sim-wasm/          # C-ABI WASM bindings for the Three.js web demo (Phase 8)
 │   ├── sim-viewer/        # macroquad + egui visual app (native + WASM)
 │   │   └── src/
 │   │       ├── main.rs    # Entry point, main loop, click-to-select, WASM seed randomization
@@ -41,7 +44,8 @@ terrarium/
 │           ├── run.rs     # Single-run logic, CSV stats output
 │           └── sweep.rs   # Parallel parameter sweep via rayon
 ├── configs/
-│   └── default.toml       # All tunable parameters — THE source of truth for numbers
+│   ├── default.toml       # All tunable parameters — THE source of truth for numbers
+│   └── intense.toml       # Harsher variant
 ├── analysis/              # Python scripts for experiment analysis
 │   ├── analyze_experiments.py  # Sweep analysis with per-experiment figures
 │   └── plot_readme.py     # README dashboard plots
@@ -70,7 +74,8 @@ terrarium/
 - **Rust 2024 edition.** The keyword `gen` is reserved — use `r#gen` when calling `rand::Rng::gen`.
 - **`cargo fmt --all`** before every commit. CI enforces this.
 - **`cargo clippy -- -D warnings`** must pass. CI treats warnings as errors.
-- **`cargo test --workspace`** must pass. Currently 22 integration tests + 1 doc test.
+- **`cargo test --workspace`** must pass. Currently 43 integration tests + 4 activity.rs unit tests + 1 doc test.
+- **Brain I/O is fixed by the sensor layout**: `brain.inputs = 2 × ray_count + 9` (19 with 5 rays) and `brain.outputs = 7`. `Config::validate` rejects anything else.
 - Keep `#[inline]` on hot-path functions in world.rs and brain.rs.
 - Stack-allocate in the tick loop. No `Vec` allocations per organism per tick — use fixed-size arrays with `MAX_*` constants.
 - Prefer `.min()` / `.max()` / `.clamp()` over if-else for bounds.
@@ -103,26 +108,29 @@ cargo test --workspace
 2. `cargo clippy --workspace -- -D warnings` — zero warnings
 3. `cargo test --workspace` — all tests pass
 4. Write a clear commit message describing *why*, not just *what*
-5. Add `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>` to the commit message
+5. Add `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` to the commit message
 6. Do NOT push unless the user explicitly asks
 
 ## Simulation Tick Pipeline
 
 1. Rebuild spatial index (counting-sort)
-2. For each organism: sense (vision rays + kin similarity + signal) → think (NEAT brain forward) → produce Action
-3. Apply actions: turn, move, eat food
-4. Combat: attack nearest neighbor, size-scaled damage, 75% energy transfer
-5. Sharing: donate energy to nearest neighbor (recipient gets 1.5x — Hamilton's rule)
-6. Reproduce: energy > threshold → spawn mutated NEAT offspring nearby
-7. Die: energy <= 0, max age, or Gompertz-Makeham probabilistic mortality
-8. Spawn/expire drought zones (stochastic localized food crashes)
-9. Regrow food (per-cell rates × biome multiplier × seasonal oscillation × drought suppression)
+2. For each organism (rayon-parallel, read-only, no RNG): sense (vision rays, kin similarity, signal, temperature, pheromone, light, niche level) → think (NEAT brain forward) → produce Action
+3. Apply actions: turn, move (elevation slope penalty), eat algae/fruit, metabolize; epigenetic methylation under stress (energy < `stress_repro_fraction × reproduction.threshold`) and in-place refresh of the living brain's weights `w·(1−m)`
+4. Pheromone deposit + decay; niche construction deposit/degrade + decay
+5. Combat: attack nearest neighbor, size-scaled damage, 75% energy transfer
+6. Sharing: donate energy to nearest neighbor (recipient gets 1.5x — Hamilton's rule)
+7. Reproduce: energy > threshold → asexual clone or sexual NEAT crossover. In sexual births the mate pays `mate_cost` too (twofold cost of sex), and each organism mates at most once per tick. Child inherits methylation + Gaussian epimutation noise
+8. Die: energy <= 0, max age, or Gompertz-Makeham probabilistic mortality
+9. Spawn/expire drought zones (stochastic localized food crashes)
+10. Regrow food (per-cell rate × biome × season × drought suppression × niche-construction multiplier)
+11. Stats: species clustering, trophic levels, entropy, OEE activity (every `window_size` ticks), windowed lineage diversity (every `lineage_window` ticks)
 
 ## Neural Network (NEAT)
 
-- **Topology**: Variable — starts fully connected (15→8→6), evolves via add-node (1%), add-connection (3%), prune-connection (2%)
-- **15 Inputs**: 5 vision rays × 2 (distance + type) + energy + heading + signal + body_size + kin_similarity
-- **6 Outputs**: turn [-1,1], speed [0,1], eat, attack, signal [-1,1], share
+- **Topology**: Variable — starts fully connected (19→8→7), evolves via add-connection (2%), add-node (1%), toggle (1%), prune-connection (4%); all in `[mutation]`
+- **19 Inputs**: 5 vision rays × 2 (distance + type) + energy + heading + signal + body_size + kin_similarity + temperature + pheromone + light + niche_level
+- **7 Outputs**: turn [-1,1], speed [0,1], eat, attack, signal [-1,1], share, construct [-1,1]
+- **Epigenetics**: effective weight = `weight × (1 − methylation)`, applied both at birth and to the living brain
 - **Activation**: fast_tanh (Pade approximant, ~3-5x faster than std)
 - **Forward pass**: Stack-allocated `[f64; MAX_NODES]`, single linear pass through pre-sorted connections
 
@@ -144,17 +152,24 @@ All in `configs/default.toml`. Key ones:
 
 | Path | Default | Purpose |
 |------|---------|---------|
-| `food.regrowth_rate` | 0.0015 | Food scarcity — the main experimental lever |
+| `food.regrowth_rate` | 0.0005 | Food scarcity — the main experimental lever |
 | `food.energy_per_food` | 15.0 | Energy per food cell (halved from 30 to enable predation) |
 | `food.droughts.spawn_rate` | 0.0002 | ~1 drought per 5000 ticks |
 | `food.droughts.severity` | 0.05 | Regrowth drops to 5% in drought zones |
-| `energy.brain_cost` | 0.002 | Intelligence tax per neuron per tick |
-| `energy.base_metabolism` | 0.2 | Flat survival cost |
+| `energy.brain_cost` | 0.001 | Intelligence tax per neuron per tick |
+| `energy.connection_cost` | 0.001 | Per-synapse cost per tick (Attwell & Laughlin 2001) |
+| `energy.activity_weight_cost` | 0.0005 | Cost per unit of |weight × activation| |
+| `energy.base_metabolism` | 0.3 | Flat survival cost (× body_size^0.75) |
 | `combat.energy_transfer_ratio` | 0.75 | Predator absorbs 75% of damage as energy |
 | `sharing.benefit_multiplier` | 1.5 | Recipient gets 1.5x what donor pays (Hamilton's rule) |
 | `reproduction.threshold` | 60 | Energy needed to reproduce |
-| `creature.hard_cap` | 1500 | Max living creatures |
+| `reproduction.sexual` | true | NEAT crossover with a nearby mate |
+| `reproduction.mate_cost` | 30 (= parent_cost) | Mate's cost per sexual birth — twofold cost of sex |
+| `creature.hard_cap` | 500 | Max living creatures |
 | `speciation.dynamic` | true | Auto-compute species threshold from genome variance |
+| `epigenetics.stress_repro_fraction` | 0.25 | Stressed when energy < 0.25 × reproduction.threshold |
+| `niche_construction.regrowth_bonus` | 0.5 | Cell regrowth × (1 + level × bonus) |
+| `activity_tracking.lineage_window` | 1000 | Window for lineage diversity |
 
 ## Biology Citations
 
@@ -185,12 +200,13 @@ Every mechanic is research-backed:
 
 ## Unsolved Problems / Next Steps
 
-1. **Brain cost doesn't constrain complexity** — needs connection-proportional cost, not neuron-proportional
-2. **Environment too easy** — all runs hit hard cap, need harsher conditions
-3. **Droughts not yet tested in sweeps** — added post-v2, need experiment data
-4. **No sexual reproduction** — NEAT crossover would accelerate adaptation
-5. **No physical barriers** — toroidal world prevents population isolation for speciation
-6. **Duplicate directory** — `Digital_Terrarium\` (with backslash) is a stale copy, safe to delete
+1. **Phase 7 experiments not yet run** — Phase 7.5 correctness fixes (docs/PROGRESS.md) must land first; the Pi runs then measure sexual reproduction, niche construction and epigenetics ON/OFF
+2. **Crossover only mixes weights** (audit item G) — the child's edge set equals the fitter parent's; hidden-node ids are not global innovation numbers
+3. **No neutral shadow model for OEE** — activity stats still lack a neutral baseline (design: docs/research/OEE_SHADOW_DESIGN.md)
+4. **Brain cost vs complexity** — connection and activity costs exist now; whether they constrain topology is untested
+5. **Droughts not yet tested in sweeps** — need experiment data
+6. **Elevation is the only barrier** — the world is still toroidal; no hard barriers for allopatric speciation
+7. **Duplicate directory** — `Digital_Terrarium\` (with backslash) is a stale copy; the owner will clean it up
 
 ## Adding New Features — Checklist
 

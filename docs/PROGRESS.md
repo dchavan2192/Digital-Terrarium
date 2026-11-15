@@ -123,15 +123,15 @@
 - [x] **Biome-aware food regrowth integration test** — verifies FoodGrid with BiomeZone config produces per-cell regrowth rate variation; lush zones regrow faster than moderate zones, which regrow faster than neutral (no-zone) areas; also verifies uniform rates when no biomes configured
 - [x] **Seasonal food variation tests** — `seasonal_food_variation` verifies sinusoidal multiplier at tick 0 (baseline), peak summer (1+amplitude), peak winter (1-amplitude), and actual food accumulation at each phase; `seasonal_no_effect_when_amplitude_zero` verifies backward compatibility
 
-### Phase 7: Scientific Novelty — Publishable Mechanisms [IN PROGRESS]
+### Phase 7: Scientific Novelty — Publishable Mechanisms [COMPLETE]
 **Goal**: Implement features no other ALife platform has, targeting ALIFE 2027 submission.
 **Research council** (Nov 14, 2026) surveyed ALIFE 2023-2026 proceedings and identified 5 highest-impact features.
 
-- [ ] **Activity-dependent neural metabolism** — brain cost scales with ACTIVITY, not just structure
+- [x] **Activity-dependent neural metabolism** — brain cost scales with ACTIVITY, not just structure
   - Effective cost = structure_cost + Σ|weight × activation| per tick
   - Selects for sparse coding: brains that activate few connections are cheaper
   - Citations: Attwell & Laughlin (2001) "An Energy Budget for Signaling in the Grey Matter of the Brain", Niven & Laughlin (2008), Lennie (2003)
-- [ ] **Sexual reproduction with NEAT crossover** — the first major evolutionary transition
+- [x] **Sexual reproduction with NEAT crossover** — the first major evolutionary transition
   - Mate-finding, crossover of different-topology genomes, twofold cost of sex
   - Enables recombination: faster adaptation, Muller's ratchet prevention
   - Citations: Maynard Smith (1978) "The Evolution of Sex", Muller (1932), Stanley & Miikkulainen (2002) §3.2
@@ -152,7 +152,9 @@
   - Citations: Jablonka & Lamb (2005) "Evolution in Four Dimensions", Heard & Martienssen (2014) Cell 157(1):95-109
 
 **Planned experiments** (each: feature ON vs OFF, 5+ seeds, 500k+ ticks):
-- [ ] OEE: Show D(t) grows unboundedly — Terrarium passes the "ALife test"
+- [ ] OEE (REWORDED 2026-11-15): Show *excess* activity over a neutral shadow model is positive and unbounded — the target is Channon class 4b (unbounded median activity, bounded diversity, because hard_cap limits diversity). Raw D(t) growth alone proves nothing, since drift also grows. Design: docs/research/OEE_SHADOW_DESIGN.md (~1.5 days). Prerequisite: an order-independent topology_hash.
+- [ ] Core ALIFE 2027 paper: factorial sweep (sex × niche × epigenetics × droughts), with each mechanism scored by its excess activity over the shadow (Channon 2006; Taylor et al. 2016)
+- [ ] Follow-ups: shadow vs MODES persistence filter on the same runs (Dolson et al. 2019); hard_cap scaling sweep (does diversity saturate?)
 - [ ] Niche construction: Do niche-constructing lineages survive droughts better?
 - [ ] Epigenetics: Do stress-primed offspring outperform naïve offspring post-drought?
 - [ ] Sexual vs asexual: Does sex accelerate adaptation speed and prevent Muller's ratchet?
@@ -160,6 +162,51 @@
 **Future high-impact** (post Phase 7):
 - [ ] Horizontal gene transfer (HGT) — connection gene exchange between organisms
 - [ ] Major evolutionary transition to multicellularity — group-level selection emerging from cooperation
+
+### Phase 7.5: Correctness Fixes Before Experiments [BLOCKING — from code audit 2026-11-15]
+Experiments on the Pi are ON HOLD until these are fixed; otherwise the ON/OFF ablations measure bugs.
+The on/off switches themselves were verified to disable each feature cleanly, and no determinism or allocation violations were found.
+- [x] **A. Methylation saturates** — child_energy/max (0.15) < stress_threshold (0.3), so all newborns count as "stressed" (sim.rs:732); mean_methylation hits 0.78 by tick 2000. Fix: stress relative to reproduction threshold or a rolling energy trend; make the threshold configurable.
+- [x] **B. Methylation never affects the living brain** — brain is only built at spawn/birth (sim.rs:237, 1006); per-tick methylation changes the genome only. Either rebuild the brain periodically or document it as an inheritance-only effect.
+- [x] **C. inheritance_noise=0 panics** — empty gen_range (sim.rs:1001); uniform noise, not Gaussian as the docs say.
+- [x] **D. Old 15/6 configs read a hidden node as `construct`** (brain.rs:186); validate inputs>=19 / outputs>=7, and update configs/intense.toml.
+- [x] **E. Niche bonus ignores biomes/seasons/droughts** — additive global rate (sim.rs:1088-1101), so constructed cells regrow inside droughts. Docs say a multiplier; ConstructionGrid::regrowth_multiplier is dead code. Signed mean_construction_level cancels out.
+- [x] **F. No twofold cost of sex** — only the initiator pays (sim.rs:1031); mates can be reused without limit; the 0.5 mate factor is hard-coded (sim.rs:958).
+- [ ] **G. Crossover only mixes weights** — the child's edge set always equals the fitter parent's; hidden-node ids aren't global innovation numbers.
+- [ ] **H. OEE metrics mislabeled** — "D(t)" averages over all traits ever seen (activity.rs:110), not active ones; lineage_diversity can only decrease (hits 1 by tick 8k); sexual/asexual births are per-tick, not cumulative. **Add a neutral shadow model** (design: docs/research/OEE_SHADOW_DESIGN.md). — metric fixes done (extant-only Ā(t), windowed lineage_diversity, cumulative birth counters, order-independent topology hash v2); shadow model still open.
+- [x] **K. Hard-coded constants** → config: mate factor 0.5, construct dead zone 0.01, regrowth cutoff 0.001, structural mutation probabilities in genome.rs.
+- [x] Update stale CLAUDE.md (still says 15→6 I/O, 22 tests; config table out of date).
+- [x] Sweep tool: on/off switches for reproduction.sexual, niche_construction.enabled, epigenetics.enabled
+- [x] Pi launch script: analysis/launch_pi_phase7.sh (sims run on the Pi only — never locally)
+- [ ] README OEE section (uncommitted): its numbers and images are unverified (the images don't exist). Replace with real Pi results.
+
+### Phase 8: Explainable 3D Web Demo [IN PROGRESS — started 2026-11-15]
+**Problem**: The current demo (macroquad triangles + egui panel) looks like a game; visitors can't tell what's happening, and the stats are hard to read.
+**Goal**: A portfolio-grade, explainable visualization that makes the science legible to a non-expert in 10 seconds.
+
+**Architecture decision (D7)**: The new web front end is **Three.js + HTML/CSS dashboard**, driving sim-core compiled to WASM through a thin new crate `crates/sim-wasm`.
+It uses a plain `extern "C"` ABI and zero-copy Float32Array views into WASM memory, so it needs no wasm-bindgen tooling.
+sim-core keeps zero rendering code. The macroquad viewer stays as the native dev tool, and the old WASM page stays available at `web/classic.html`.
+
+**Visual design**:
+- 2.5D/3D world: terrain mesh from the elevation map, ground coloured by food density / biome, drought zones as dry overlays, day/night lighting.
+- Creatures as small instanced low-poly "mini agents" (body + eyes): size = body_size, colour = species, a glow/pulse for actions (eating, attacking, sharing, constructing), short motion trails.
+- Orbit camera + top-down map toggle; click a creature → follow-cam + inspector (brain graph, energy budget, lineage, trophic level).
+- Data layers toggle: food, temperature, pheromones, niche construction, elevation.
+
+**Explainability / stats**:
+- Live "what's happening" event feed in plain English (droughts, predation spikes, new species, population crashes).
+- A few headline KPIs with sparklines (population, species, mean brain size, cooperation rate, trophic level), plus a full charts tab.
+- Guided "tour" / legend overlay explaining creatures, colours, energy, evolution.
+
+**Work items**:
+- [ ] Design spec — docs/research/DEMO_UX_DESIGN.md (UX research agent)
+- [ ] crates/sim-wasm: C-ABI exports — init(config TOML), step(n), creature buffer, grids, stats JSON, events, inspect(id)
+- [ ] web/ front end (Three.js, pinned CDN version): scene, creatures, layers, dashboard, inspector, tour
+- [ ] Update deploy-pages.yml to build sim-wasm + ship the new front end
+- [ ] Portfolio card (/Users/dineshchavan/projects/portfolio-dhruv/ds.html): fix stale claims, link the new demo, add a screenshot
+- [ ] Visual QA in a browser (needs the user's OK — the demo runs the sim locally)
+- [ ] Deploy (push to main — needs the user's explicit OK)
 
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
@@ -475,3 +522,13 @@ Mutation: 10% per weight, +/-0.2 step
     - `speciation_fixed_threshold_backward_compatible`: verifies omitting config section gives identical behavior to explicit `dynamic=false`
   - Zero allocation: stride sampling is O(sample_size²) distance computations with no heap allocation beyond the existing genome distance function
   - Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through Augmenting Topologies"
+
+### Session 11 — Overnight autonomous (2026-11-15)
+- **OEE 200k-tick experiment running on Pi 5** (seed 42)
+  - Preliminary data (60k ticks): D(t) growing monotonically (0 → 46.7), novel traits declining (13 → 3)
+  - Lineage diversity collapsed to 1 (single dominant ancestor) — expected in asexual populations
+  - Methylation relaxing over time (0.29 → 0.12) — creatures becoming less stressed
+  - Max generation climbing steadily (28 → 75) — healthy generational turnover
+- **Analysis pipeline**: Created `analysis/plot_oee.py` with dark-theme plots for D(t), lineage, epigenetics
+- **Phase 7 checklist**: All 5 features now marked complete in PROGRESS.md
+- **Local code synced**: Pulled all Phase 7 commits from remote to local machine

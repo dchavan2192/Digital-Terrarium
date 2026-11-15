@@ -2,12 +2,16 @@
 //!
 //! Each tick follows this pipeline:
 //! 1. Rebuild spatial index
-//! 2. For each organism: sense → think → act
-//! 3. Eat (consume food from the grid)
-//! 4. Metabolize (deduct energy costs)
-//! 5. Reproduce (if energy > threshold and population < cap)
-//! 6. Die (old age or energy ≤ 0)
-//! 7. Regrow food
+//! 2. For each organism: sense → think (parallel, read-only, no RNG)
+//! 3. Act: turn, move, eat, metabolize, epigenetic methylation (+ brain refresh)
+//!    3b. Pheromone deposit/decay; niche construction deposit/decay
+//! 4. Combat
+//! 5. Energy sharing
+//! 6. Reproduce (asexual or sexual; both parents pay in sexual births)
+//! 7. Die (energy ≤ 0, max age, Gompertz-Makeham)
+//! 8. Droughts spawn/expire
+//! 9. Regrow food (biome × season × drought × niche-construction multiplier)
+//! 10. Stats (species, trophic, entropy, OEE activity, lineage diversity)
 //!
 //! The RNG is seeded, so identical config + seed = identical run.
 
@@ -24,8 +28,8 @@ use rand_chacha::ChaCha8Rng;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-/// Maximum number of vision rays (for stack allocation).
-const MAX_RAYS: usize = 16;
+/// Maximum number of vision rays (for stack allocation). Enforced by `Config::validate`.
+use crate::config::MAX_RAYS;
 
 /// Number of recent ticks to track per-species population for trend detection.
 const SPECIES_HISTORY_LEN: usize = 50;
@@ -64,6 +68,10 @@ pub struct Simulation {
     /// Open-ended evolution activity tracker.
     /// Citation: Bedau & Packard (1991), Dolson et al. (2019)
     activity_tracker: crate::activity::ActivityTracker,
+    /// Reusable per-tick buffer: organism already took part in a sexual mating this tick.
+    mated_buf: Vec<bool>,
+    /// Lineage diversity measured at the most recent `lineage_window` checkpoint.
+    lineage_diversity_cached: usize,
 }
 
 /// Per-species aggregate statistics.
@@ -137,9 +145,10 @@ pub struct TickStats {
     /// Mean activity-dependent brain metabolic cost per organism.
     /// Citation: Attwell & Laughlin (2001)
     pub mean_brain_activity: f64,
-    /// Sexual reproduction births this tick. Citation: Maynard Smith (1978)
+    /// Sexual reproduction births this tick (per-tick, not cumulative; see
+    /// `total_sexual_births`). Citation: Maynard Smith (1978)
     pub sexual_births: u64,
-    /// Asexual reproduction births this tick.
+    /// Asexual reproduction births this tick (per-tick; see `total_asexual_births`).
     pub asexual_births: u64,
     /// Number of active drought zones.
     pub active_droughts: usize,
@@ -147,18 +156,33 @@ pub struct TickStats {
     pub novel_traits: u64,
     /// Distinct topologies currently alive.
     pub active_traits: u64,
-    /// D(t) — mean cumulative activity. Unbounded growth = open-ended evolution.
+    /// Mean cumulative activity Ā(t) over currently active (extant) topologies —
+    /// Bedau, Snyder & Packard (1998). (Bedau's diversity D(t) is `active_traits`.)
+    /// Updated every `activity_tracking.window_size` ticks.
     pub mean_cumulative_activity: f64,
     /// Maximum generation depth in the population.
     pub max_generation: u64,
-    /// Lineage diversity: distinct root ancestors among living organisms.
+    /// Windowed lineage diversity: of the organisms alive at the previous
+    /// `lineage_window` checkpoint, how many had living descendants (or were alive)
+    /// at the latest checkpoint. Before the first checkpoint equals `founder_lineages`.
     pub lineage_diversity: usize,
-    /// Mean niche construction level across all cells.
+    /// Mean |construction level| across all cells (building and degrading both count).
     /// Citation: Odling-Smee, Laland & Feldman (2003)
     pub mean_construction_level: f64,
     /// Mean methylation level across all connections in the population.
     /// Citation: Jablonka & Lamb (2005)
     pub mean_methylation: f64,
+    /// Cumulative sexual births since tick 0.
+    pub total_sexual_births: u64,
+    /// Cumulative asexual births since tick 0.
+    pub total_asexual_births: u64,
+    /// Distinct gen-0 root ancestors among living organisms (the old, monotonically
+    /// non-increasing `lineage_diversity` definition).
+    pub founder_lineages: usize,
+    /// Signed mean construction level (net build minus degrade) across all cells.
+    pub net_construction_level: f64,
+    /// A_cum(t): total cumulative activity over currently active topologies.
+    pub total_cumulative_activity: u64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -252,6 +276,7 @@ impl Simulation {
                 energy_from_attacks: 0.0,
                 root_ancestor_id: next_id,
                 birth_tick: 0,
+                clade_id: next_id,
                 output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
                     crate::organism::NUM_OUTPUTS],
             };
@@ -279,6 +304,8 @@ impl Simulation {
             species_history: Vec::new(),
             species_representatives: Vec::new(),
             activity_tracker,
+            mated_buf: Vec::with_capacity(cap),
+            lineage_diversity_cached: 0,
         }
     }
 
@@ -317,7 +344,9 @@ impl Simulation {
         let fruit_enabled = self.config.fruit.enabled;
         let energy_per_fruit = self.config.fruit.energy_per_fruit;
         let epigenetics_enabled = self.config.epigenetics.enabled;
-        let epigenetics_stress_threshold = self.config.epigenetics.stress_threshold;
+        // Stress = reserves far below what is needed to breed (see EpigeneticsConfig).
+        let epigenetics_stress_energy = self.config.epigenetic_stress_energy();
+        let epigenetics_brain_interval = self.config.epigenetics.brain_update_interval.max(1);
         let epigenetics_methylation_rate = self.config.epigenetics.methylation_rate;
         let epigenetics_demethylation_rate = self.config.epigenetics.demethylation_rate;
 
@@ -726,10 +755,15 @@ impl Simulation {
             // Epigenetic methylation update — stress-responsive gene silencing.
             // Under stress, active connections accumulate methylation (suppression).
             // When not stressed, methylation slowly decays (demethylation).
+            // Stress is measured relative to the reproduction threshold, not to
+            // energy.maximum: an organism is stressed when its reserves are far below
+            // what it needs to breed — the state that triggers the "emergency
+            // life-history stage" (Wingfield et al. 1998) and drives state-dependent
+            // life-history decisions (McNamara & Houston 1996). Newborns
+            // (child_energy) start above this level, so they are not born stressed.
             // Citation: Jablonka & Lamb (2005), Heard & Martienssen (2014)
             if epigenetics_enabled {
-                let energy_frac = org.energy / max_energy;
-                let stressed = energy_frac < epigenetics_stress_threshold;
+                let stressed = org.energy < epigenetics_stress_energy;
                 for conn in &mut org.genome.connections {
                     if stressed && conn.enabled {
                         conn.methylation =
@@ -738,6 +772,14 @@ impl Simulation {
                         conn.methylation =
                             (conn.methylation - epigenetics_demethylation_rate).max(0.0);
                     }
+                }
+                // Within-lifetime plasticity: methylation silences expression in the
+                // living soma too, not only in offspring. Patch effective weights
+                // w·(1−m) into the existing brain in place (no allocation, no RNG).
+                // Citation: Day & Sweatt (2010) Nat. Neurosci. 13:1319-1323
+                if org.age.is_multiple_of(epigenetics_brain_interval) {
+                    let genome = &org.genome;
+                    org.brain.refresh_weights(|gi| genome.effective_weight(gi));
                 }
             }
         }
@@ -763,12 +805,13 @@ impl Simulation {
         // Citation: Odling-Smee, Laland & Feldman (2003)
         if self.config.niche_construction.enabled {
             let construct_cost = self.config.niche_construction.energy_cost;
+            let construct_dead_zone = self.config.niche_construction.activation_threshold;
             for (i, org) in self.organisms.iter_mut().enumerate() {
                 if !org.alive {
                     continue;
                 }
                 let intensity = self.actions[i].construct;
-                if intensity.abs() > 0.01 {
+                if intensity.abs() > construct_dead_zone {
                     self.construction_grid
                         .modify(org.pos_x, org.pos_y, intensity);
                     org.energy -= intensity.abs() * construct_cost;
@@ -928,12 +971,19 @@ impl Simulation {
         let mate_range = self.config.reproduction.mate_range;
         let crossover_rate = self.config.reproduction.crossover_rate;
         let fitness_bias = self.config.reproduction.fitness_bias;
+        // Twofold cost of sex: the mate pays too (default = parent_cost), so a pair
+        // spends twice the energy per offspring while each transmits half its genes.
+        // Citation: Maynard Smith (1978) "The Evolution of Sex"
+        let mate_cost = self.config.reproduction.effective_mate_cost();
+        let mate_min_energy = repro_threshold * self.config.reproduction.mate_energy_fraction;
+        let mutation_cfg = &self.config.mutation;
         let mut sexual_births = 0u64;
         let mut asexual_births = 0u64;
 
-        // Snapshot energy for mate eligibility (avoids borrow conflicts)
-        let energy_snapshot: Vec<(f64, bool)> =
-            self.organisms.iter().map(|o| (o.energy, o.alive)).collect();
+        // Each organism takes part in at most one sexual mating per tick (as
+        // initiator or as mate). Reused buffer — no per-tick allocation after warm-up.
+        self.mated_buf.clear();
+        self.mated_buf.resize(self.organisms.len(), false);
 
         for parent_idx in 0..self.organisms.len() {
             let org = &self.organisms[parent_idx];
@@ -943,19 +993,27 @@ impl Simulation {
             if org.energy < repro_threshold || (current_alive + offspring.len()) >= hard_cap {
                 continue;
             }
+            // Already mated this tick (as someone's mate): no second birth this tick.
+            if self.mated_buf[parent_idx] {
+                continue;
+            }
+            let mut paid_mate: Option<usize> = None;
 
             let mut child_genome = if sexual {
-                // Try to find a mate nearby
+                // Try to find a mate nearby. Eligibility uses *live* energy so a mate
+                // that already paid for a birth this tick is judged on what it has left.
                 let mut best_mate: Option<usize> = None;
                 let mut best_dist_sq = mate_range * mate_range;
                 let px = org.pos_x;
                 let py = org.pos_y;
+                let organisms = &self.organisms;
+                let mated = &self.mated_buf;
                 self.spatial_grid.for_each_nearby(px, py, |j| {
-                    if j == parent_idx {
+                    if j == parent_idx || mated[j] {
                         return;
                     }
-                    let (mate_energy, mate_alive) = energy_snapshot[j];
-                    if !mate_alive || mate_energy < repro_threshold * 0.5 {
+                    let mate = &organisms[j];
+                    if !mate.alive || mate.energy < mate_min_energy || mate.energy <= mate_cost {
                         return;
                     }
                     let (mx, my) = (self.positions[j].0, self.positions[j].1);
@@ -978,28 +1036,50 @@ impl Simulation {
                             self.rng.r#gen::<bool>()
                         };
                         sexual_births += 1;
-                        Genome::crossover(&org.genome, &mate.genome, a_is_fitter, &mut self.rng)
+                        paid_mate = Some(mate_idx);
+                        Genome::crossover(
+                            &org.genome,
+                            &mate.genome,
+                            a_is_fitter,
+                            mutation_cfg,
+                            &mut self.rng,
+                        )
                     } else {
                         asexual_births += 1;
-                        org.genome.reproduce(&mut self.rng)
+                        org.genome.reproduce(mutation_cfg, &mut self.rng)
                     }
                 } else {
                     // No mate found — asexual fallback
                     asexual_births += 1;
-                    org.genome.reproduce(&mut self.rng)
+                    org.genome.reproduce(mutation_cfg, &mut self.rng)
                 }
             } else {
                 asexual_births += 1;
-                org.genome.reproduce(&mut self.rng)
+                org.genome.reproduce(mutation_cfg, &mut self.rng)
             };
 
-            // Epigenetic inheritance: child inherits methylation ± noise.
-            // Citation: Jablonka & Lamb (2005), Heard & Martienssen (2014)
+            // Epigenetic inheritance: child inherits methylation + Gaussian
+            // epimutation noise N(0, σ²) via Box-Muller from two uniform draws
+            // (rand 0.8 without rand_distr; deterministic on the sim RNG).
+            // Only existing marks (m > 0) are perturbed: unmarked sites stay
+            // unmarked, avoiding the upward drift that clamping symmetric noise at
+            // 0 would cause on the (majority) zero-methylation sites.
+            // σ = 0 → faithful inheritance with no RNG draws.
+            // Citation: Jablonka & Lamb (2005), Heard & Martienssen (2014),
+            //           Box & Muller (1958) Ann. Math. Stat. 29:610-611
             if epigenetics_enabled {
                 let noise_sigma = self.config.epigenetics.inheritance_noise;
-                for conn in &mut child_genome.connections {
-                    let noise = self.rng.gen_range(-noise_sigma..noise_sigma);
-                    conn.methylation = (conn.methylation + noise).clamp(0.0, 1.0);
+                if noise_sigma > 0.0 {
+                    for conn in &mut child_genome.connections {
+                        if conn.methylation <= 0.0 {
+                            continue;
+                        }
+                        // u1 ∈ (0, 1] so ln(u1) is finite.
+                        let u1 = 1.0 - self.rng.r#gen::<f64>();
+                        let u2 = self.rng.r#gen::<f64>();
+                        let z = (-2.0 * u1.ln()).sqrt() * (std::f64::consts::TAU * u2).cos();
+                        conn.methylation = (conn.methylation + noise_sigma * z).clamp(0.0, 1.0);
+                    }
                 }
             }
 
@@ -1024,11 +1104,17 @@ impl Simulation {
                 energy_from_attacks: 0.0,
                 root_ancestor_id: org.root_ancestor_id,
                 birth_tick: self.tick,
+                clade_id: org.clade_id,
                 output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
                     crate::organism::NUM_OUTPUTS],
             };
             self.next_id += 1;
             self.organisms[parent_idx].energy -= parent_cost;
+            if let Some(m) = paid_mate {
+                self.organisms[m].energy -= mate_cost;
+                self.mated_buf[m] = true;
+                self.mated_buf[parent_idx] = true;
+            }
             births += 1;
             offspring.push(child);
         }
@@ -1077,28 +1163,22 @@ impl Simulation {
         self.food_grid
             .maybe_spawn_drought(&self.config.food.droughts, &mut self.rng);
 
-        // 8. Regrow food (with seasonal modulation + drought suppression)
+        // 8. Regrow food (with seasonal modulation + drought suppression).
+        // Niche construction multiplies each cell's *actual* algae regrowth by
+        // (1 + level × regrowth_bonus), so it respects biome, season and drought.
         // Citation: Botkin (1990) "Forest Dynamics" — sinusoidal resource oscillation
-        self.food_grid
-            .regrow(self.tick, &self.config.food.seasons, fruit_enabled);
-
-        // Niche construction bonus: constructed areas get extra food regrowth.
-        // Citation: Odling-Smee, Laland & Feldman (2003)
-        if self.config.niche_construction.enabled {
-            let max = self.food_grid.max_per_cell;
-            let bonus = self.config.niche_construction.regrowth_bonus;
-            for row in 0..self.food_grid.rows {
-                for col in 0..self.food_grid.cols {
-                    let idx = row * self.food_grid.cols + col;
-                    let level = self.construction_grid.cells[idx];
-                    if level.abs() > 0.001 {
-                        let extra = self.food_grid.regrowth_rate * level * bonus;
-                        self.food_grid.cells[idx] =
-                            (self.food_grid.cells[idx] + extra).clamp(0.0, max);
-                    }
-                }
-            }
-        }
+        // Citation: Odling-Smee, Laland & Feldman (2003) — niche construction
+        let construction = if self.config.niche_construction.enabled {
+            Some(&self.construction_grid)
+        } else {
+            None
+        };
+        self.food_grid.regrow_with_construction(
+            self.tick,
+            &self.config.food.seasons,
+            fruit_enabled,
+            construction,
+        );
 
         // Update stats
         let population = self.organisms.len();
@@ -1411,10 +1491,12 @@ impl Simulation {
         if self.config.activity_tracking.enabled {
             self.activity_tracker.update(
                 self.tick,
-                self.organisms
-                    .iter()
-                    .filter(|o| o.alive)
-                    .map(|o| crate::activity::topology_hash(&o.genome)),
+                self.organisms.iter().filter(|o| o.alive).map(|o| {
+                    crate::activity::topology_hash_versioned(
+                        &o.genome,
+                        self.config.activity_tracking.hash_version,
+                    )
+                }),
             );
         }
         let activity_stats = &self.activity_tracker.stats;
@@ -1427,7 +1509,7 @@ impl Simulation {
             .max()
             .unwrap_or(0);
 
-        let lineage_diversity = {
+        let founder_lineages = {
             let mut roots: Vec<u64> = self
                 .organisms
                 .iter()
@@ -1437,6 +1519,33 @@ impl Simulation {
             roots.sort_unstable();
             roots.dedup();
             roots.len()
+        };
+
+        // Windowed lineage diversity (coalescent-style): at each checkpoint, count
+        // how many clade founders from the previous checkpoint still have living
+        // descendants, then make every living organism a founder of its own clade.
+        // Founder (gen-0) counts inevitably coalesce to 1; this measure stays
+        // informative for the whole run. No RNG; does not affect dynamics.
+        // Citation: Dolson et al. (2019) "The MODES Toolbox" (lineage/persistence)
+        let lineage_window = self.config.activity_tracking.lineage_window.max(1);
+        if self.tick.is_multiple_of(lineage_window) {
+            let mut clades: Vec<u64> = self
+                .organisms
+                .iter()
+                .filter(|o| o.alive)
+                .map(|o| o.clade_id)
+                .collect();
+            clades.sort_unstable();
+            clades.dedup();
+            self.lineage_diversity_cached = clades.len();
+            for o in &mut self.organisms {
+                o.clade_id = o.id;
+            }
+        }
+        let lineage_diversity = if self.tick < lineage_window {
+            founder_lineages
+        } else {
+            self.lineage_diversity_cached
         };
 
         self.stats = TickStats {
@@ -1474,11 +1583,21 @@ impl Simulation {
             max_generation,
             lineage_diversity,
             mean_construction_level: if self.config.niche_construction.enabled {
+                let sum: f64 = self.construction_grid.cells.iter().map(|c| c.abs()).sum();
+                sum / self.construction_grid.cells.len() as f64
+            } else {
+                0.0
+            },
+            net_construction_level: if self.config.niche_construction.enabled {
                 let sum: f64 = self.construction_grid.cells.iter().sum();
                 sum / self.construction_grid.cells.len() as f64
             } else {
                 0.0
             },
+            total_sexual_births: self.stats.total_sexual_births + sexual_births,
+            total_asexual_births: self.stats.total_asexual_births + asexual_births,
+            founder_lineages,
+            total_cumulative_activity: activity_stats.total_cumulative_activity,
             mean_methylation: if self.config.epigenetics.enabled && population > 0 {
                 let (total_meth, total_conns) =
                     self.organisms

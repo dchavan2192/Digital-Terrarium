@@ -124,7 +124,12 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         "creature.max_speed" => config.creature.max_speed = value,
         "creature.max_turn" => config.creature.max_turn = value,
         "creature.max_age" => config.creature.max_age = value as u64,
-        "creature.vision.ray_count" => config.creature.vision.ray_count = value as usize,
+        "creature.vision.ray_count" => {
+            // Brain inputs are 2 per ray + fixed scalar senses; keep them in sync.
+            config.creature.vision.ray_count = value as usize;
+            config.brain.inputs =
+                2 * config.creature.vision.ray_count + sim_core::config::NUM_SCALAR_INPUTS;
+        }
         "creature.vision.fov" => config.creature.vision.fov = value,
         "creature.vision.range" => config.creature.vision.range = value,
 
@@ -158,6 +163,11 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         // Sharing
         "sharing.share_range" => config.sharing.share_range = value,
         "sharing.share_amount" => config.sharing.share_amount = value,
+
+        // Feature toggles (0 = off, nonzero = on) for ON/OFF ablation experiments
+        "reproduction.sexual" => config.reproduction.sexual = value != 0.0,
+        "niche_construction.enabled" => config.niche_construction.enabled = value != 0.0,
+        "epigenetics.enabled" => config.epigenetics.enabled = value != 0.0,
 
         _ => return false,
     }
@@ -198,6 +208,9 @@ fn print_supported_params() {
         "combat.attack_cost",
         "combat.attack_damage",
         "combat.energy_transfer_ratio",
+        "reproduction.sexual",
+        "niche_construction.enabled",
+        "epigenetics.enabled",
         "sharing.share_range",
         "sharing.share_amount",
     ];

@@ -190,14 +190,14 @@ impl Genome {
 
     /// Produce a mutated offspring genome.
     ///
-    /// NEAT mutations applied:
-    /// 1. Weight perturbation (per-connection, at mutation_rate)
-    /// 2. Add connection (3%) — new edge between unconnected feed-forward pair
-    /// 3. Add node (1%) — split existing connection with a new hidden node
-    /// 4. Toggle connection (1%) — flip enabled/disabled
-    /// 5. Prune connection (2%) — delete a random connection
-    /// 6. Body/aging/color trait mutations (unchanged from previous)
-    pub fn reproduce(&self, rng: &mut impl Rng) -> Self {
+    /// NEAT mutations applied (probabilities from `[mutation]`, defaults in parens):
+    /// 1. Weight perturbation (per-connection, at the evolvable mutation_rate)
+    /// 2. Add connection (`add_connection_probability`, 2%)
+    /// 3. Add node (`add_node_probability`, 1%) — split a connection with a hidden node
+    /// 4. Toggle connection (`toggle_probability`, 1%) — flip enabled/disabled
+    /// 5. Prune connection (`prune_probability`, 4%) — delete a random connection
+    /// 6. Scalar trait mutations (`trait_probability`, 5% each) + color drift
+    pub fn reproduce(&self, mcfg: &MutationConfig, rng: &mut impl Rng) -> Self {
         let mut child = self.clone();
 
         // 1. Mutate connection weights
@@ -207,69 +207,69 @@ impl Genome {
             }
         }
 
-        // 2. Add connection (2% chance — lowered from 3% to balance with 4% pruning)
+        // 2. Add connection (default 2% — balanced against 4% pruning)
         // Citation: Stanley & Miikkulainen (2002) — structural mutation adds connections
         // Citation: Dolson & Park (2012) — prune rate should be 1.5-2x add rate
-        if rng.r#gen::<f64>() < 0.02 {
+        if rng.r#gen::<f64>() < mcfg.add_connection_probability {
             child.mutate_add_connection(rng);
         }
 
-        // 3. Add node (1% chance) — split existing connection
+        // 3. Add node (default 1%) — split existing connection
         // Citation: Stanley & Miikkulainen (2002) — add-node splits A→B into A→C→B
-        if rng.r#gen::<f64>() < 0.01 {
+        if rng.r#gen::<f64>() < mcfg.add_node_probability {
             child.mutate_add_node(rng);
         }
 
-        // 4. Toggle connection (1% chance)
-        if rng.r#gen::<f64>() < 0.01 && !child.connections.is_empty() {
+        // 4. Toggle connection (default 1%)
+        if rng.r#gen::<f64>() < mcfg.toggle_probability && !child.connections.is_empty() {
             let idx = rng.gen_range(0..child.connections.len());
             child.connections[idx].enabled = !child.connections[idx].enabled;
         }
 
-        // 4b. Prune connection (4% chance — doubled from 2%, now 2x the add rate).
+        // 4b. Prune connection (default 4% — 2x the add rate).
         // Dolson & Park (2012, Swarthmore) showed prune rate must exceed add rate
         // to prevent monotonic complexity growth in continuous evolution.
         // Combined with per-connection brain cost (Attwell & Laughlin 2001),
         // this creates genuine selection pressure for efficient brain topology.
-        if rng.r#gen::<f64>() < 0.04 && child.connections.len() > 1 {
+        if rng.r#gen::<f64>() < mcfg.prune_probability && child.connections.len() > 1 {
             let idx = rng.gen_range(0..child.connections.len());
             child.connections.remove(idx);
         }
 
         // 5. Mutate the mutation rate itself (meta-mutation)
-        if rng.r#gen::<f64>() < 0.05 {
+        if rng.r#gen::<f64>() < mcfg.trait_probability {
             child.mutation_rate *= rng.gen_range(0.8..1.2);
             child.mutation_rate = child.mutation_rate.clamp(0.001, 1.0);
         }
 
         // 6. Mutate the step size
-        if rng.r#gen::<f64>() < 0.05 {
+        if rng.r#gen::<f64>() < mcfg.trait_probability {
             child.mutation_step *= rng.gen_range(0.8..1.2);
             child.mutation_step = child.mutation_step.clamp(0.01, 2.0);
         }
 
         // 7. Mutate aging rate
-        if rng.r#gen::<f64>() < 0.05 {
+        if rng.r#gen::<f64>() < mcfg.trait_probability {
             child.aging_rate *= rng.gen_range(0.8..1.2);
             child.aging_rate = child.aging_rate.clamp(0.0001, 0.01);
         }
 
         // 8. Mutate body size
-        if rng.r#gen::<f64>() < 0.05 {
+        if rng.r#gen::<f64>() < mcfg.trait_probability {
             child.body_size *= rng.gen_range(0.9..1.1);
             child.body_size = child.body_size.clamp(0.5, 3.0);
         }
 
         // 9. Mutate preferred temperature — Bergmann (1847): temperature drives adaptation
         // Selection pressure from the N-S gradient causes directional evolution
-        if rng.r#gen::<f64>() < 0.05 {
+        if rng.r#gen::<f64>() < mcfg.trait_probability {
             child.preferred_temp += rng.gen_range(-0.1..0.1);
             child.preferred_temp = child.preferred_temp.clamp(0.0, 1.0);
         }
 
         // 10. Mutate diet preference — Grant & Grant (2006): character displacement
         // Resource partitioning between algae and fruit specialists drives speciation
-        if rng.r#gen::<f64>() < 0.05 {
+        if rng.r#gen::<f64>() < mcfg.trait_probability {
             child.diet_preference += rng.gen_range(-0.1..0.1);
             child.diet_preference = child.diet_preference.clamp(0.0, 1.0);
         }
@@ -440,6 +440,14 @@ impl Genome {
         Brain::from_neat(self.num_inputs, self.num_outputs, &hidden, &conns)
     }
 
+    /// Effective (methylation-suppressed) weight of connection gene `idx`.
+    /// Must match the formula in [`Genome::build_brain`].
+    #[inline]
+    pub fn effective_weight(&self, idx: usize) -> f64 {
+        let c = &self.connections[idx];
+        c.weight * (1.0 - c.methylation)
+    }
+
     /// NEAT crossover: produce offspring from two parents with potentially different topologies.
     ///
     /// - Matching genes (same from,to): randomly inherit from either parent (50/50)
@@ -453,6 +461,7 @@ impl Genome {
         parent_a: &Genome,
         parent_b: &Genome,
         a_is_fitter: bool,
+        mcfg: &MutationConfig,
         rng: &mut impl Rng,
     ) -> Self {
         let (fitter, weaker) = if a_is_fitter {
@@ -557,7 +566,7 @@ impl Genome {
             .sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
 
         // Apply standard mutations
-        child = child.reproduce(rng);
+        child = child.reproduce(mcfg, rng);
 
         child
     }

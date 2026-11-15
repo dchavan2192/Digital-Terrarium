@@ -155,6 +155,30 @@ impl FoodGrid {
     /// Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
     /// Citation: Holling (1973), Connell (1978) — drought disturbance
     pub fn regrow(&mut self, tick: u64, seasons: &SeasonsConfig, fruit_enabled: bool) {
+        self.regrow_with_construction(tick, seasons, fruit_enabled, None);
+    }
+
+    /// Like [`FoodGrid::regrow`], but algae regrowth in each cell is additionally
+    /// multiplied by the niche-construction multiplier of that cell
+    /// (`1 + level × regrowth_bonus`, floored at 0). Because it multiplies the cell's
+    /// actual rate, construction respects biomes, seasons and drought suppression:
+    /// a built-up cell inside a drought still regrows at (almost) nothing.
+    /// The construction grid must share this grid's dimensions.
+    /// Citation: Odling-Smee, Laland & Feldman (2003)
+    pub fn regrow_with_construction(
+        &mut self,
+        tick: u64,
+        seasons: &SeasonsConfig,
+        fruit_enabled: bool,
+        construction: Option<&ConstructionGrid>,
+    ) {
+        if let Some(cg) = construction {
+            assert_eq!(
+                cg.cells.len(),
+                self.cells.len(),
+                "construction grid must match food grid dimensions"
+            );
+        }
         let max = self.max_per_cell;
         let seasonal = seasonal_multiplier(tick, seasons);
         let half_cell = self.cell_size * 0.5;
@@ -188,7 +212,12 @@ impl FoodGrid {
                     mult
                 };
 
-                self.cells[idx] = (self.cells[idx] + rate * seasonal * drought_mult).min(max);
+                let construction_mult = match construction {
+                    Some(cg) => cg.regrowth_multiplier_at(idx),
+                    None => 1.0,
+                };
+                self.cells[idx] =
+                    (self.cells[idx] + rate * seasonal * drought_mult * construction_mult).min(max);
 
                 // Regrow fruit in biome cells
                 if fruit_enabled {
@@ -626,7 +655,12 @@ impl ConstructionGrid {
     /// Positive construction boosts regrowth; negative suppresses it.
     #[inline]
     pub fn regrowth_multiplier(&self, x: f64, y: f64) -> f64 {
-        let idx = self.cell_index(x, y);
+        self.regrowth_multiplier_at(self.cell_index(x, y))
+    }
+
+    /// Regrowth multiplier for flat cell index `idx` (same layout as `FoodGrid`).
+    #[inline]
+    pub fn regrowth_multiplier_at(&self, idx: usize) -> f64 {
         (1.0 + self.cells[idx] * self.regrowth_bonus).max(0.0)
     }
 
