@@ -42,6 +42,8 @@ pub struct Config {
     pub elevation: ElevationConfig,
     #[serde(default)]
     pub activity_tracking: ActivityTrackingConfig,
+    #[serde(default)]
+    pub niche_construction: NicheConstructionConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -576,6 +578,45 @@ pub struct ActivityTrackingConfig {
     pub enabled: bool,
     /// Compute activity stats every N ticks (amortizes hashing cost).
     pub window_size: u64,
+}
+
+/// Niche construction — organisms modify their local environment.
+///
+/// Positive construction deposits material that boosts local food regrowth;
+/// negative construction degrades it. Material decays over time.
+/// This creates ecological inheritance: offspring inherit a modified environment.
+///
+/// Citation: Odling-Smee, F.J., Laland, K.N. & Feldman, M.W. (2003)
+///   "Niche Construction: The Neglected Process in Evolution" Princeton UP
+/// Citation: Laland, K.N. et al. (1999) "Evolutionary consequences of niche
+///   construction" PNAS 96:10242-10247
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct NicheConstructionConfig {
+    pub enabled: bool,
+    /// Rate of material deposit/removal per tick when construct output is active.
+    pub deposit_rate: f64,
+    /// Multiplicative decay per tick (0.999 = slow decay, 0.99 = fast decay).
+    pub decay_rate: f64,
+    /// Maximum construction level per cell.
+    pub max_level: f64,
+    /// How much construction level boosts food regrowth (multiplier per unit level).
+    pub regrowth_bonus: f64,
+    /// Energy cost per unit of construction activity.
+    pub energy_cost: f64,
+}
+
+impl Default for NicheConstructionConfig {
+    fn default() -> Self {
+        NicheConstructionConfig {
+            enabled: false,
+            deposit_rate: 0.05,
+            decay_rate: 0.999,
+            max_level: 1.0,
+            regrowth_bonus: 0.5,
+            energy_cost: 0.5,
+        }
+    }
 }
 
 impl Default for ActivityTrackingConfig {

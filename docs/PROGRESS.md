@@ -140,7 +140,7 @@
   - Lineage tracking: generation depth, lineage diversity, coalescence
   - THE measurement that proves the sim produces genuine open-ended evolution
   - Citations: Bedau & Packard (1991), Dolson et al. (2019) "The MODES Toolbox" *Artificial Life* 25(1):50-73, Taylor et al. (2016)
-- [ ] **Niche construction** — organisms modify their environment (ecological inheritance)
+- [x] **Niche construction** — organisms modify their environment (ecological inheritance)
   - Construction grid: organisms deposit/remove material that alters local food regrowth
   - Creates a second inheritance system beyond the genome
   - No neural-agent ALife platform has this — completely novel

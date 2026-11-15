@@ -5,8 +5,8 @@
 //! fast neighbor lookups (vision rays, eating range).
 
 use crate::config::{
-    DroughtConfig, ElevationConfig, FoodConfig, FruitConfig, PheromoneConfig, SeasonsConfig,
-    WorldConfig,
+    DroughtConfig, ElevationConfig, FoodConfig, FruitConfig, NicheConstructionConfig,
+    PheromoneConfig, SeasonsConfig, WorldConfig,
 };
 
 /// The food resource layer. A grid of cells that regrow over time.
@@ -570,6 +570,83 @@ pub fn wraparound_delta(a: f64, b: f64, size: f64) -> f64 {
         d += size;
     }
     d
+}
+
+/// Niche construction grid — organisms deposit/remove material that modifies
+/// local food regrowth rates, creating ecological inheritance.
+///
+/// Citation: Odling-Smee, Laland & Feldman (2003) "Niche Construction"
+/// Citation: Laland et al. (1999) PNAS 96:10242-10247
+#[derive(Debug, Clone)]
+pub struct ConstructionGrid {
+    pub cols: usize,
+    pub rows: usize,
+    pub cell_size: f64,
+    pub cells: Vec<f64>,
+    deposit_rate: f64,
+    decay_rate: f64,
+    max_level: f64,
+    regrowth_bonus: f64,
+}
+
+impl ConstructionGrid {
+    pub fn new(world: &WorldConfig, cell_size: f64, cfg: &NicheConstructionConfig) -> Self {
+        let cols = (world.width / cell_size).ceil() as usize;
+        let rows = (world.height / cell_size).ceil() as usize;
+        ConstructionGrid {
+            cols,
+            rows,
+            cell_size,
+            cells: vec![0.0f64; cols * rows],
+            deposit_rate: cfg.deposit_rate,
+            decay_rate: cfg.decay_rate,
+            max_level: cfg.max_level,
+            regrowth_bonus: cfg.regrowth_bonus,
+        }
+    }
+
+    /// Deposit or remove construction material at (x, y).
+    /// `intensity` is the brain output [-1, 1]: positive builds, negative degrades.
+    #[inline]
+    pub fn modify(&mut self, x: f64, y: f64, intensity: f64) {
+        let idx = self.cell_index(x, y);
+        self.cells[idx] = (self.cells[idx] + intensity * self.deposit_rate)
+            .clamp(-self.max_level, self.max_level);
+    }
+
+    /// Multiplicative decay toward zero.
+    #[inline]
+    pub fn decay(&mut self) {
+        for c in self.cells.iter_mut() {
+            *c *= self.decay_rate;
+        }
+    }
+
+    /// Food regrowth multiplier at (x, y): 1.0 + level * regrowth_bonus.
+    /// Positive construction boosts regrowth; negative suppresses it.
+    #[inline]
+    pub fn regrowth_multiplier(&self, x: f64, y: f64) -> f64 {
+        let idx = self.cell_index(x, y);
+        (1.0 + self.cells[idx] * self.regrowth_bonus).max(0.0)
+    }
+
+    /// Raw construction level at (x, y), normalized to [-1, 1].
+    #[inline]
+    pub fn level_at(&self, x: f64, y: f64) -> f64 {
+        let idx = self.cell_index(x, y);
+        if self.max_level > 0.0 {
+            (self.cells[idx] / self.max_level).clamp(-1.0, 1.0)
+        } else {
+            0.0
+        }
+    }
+
+    #[inline(always)]
+    fn cell_index(&self, x: f64, y: f64) -> usize {
+        let col = ((x / self.cell_size) as usize).min(self.cols - 1);
+        let row = ((y / self.cell_size) as usize).min(self.rows - 1);
+        row * self.cols + col
+    }
 }
 
 /// Wrap a coordinate into [0, size).

@@ -15,7 +15,8 @@ use crate::config::Config;
 use crate::genome::Genome;
 use crate::organism::{Organism, OrganismId};
 use crate::world::{
-    ElevationMap, FoodGrid, PheromoneGrid, SpatialGrid, wrap_coord, wraparound_delta,
+    ConstructionGrid, ElevationMap, FoodGrid, PheromoneGrid, SpatialGrid, wrap_coord,
+    wraparound_delta,
 };
 use rand::Rng;
 use rand::SeedableRng;
@@ -41,6 +42,9 @@ pub struct Simulation {
     /// Elevation map — slope movement penalty (MacArthur & Wilson 1967).
     /// Only active when `config.elevation.enabled`.
     pub elevation_map: ElevationMap,
+    /// Niche construction grid — organisms modify local environment.
+    /// Citation: Odling-Smee, Laland & Feldman (2003)
+    pub construction_grid: ConstructionGrid,
     pub spatial_grid: SpatialGrid,
     pub rng: ChaCha8Rng,
     next_id: OrganismId,
@@ -149,6 +153,9 @@ pub struct TickStats {
     pub max_generation: u64,
     /// Lineage diversity: distinct root ancestors among living organisms.
     pub lineage_diversity: usize,
+    /// Mean niche construction level across all cells.
+    /// Citation: Odling-Smee, Laland & Feldman (2003)
+    pub mean_construction_level: f64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -163,6 +170,7 @@ struct Action {
     attack: f64,
     signal: f64,
     share: f64,
+    construct: f64,
     alive: bool,
     neighbor_count: u32,
     brain_activity: f64,
@@ -177,6 +185,7 @@ impl Default for Action {
             attack: 0.0,
             signal: 0.0,
             share: 0.0,
+            construct: 0.0,
             alive: false,
             neighbor_count: 0,
             brain_activity: 0.0,
@@ -194,6 +203,12 @@ impl Simulation {
         // Citation: Wilson (1975), Deneubourg et al. (1990)
         let pheromone_grid =
             PheromoneGrid::new(&config.world, config.food.cell_size, &config.pheromones);
+
+        let construction_grid = ConstructionGrid::new(
+            &config.world,
+            config.food.cell_size,
+            &config.niche_construction,
+        );
 
         // Elevation map — multi-octave sine terrain.
         // Citation: MacArthur & Wilson (1967), Wright (1943)
@@ -250,6 +265,7 @@ impl Simulation {
             organisms,
             food_grid,
             pheromone_grid,
+            construction_grid,
             elevation_map,
             spatial_grid,
             rng,
@@ -351,6 +367,7 @@ impl Simulation {
         let organisms = &self.organisms;
         let food_grid = &self.food_grid;
         let pheromone_grid = &self.pheromone_grid;
+        let construction_grid = &self.construction_grid;
         let spatial_grid = &self.spatial_grid;
 
         let iter = 0..organism_count;
@@ -521,6 +538,12 @@ impl Simulation {
                 // 1.0 when day/night system is disabled (always day).
                 // Citation: Kronfeld-Schor & Dayan (2003)
                 inputs[idx] = light_level;
+                idx += 1;
+
+                // Input 19: local niche construction level [-1, 1].
+                // 0.0 when niche construction is disabled (grid stays zeroed).
+                // Citation: Odling-Smee, Laland & Feldman (2003)
+                inputs[idx] = construction_grid.level_at(ox, oy);
 
                 let brain_inputs = &inputs[..organisms[i].brain.inputs];
                 let (output, brain_activity) = organisms[i].brain.forward(brain_inputs);
@@ -532,6 +555,7 @@ impl Simulation {
                     attack: output.attack,
                     signal: output.signal,
                     share: output.share,
+                    construct: output.construct,
                     alive: true,
                     neighbor_count,
                     brain_activity,
@@ -604,6 +628,7 @@ impl Simulation {
                     action.attack,
                     action.signal,
                     action.share,
+                    action.construct,
                 ];
                 for (o, &raw_val) in raw_outputs.iter().enumerate().take(NUM_OUTPUTS) {
                     // Exponential decay of existing bin counts
@@ -707,6 +732,24 @@ impl Simulation {
                 self.pheromone_grid.deposit(org.pos_x, org.pos_y);
             }
             self.pheromone_grid.decay();
+        }
+
+        // Niche construction — organisms deposit/remove environmental material.
+        // Citation: Odling-Smee, Laland & Feldman (2003)
+        if self.config.niche_construction.enabled {
+            let construct_cost = self.config.niche_construction.energy_cost;
+            for (i, org) in self.organisms.iter_mut().enumerate() {
+                if !org.alive {
+                    continue;
+                }
+                let intensity = self.actions[i].construct;
+                if intensity.abs() > 0.01 {
+                    self.construction_grid
+                        .modify(org.pos_x, org.pos_y, intensity);
+                    org.energy -= intensity.abs() * construct_cost;
+                }
+            }
+            self.construction_grid.decay();
         }
 
         // 4. Combat — predator-prey energy transfer
@@ -1003,6 +1046,24 @@ impl Simulation {
         // Citation: Botkin (1990) "Forest Dynamics" — sinusoidal resource oscillation
         self.food_grid
             .regrow(self.tick, &self.config.food.seasons, fruit_enabled);
+
+        // Niche construction bonus: constructed areas get extra food regrowth.
+        // Citation: Odling-Smee, Laland & Feldman (2003)
+        if self.config.niche_construction.enabled {
+            let max = self.food_grid.max_per_cell;
+            let bonus = self.config.niche_construction.regrowth_bonus;
+            for row in 0..self.food_grid.rows {
+                for col in 0..self.food_grid.cols {
+                    let idx = row * self.food_grid.cols + col;
+                    let level = self.construction_grid.cells[idx];
+                    if level.abs() > 0.001 {
+                        let extra = self.food_grid.regrowth_rate * level * bonus;
+                        self.food_grid.cells[idx] =
+                            (self.food_grid.cells[idx] + extra).clamp(0.0, max);
+                    }
+                }
+            }
+        }
 
         // Update stats
         let population = self.organisms.len();
@@ -1377,6 +1438,12 @@ impl Simulation {
             mean_cumulative_activity: activity_stats.mean_cumulative_activity,
             max_generation,
             lineage_diversity,
+            mean_construction_level: if self.config.niche_construction.enabled {
+                let sum: f64 = self.construction_grid.cells.iter().sum();
+                sum / self.construction_grid.cells.len() as f64
+            } else {
+                0.0
+            },
             species: species_infos,
         };
     }

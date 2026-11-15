@@ -72,6 +72,9 @@ pub struct BrainOutput {
     /// Share intent — if > 0.0, transfer energy to nearest neighbor.
     /// Citation: Hamilton (1964) kin selection, Trivers (1971) reciprocal altruism
     pub share: f64,
+    /// Niche construction intent [-1, 1]. Positive = deposit, negative = degrade.
+    /// Citation: Odling-Smee, Laland & Feldman (2003)
+    pub construct: f64,
 }
 
 impl Brain {
@@ -180,6 +183,7 @@ impl Brain {
                 attack: act[o + 3],              // > 0.0 means try to attack
                 signal: act[o + 4],              // [-1, 1] broadcast signal
                 share: act[o + 5],               // > 0.0 means share energy
+                construct: act[o + 6],           // [-1, 1] niche construction
             },
             activity_sum,
         )

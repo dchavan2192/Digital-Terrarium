@@ -59,9 +59,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -87,9 +87,9 @@ fn config_loads_from_default_toml() {
     assert_eq!(cfg.world.width, 1000.0);
     assert_eq!(cfg.world.height, 1000.0);
     assert_eq!(cfg.creature.initial_count, 300);
-    assert_eq!(cfg.brain.inputs, 18);
+    assert_eq!(cfg.brain.inputs, 19);
     assert_eq!(cfg.brain.hidden, 8);
-    assert_eq!(cfg.brain.outputs, 6);
+    assert_eq!(cfg.brain.outputs, 7);
 }
 
 #[test]
@@ -129,9 +129,9 @@ child_energy = 50.0
 weight_probability = 0.1
 weight_step = 0.2
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 [aging]
 extrinsic_mortality = 0.0001
 initial_senescence = 0.00001
@@ -271,9 +271,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -314,8 +314,8 @@ fn brain_topology_matches_genome() {
         assert_eq!(org.brain.outputs, sim.config.brain.outputs);
         // Initial population should have 8 hidden nodes
         assert_eq!(org.genome.hidden_nodes.len(), 8);
-        // Connection count: bias→8h + 18i→8h + bias→6o + 8h→6o = 8+144+6+48 = 206
-        assert_eq!(org.brain.connection_count(), 206);
+        // Connection count: bias→8h + 19i→8h + bias→7o + 8h→7o = 8+152+7+56 = 223
+        assert_eq!(org.brain.connection_count(), 223);
     }
 }
 
@@ -381,9 +381,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -534,7 +534,7 @@ fn neat_topology_evolves() {
     let cfg = small_config();
     let mut sim = Simulation::new(cfg);
 
-    // Initial population: all have 8 hidden nodes, 182 connections
+    // Initial population: all have 8 hidden nodes, 223 connections
     for org in &sim.organisms {
         assert_eq!(org.genome.hidden_nodes.len(), 8);
         assert_eq!(org.brain.hidden, 8);
@@ -940,9 +940,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0
@@ -1045,9 +1045,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -1110,9 +1110,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -1198,9 +1198,9 @@ weight_probability = 0.3
 weight_step = 0.5
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -1310,9 +1310,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -1376,9 +1376,9 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 18
+inputs = 19
 hidden = 8
-outputs = 6
+outputs = 7
 
 [aging]
 extrinsic_mortality = 0.0001
@@ -1537,4 +1537,27 @@ fn child_inherits_root_ancestor_and_birth_tick() {
             "at least some children should have birth_tick > 0"
         );
     }
+}
+
+#[test]
+fn niche_construction_modifies_environment() {
+    let mut config = load_config();
+    config.niche_construction.enabled = true;
+    config.niche_construction.deposit_rate = 0.1;
+    config.niche_construction.decay_rate = 0.99;
+    let mut sim = Simulation::new(config);
+
+    for _ in 0..50 {
+        sim.step();
+    }
+
+    let any_nonzero = sim
+        .construction_grid
+        .cells
+        .iter()
+        .any(|&c| c.abs() > 0.0001);
+    assert!(
+        any_nonzero,
+        "construction grid should have non-zero cells after 50 ticks"
+    );
 }

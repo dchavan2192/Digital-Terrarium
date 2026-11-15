@@ -140,9 +140,9 @@ min_threshold = 0.1           # Floor: prevents over-splitting
 max_threshold = 2.0           # Ceiling: prevents one giant species
 
 [brain]
-inputs = 18             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light
+inputs = 19             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light + niche_level
 hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)
-outputs = 6             # turn, speed, eat, attack, signal, share
+outputs = 7             # turn, speed, eat, attack, signal, share, construct
 
 # North-south temperature gradient — cold at y=0 (north), warm at y=world_height (south).
 # Each creature has an evolvable preferred_temp gene [0,1]. Metabolism penalty scales with
@@ -206,6 +206,19 @@ enabled = true
 slope_factor = 5.0      # At Δh=0.2 (steep), speed halves
 octaves = 4             # Number of sine octaves (detail level)
 seed = 7777             # Height map seed — independent of main sim seed
+
+# Niche construction — organisms modify their local environment.
+# Positive construction boosts food regrowth; negative degrades it.
+# Creates ecological inheritance: offspring inherit a modified environment.
+# Citation: Odling-Smee, Laland & Feldman (2003) "Niche Construction"
+# Citation: Laland et al. (1999) PNAS 96:10242-10247
+[niche_construction]
+enabled = true
+deposit_rate = 0.05     # Material deposited per tick when construct output is active
+decay_rate = 0.999      # Slow decay — environment remembers for ~1000 ticks
+max_level = 1.0         # Maximum construction level per cell
+regrowth_bonus = 0.5    # Regrowth multiplier per unit level (1.0 + level * bonus)
+energy_cost = 0.5       # Cost per unit of |construct| output
 
 # Open-ended evolution activity tracking — Bedau & Packard (1991), Dolson et al. (2019)
 # Tracks structural novelty (topology hashes) and cumulative activity D(t).

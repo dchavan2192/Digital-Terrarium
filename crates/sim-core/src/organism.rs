@@ -48,7 +48,7 @@ pub struct Organism {
 /// Number of histogram bins for entropy computation.
 pub const NUM_ENTROPY_BINS: usize = 8;
 /// Number of brain outputs tracked for entropy.
-pub const NUM_OUTPUTS: usize = 6;
+pub const NUM_OUTPUTS: usize = 7;
 /// Exponential decay factor for activation histograms (~100 tick memory).
 pub const ENTROPY_DECAY: f64 = 0.99;
 
