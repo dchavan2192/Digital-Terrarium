@@ -44,6 +44,8 @@ pub struct Config {
     pub activity_tracking: ActivityTrackingConfig,
     #[serde(default)]
     pub niche_construction: NicheConstructionConfig,
+    #[serde(default)]
+    pub epigenetics: EpigeneticsConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -604,6 +606,41 @@ pub struct NicheConstructionConfig {
     pub regrowth_bonus: f64,
     /// Energy cost per unit of construction activity.
     pub energy_cost: f64,
+}
+
+/// Epigenetic inheritance — heritable non-genetic methylation marks.
+///
+/// Under stress (low energy), active connections accumulate methylation that
+/// partially silences them. Methylation is inherited with noise, creating a
+/// Lamarckian channel that lets offspring pre-adapt to parental conditions.
+///
+/// Citation: Jablonka, E. & Lamb, M.J. (2005) "Evolution in Four Dimensions"
+/// Citation: Heard, E. & Martienssen, R.A. (2014) "Transgenerational Epigenetic
+///   Inheritance" Cell 157(1):95-109
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct EpigeneticsConfig {
+    pub enabled: bool,
+    /// Energy fraction below which stress methylation kicks in.
+    pub stress_threshold: f64,
+    /// Maximum methylation gain per tick under stress.
+    pub methylation_rate: f64,
+    /// Passive demethylation per tick when not stressed.
+    pub demethylation_rate: f64,
+    /// Noise σ added to methylation during inheritance.
+    pub inheritance_noise: f64,
+}
+
+impl Default for EpigeneticsConfig {
+    fn default() -> Self {
+        EpigeneticsConfig {
+            enabled: false,
+            stress_threshold: 0.3,
+            methylation_rate: 0.005,
+            demethylation_rate: 0.001,
+            inheritance_noise: 0.02,
+        }
+    }
 }
 
 impl Default for NicheConstructionConfig {

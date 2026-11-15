@@ -4,7 +4,6 @@
 
 use sim_core::brain::Brain;
 use sim_core::config::{BiomeZone, DroughtConfig, FoodConfig, SeasonsConfig, WorldConfig};
-use sim_core::genome::Genome;
 use sim_core::world::FoodGrid;
 use sim_core::{Config, Simulation};
 

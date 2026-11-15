@@ -220,6 +220,19 @@ max_level = 1.0         # Maximum construction level per cell
 regrowth_bonus = 0.5    # Regrowth multiplier per unit level (1.0 + level * bonus)
 energy_cost = 0.5       # Cost per unit of |construct| output
 
+# Epigenetic inheritance — heritable non-genetic methylation marks.
+# Under stress (low energy), active connections accumulate methylation that
+# partially silences them (effective_weight = weight * (1 - methylation)).
+# Methylation is inherited ± noise, giving a Lamarckian inheritance channel.
+# Citation: Jablonka & Lamb (2005) "Evolution in Four Dimensions"
+# Citation: Heard & Martienssen (2014) Cell 157(1):95-109
+[epigenetics]
+enabled = true
+stress_threshold = 0.3  # Energy/max_energy below which stress methylation activates
+methylation_rate = 0.005  # Methylation gain per tick under stress
+demethylation_rate = 0.001  # Passive methylation loss per tick when not stressed
+inheritance_noise = 0.02  # σ of noise added to methylation during reproduction
+
 # Open-ended evolution activity tracking — Bedau & Packard (1991), Dolson et al. (2019)
 # Tracks structural novelty (topology hashes) and cumulative activity D(t).
 # If D(t) grows unboundedly, evolution is open-ended; if it plateaus, strategies converge.

@@ -156,6 +156,9 @@ pub struct TickStats {
     /// Mean niche construction level across all cells.
     /// Citation: Odling-Smee, Laland & Feldman (2003)
     pub mean_construction_level: f64,
+    /// Mean methylation level across all connections in the population.
+    /// Citation: Jablonka & Lamb (2005)
+    pub mean_methylation: f64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -313,6 +316,10 @@ impl Simulation {
         let temp_cost_factor = self.config.temperature.cost_factor;
         let fruit_enabled = self.config.fruit.enabled;
         let energy_per_fruit = self.config.fruit.energy_per_fruit;
+        let epigenetics_enabled = self.config.epigenetics.enabled;
+        let epigenetics_stress_threshold = self.config.epigenetics.stress_threshold;
+        let epigenetics_methylation_rate = self.config.epigenetics.methylation_rate;
+        let epigenetics_demethylation_rate = self.config.epigenetics.demethylation_rate;
 
         // Day/night light level — sinusoidal oscillation [0, 1].
         // L < 0.5 = night: vision range halved.
@@ -715,6 +722,24 @@ impl Simulation {
             org.energy -= size_metabolism + movement_cost + brain_cost + crowding_cost + temp_cost;
 
             org.age += 1;
+
+            // Epigenetic methylation update — stress-responsive gene silencing.
+            // Under stress, active connections accumulate methylation (suppression).
+            // When not stressed, methylation slowly decays (demethylation).
+            // Citation: Jablonka & Lamb (2005), Heard & Martienssen (2014)
+            if epigenetics_enabled {
+                let energy_frac = org.energy / max_energy;
+                let stressed = energy_frac < epigenetics_stress_threshold;
+                for conn in &mut org.genome.connections {
+                    if stressed && conn.enabled {
+                        conn.methylation =
+                            (conn.methylation + epigenetics_methylation_rate).min(1.0);
+                    } else if conn.methylation > 0.0 {
+                        conn.methylation =
+                            (conn.methylation - epigenetics_demethylation_rate).max(0.0);
+                    }
+                }
+            }
         }
 
         // 3b. Pheromone update — deposit + decay
@@ -919,7 +944,7 @@ impl Simulation {
                 continue;
             }
 
-            let child_genome = if sexual {
+            let mut child_genome = if sexual {
                 // Try to find a mate nearby
                 let mut best_mate: Option<usize> = None;
                 let mut best_dist_sq = mate_range * mate_range;
@@ -967,6 +992,16 @@ impl Simulation {
                 asexual_births += 1;
                 org.genome.reproduce(&mut self.rng)
             };
+
+            // Epigenetic inheritance: child inherits methylation ± noise.
+            // Citation: Jablonka & Lamb (2005), Heard & Martienssen (2014)
+            if epigenetics_enabled {
+                let noise_sigma = self.config.epigenetics.inheritance_noise;
+                for conn in &mut child_genome.connections {
+                    let noise = self.rng.gen_range(-noise_sigma..noise_sigma);
+                    conn.methylation = (conn.methylation + noise).clamp(0.0, 1.0);
+                }
+            }
 
             let child_brain = child_genome.build_brain();
             let offset_angle = self.rng.gen_range(0.0..std::f64::consts::TAU);
@@ -1441,6 +1476,24 @@ impl Simulation {
             mean_construction_level: if self.config.niche_construction.enabled {
                 let sum: f64 = self.construction_grid.cells.iter().sum();
                 sum / self.construction_grid.cells.len() as f64
+            } else {
+                0.0
+            },
+            mean_methylation: if self.config.epigenetics.enabled && population > 0 {
+                let (total_meth, total_conns) =
+                    self.organisms
+                        .iter()
+                        .filter(|o| o.alive)
+                        .fold((0.0f64, 0u64), |(m, c), o| {
+                            let conn_meth: f64 =
+                                o.genome.connections.iter().map(|c| c.methylation).sum();
+                            (m + conn_meth, c + o.genome.connections.len() as u64)
+                        });
+                if total_conns > 0 {
+                    total_meth / total_conns as f64
+                } else {
+                    0.0
+                }
             } else {
                 0.0
             },

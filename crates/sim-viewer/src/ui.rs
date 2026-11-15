@@ -326,6 +326,15 @@ pub fn draw_ui(egui_ctx: &egui::Context, sim: &Simulation, state: &mut UiState) 
                 ));
             });
 
+            if stats.mean_methylation > 0.0 || stats.mean_construction_level.abs() > 0.001 {
+                ui.horizontal(|ui| {
+                    ui.label(format!(
+                        "Meth:{:.3} Niche:{:.3}",
+                        stats.mean_methylation, stats.mean_construction_level
+                    ));
+                });
+            }
+
             ui.add_space(4.0);
 
             // --- Environment ---

@@ -145,7 +145,7 @@
   - Creates a second inheritance system beyond the genome
   - No neural-agent ALife platform has this — completely novel
   - Citations: Odling-Smee, Laland & Feldman (2003) "Niche Construction: The Neglected Process in Evolution", Laland et al. (1999) PNAS 96:10242-10247
-- [ ] **Epigenetic inheritance** — heritable non-genetic state (methylation marks)
+- [x] **Epigenetic inheritance** — heritable non-genetic state (methylation marks)
   - Per-connection methylation [0,1] silences connections; responds to environmental stress
   - Offspring inherit parental methylation with noise — transgenerational ecological memory
   - Almost completely absent from ALife literature (only EpiAL, Sousa & Costa 2010)

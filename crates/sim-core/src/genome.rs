@@ -26,6 +26,10 @@ pub struct ConnectionGene {
     pub weight: f64,
     /// Whether this connection is active. Disabled connections can be re-enabled.
     pub enabled: bool,
+    /// Epigenetic methylation level [0, 1]. Suppresses effective weight.
+    /// Effective weight = weight * (1 - methylation).
+    /// Citation: Jablonka & Lamb (2005) "Evolution in Four Dimensions"
+    pub methylation: f64,
 }
 
 /// A hidden node with its depth value for feed-forward ordering.
@@ -124,6 +128,7 @@ impl Genome {
                 to: first_hidden + h as u16,
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
+                methylation: 0.0,
             });
         }
 
@@ -135,6 +140,7 @@ impl Genome {
                     to: first_hidden + h as u16,
                     weight: rng.gen_range(-scale..scale),
                     enabled: true,
+                    methylation: 0.0,
                 });
             }
         }
@@ -146,6 +152,7 @@ impl Genome {
                 to: first_output + o as u16,
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
+                methylation: 0.0,
             });
         }
 
@@ -157,6 +164,7 @@ impl Genome {
                     to: first_output + o as u16,
                     weight: rng.gen_range(-scale..scale),
                     enabled: true,
+                    methylation: 0.0,
                 });
             }
         }
@@ -320,6 +328,7 @@ impl Genome {
                 to: to_id,
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
+                methylation: 0.0,
             });
             return;
         }
@@ -373,6 +382,7 @@ impl Genome {
             to: new_id,
             weight: 1.0,
             enabled: true,
+            methylation: old.methylation,
         });
 
         // C→B with original weight (preserves output contribution)
@@ -381,6 +391,7 @@ impl Genome {
             to: old.to,
             weight: old.weight,
             enabled: true,
+            methylation: old.methylation,
         });
     }
 
@@ -419,10 +430,12 @@ impl Genome {
     /// Build a [`Brain`] from this genome's connection genes and hidden nodes.
     pub fn build_brain(&self) -> Brain {
         let hidden: Vec<(u16, f64)> = self.hidden_nodes.iter().map(|n| (n.id, n.depth)).collect();
+        // Effective weight = weight * (1 - methylation) — epigenetic suppression.
+        // Citation: Jablonka & Lamb (2005) "Evolution in Four Dimensions"
         let conns: Vec<(u16, u16, f64, bool)> = self
             .connections
             .iter()
-            .map(|c| (c.from, c.to, c.weight, c.enabled))
+            .map(|c| (c.from, c.to, c.weight * (1.0 - c.methylation), c.enabled))
             .collect();
         Brain::from_neat(self.num_inputs, self.num_outputs, &hidden, &conns)
     }
