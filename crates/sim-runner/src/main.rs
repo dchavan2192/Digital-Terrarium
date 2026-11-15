@@ -82,7 +82,7 @@ enum Commands {
 fn main() {
     let cli = Cli::parse();
 
-    match cli.command {
+    let result = match cli.command {
         Some(Commands::Sweep {
             config,
             set,
@@ -92,20 +92,20 @@ fn main() {
             ticks,
             log_interval,
             output,
-        }) => {
-            sweep::run_sweep(
-                &config,
-                &set,
-                &param,
-                &values,
-                seeds,
-                ticks,
-                log_interval,
-                &output,
-            );
-        }
-        None => {
-            run::run_single(&cli.config, cli.ticks, cli.log_interval, &cli.output);
-        }
+        }) => sweep::run_sweep(
+            &config,
+            &set,
+            &param,
+            &values,
+            seeds,
+            ticks,
+            log_interval,
+            &output,
+        ),
+        None => run::run_single(&cli.config, cli.ticks, cli.log_interval, &cli.output).map(|_| ()),
+    };
+    if let Err(error) = result {
+        eprintln!("Error: {error}");
+        std::process::exit(1);
     }
 }

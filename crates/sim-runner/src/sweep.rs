@@ -17,7 +17,11 @@ pub fn run_sweep(
     ticks: u64,
     log_interval: u64,
     output_dir: &Path,
-) {
+) -> run::RunResult<()> {
+    run::validate_request(ticks, log_interval)?;
+    if seeds == 0 || values.is_empty() {
+        return Err("--seeds must be positive and --values must not be empty".into());
+    }
     let mut base_config = Config::from_file(config_path).unwrap_or_else(|e| {
         eprintln!("Failed to load config '{}': {}", config_path.display(), e);
         std::process::exit(1);
@@ -48,6 +52,7 @@ pub fn run_sweep(
 
     // Build all (config, label) pairs
     let mut jobs: Vec<(Config, String)> = Vec::new();
+    let mut labels = std::collections::HashSet::new();
 
     for &value in values {
         for seed in 0..seeds {
@@ -60,24 +65,36 @@ pub fn run_sweep(
                 std::process::exit(1);
             }
 
+            config
+                .validate()
+                .map_err(|e| format!("invalid generated job {param}={value}, seed={seed}: {e}"))?;
             let label = format!("{}={:.6}_seed{}", param, value, seed);
+            if !labels.insert(label.clone()) {
+                return Err(format!(
+                    "duplicate output identity {label}: sweep values must be distinct at six decimal places"
+                ));
+            }
             jobs.push((config, label));
         }
     }
 
+    let session = run::create_session(output_dir)?;
+
     // Run all jobs in parallel
-    let results: Vec<(String, u64, bool)> = jobs
+    let results: Vec<run::RunResult<(String, u64, bool)>> = jobs
         .into_par_iter()
         .map(|(config, label)| {
-            let sweep_dir = output_dir.join("sweep");
+            let sweep_dir = session.join("sweep");
             let (final_tick, survived) =
-                run::run_with_config(config, ticks, log_interval, &sweep_dir, Some(&label));
-            (label, final_tick, survived)
+                run::run_with_config(config, ticks, log_interval, &sweep_dir, Some(&label))?;
+            Ok((label, final_tick, survived))
         })
         .collect();
 
+    let results: Vec<(String, u64, bool)> = results.into_iter().collect::<run::RunResult<_>>()?;
+
     // Write summary CSV
-    let summary_path = output_dir.join("sweep_summary.csv");
+    let summary_path = session.join("sweep_summary.csv");
     let mut wtr = csv::Writer::from_path(&summary_path).expect("failed to create summary CSV");
     wtr.write_record(["label", "param", "value", "seed", "final_tick", "survived"])
         .expect("failed to write header");
@@ -120,11 +137,35 @@ pub fn run_sweep(
             mean_tick
         );
     }
+    Ok(())
 }
 
 /// Apply a parameter value to a config by dot-separated path.
 /// Returns false if the parameter is unknown.
 fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
+    if !value.is_finite() {
+        return false;
+    }
+    let integer = matches!(
+        param,
+        "creature.initial_count"
+            | "creature.hard_cap"
+            | "creature.max_age"
+            | "creature.vision.ray_count"
+    );
+    if integer && (value < 0.0 || value.fract() != 0.0 || value >= usize::MAX as f64) {
+        return false;
+    }
+    if param == "creature.vision.ray_count" && value > sim_core::config::MAX_RAYS as f64 {
+        return false;
+    }
+    let toggle = matches!(
+        param,
+        "reproduction.sexual" | "niche_construction.enabled" | "epigenetics.enabled"
+    );
+    if toggle && value != 0.0 && value != 1.0 {
+        return false;
+    }
     match param {
         // World
         "world.width" => config.world.width = value,
@@ -158,6 +199,10 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         "energy.base_metabolism" => config.energy.base_metabolism = value,
         "energy.movement_cost" => config.energy.movement_cost = value,
         "energy.brain_cost" => config.energy.brain_cost = value,
+        "energy.connection_cost" => config.energy.connection_cost = value,
+        "energy.activity_weight_cost" => config.energy.activity_weight_cost = value,
+        "sharing.transfer_efficiency" => config.sharing.transfer_efficiency = value,
+        "reproduction.mate_cost" => config.reproduction.mate_cost = Some(value),
 
         // Reproduction
         "reproduction.threshold" => config.reproduction.threshold = value,
@@ -223,6 +268,10 @@ fn print_supported_params() {
         "energy.base_metabolism",
         "energy.movement_cost",
         "energy.brain_cost",
+        "energy.connection_cost",
+        "energy.activity_weight_cost",
+        "sharing.transfer_efficiency",
+        "reproduction.mate_cost",
         "reproduction.threshold",
         "reproduction.parent_cost",
         "reproduction.child_energy",

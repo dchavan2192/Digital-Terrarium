@@ -1,29 +1,34 @@
 #!/usr/bin/env bash
-# Phase 9a: find a food-limited carrying capacity (simulations run on the Pi 5 only).
-# Raises hard_cap to 2000 so it acts only as a backstop, then sweeps food.regrowth_rate.
-# Goal: mean population ~60-70% of the cap, with total_cap_blocked_births ~0.
-#
-# Prerequisite: the commit containing `sweep --set` and `cap_blocked_births` is on origin/main.
-# Usage (from repo root):  bash analysis/launch_pi_phase9a.sh
-# Fetch results later:     rsync -av pi@100.127.61.93:~/Digital-Terrarium/output/phase9a/ output/phase9a/
+# Committed-source ecology pilot on the Pi. Unique output, two worker threads,
+# explicit completion/failure markers; never overwrites an old experiment.
+# TICKS=200000 SEEDS=10 VALUES=0.002,0.004,0.006 bash analysis/launch_pi_phase9a.sh
 set -euo pipefail
-
-PI=pi@100.127.61.93
+PI=${PI:-pi@dchavan}
 TICKS=${TICKS:-100000}
 SEEDS=${SEEDS:-3}
-VALUES=${VALUES:-0.0002,0.0003,0.0004,0.0005}
-
-ssh "$PI" bash -s <<EOF
-set -e
+VALUES=${VALUES:-0.002,0.004,0.006,0.008,0.010,0.012}
+THREADS=${THREADS:-2}
+[[ $TICKS =~ ^[1-9][0-9]*$ && $SEEDS =~ ^[1-9][0-9]*$ && $THREADS =~ ^[1-3]$ && $VALUES =~ ^[0-9.eE,+-]+$ ]] || { echo 'Invalid numeric experiment settings' >&2; exit 1; }
+ssh "$PI" bash -s -- "$TICKS" "$SEEDS" "$VALUES" "$THREADS" <<'REMOTE'
+set -euo pipefail
 cd ~/Digital-Terrarium
-source ~/.cargo/env 2>/dev/null || true
+[[ -f ~/.cargo/env ]] && source ~/.cargo/env
+[[ -z $(git status --porcelain --untracked-files=no) ]] || { echo 'Pi tracked files have edits; refusing to replace them' >&2; exit 1; }
+if pgrep -x sim-runner >/dev/null; then echo 'A simulation is already active; refusing to oversubscribe the Pi' >&2; exit 1; fi
 git pull --ff-only origin main
 cargo build -p sim-runner --release
-mkdir -p output/phase9a
-nohup ./target/release/sim-runner sweep --config configs/default.toml \
-  --set creature.hard_cap=2000 \
-  --param food.regrowth_rate --values $VALUES \
-  --seeds $SEEDS --ticks $TICKS --log-interval 500 \
-  --output output/phase9a > output/phase9a/sweep.log 2>&1 &
-echo "Launched Phase 9a sweep on Pi (PID \$!)"
-EOF
+ROOT="output/phase9a/launch_$(date -u +%Y%m%dT%H%M%SZ)_$$"
+mkdir -p "$ROOT"
+cat > "$ROOT/run.sh" <<'JOB'
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT=$1
+trap 'code=$?; printf "%s\n" "$code" > "$ROOT/exit_code"; if (( code == 0 )); then printf "completed\n" > "$ROOT/status"; else printf "failed\n" > "$ROOT/status"; fi' EXIT
+printf 'running\n' > "$ROOT/status"
+RAYON_NUM_THREADS=$5 ./target/release/sim-runner sweep --config configs/default.toml \
+  --set creature.hard_cap=2000 --param food.regrowth_rate --values "$4" \
+  --seeds "$3" --ticks "$2" --log-interval 500 --output "$ROOT"
+JOB
+nohup bash "$ROOT/run.sh" "$ROOT" "$1" "$2" "$3" "$4" > "$ROOT/launcher.log" 2>&1 < /dev/null &
+echo "Launched Phase 9a: PID $!, outputs $ROOT"
+REMOTE

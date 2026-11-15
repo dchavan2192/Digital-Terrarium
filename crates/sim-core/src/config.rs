@@ -841,7 +841,237 @@ impl Config {
     }
 
     /// Sanity-check values that would cause panics or nonsense if wrong.
-    fn validate(&self) -> Result<(), ConfigError> {
+    pub fn validate(&self) -> Result<(), ConfigError> {
+        // Validate again after programmatic sweep overrides, before allocating a world.
+        fn finite_tree(value: &toml::Value, path: &str) -> Result<(), ConfigError> {
+            match value {
+                toml::Value::Float(v) if !v.is_finite() => {
+                    return Err(ConfigError::Invalid(format!("{path} must be finite")));
+                }
+                toml::Value::Table(fields) => {
+                    for (key, value) in fields {
+                        finite_tree(value, &format!("{path}.{key}"))?;
+                    }
+                }
+                toml::Value::Array(values) => {
+                    for (i, value) in values.iter().enumerate() {
+                        finite_tree(value, &format!("{path}[{i}]"))?;
+                    }
+                }
+                _ => {}
+            }
+            Ok(())
+        }
+        let serialized = toml::Value::try_from(self)
+            .map_err(|e| ConfigError::Invalid(format!("cannot validate config: {e}")))?;
+        finite_tree(&serialized, "config")?;
+        for (name, value) in [
+            ("food.max_per_cell", self.food.max_per_cell),
+            ("food.regrowth_rate", self.food.regrowth_rate),
+            ("food.energy_per_food", self.food.energy_per_food),
+            (
+                "food.fruit.energy_per_fruit",
+                self.food.fruit.energy_per_fruit,
+            ),
+            (
+                "food.fruit.biome_rate_multiplier",
+                self.food.fruit.biome_rate_multiplier,
+            ),
+            ("creature.max_speed", self.creature.max_speed),
+            ("creature.max_turn", self.creature.max_turn),
+            ("energy.base_metabolism", self.energy.base_metabolism),
+            ("energy.movement_cost", self.energy.movement_cost),
+            ("energy.brain_cost", self.energy.brain_cost),
+            ("energy.connection_cost", self.energy.connection_cost),
+            (
+                "energy.activity_weight_cost",
+                self.energy.activity_weight_cost,
+            ),
+            ("reproduction.parent_cost", self.reproduction.parent_cost),
+            ("reproduction.child_energy", self.reproduction.child_energy),
+            ("reproduction.mate_range", self.reproduction.mate_range),
+            ("aging.initial_senescence", self.aging.initial_senescence),
+            ("aging.aging_rate", self.aging.aging_rate),
+            ("combat.attack_range", self.combat.attack_range),
+            ("combat.attack_damage", self.combat.attack_damage),
+            ("combat.attack_cost", self.combat.attack_cost),
+            ("combat.idle_attack_cost", self.combat.idle_attack_cost),
+            ("sharing.share_range", self.sharing.share_range),
+            ("sharing.share_amount", self.sharing.share_amount),
+            (
+                "density_pressure.cost_per_neighbor",
+                self.density_pressure.cost_per_neighbor,
+            ),
+            ("temperature.cost_factor", self.temperature.cost_factor),
+            ("pheromones.deposit_rate", self.pheromones.deposit_rate),
+            ("elevation.slope_factor", self.elevation.slope_factor),
+            (
+                "niche_construction.deposit_rate",
+                self.niche_construction.deposit_rate,
+            ),
+            (
+                "niche_construction.regrowth_bonus",
+                self.niche_construction.regrowth_bonus,
+            ),
+            (
+                "niche_construction.energy_cost",
+                self.niche_construction.energy_cost,
+            ),
+            (
+                "epigenetics.inheritance_noise",
+                self.epigenetics.inheritance_noise,
+            ),
+        ] {
+            if value < 0.0 {
+                return Err(ConfigError::Invalid(format!("{name} must be nonnegative")));
+            }
+        }
+        for (name, value) in [
+            ("world.width", self.world.width),
+            ("world.height", self.world.height),
+            ("food.cell_size", self.food.cell_size),
+            ("creature.body_radius", self.creature.body_radius),
+            ("creature.vision.range", self.creature.vision.range),
+            ("creature.vision.fov", self.creature.vision.fov),
+            ("energy.maximum", self.energy.maximum),
+            ("reproduction.threshold", self.reproduction.threshold),
+            ("mutation.weight_step", self.mutation.weight_step),
+            ("food.seasons.period", self.food.seasons.period),
+            ("food.droughts.radius", self.food.droughts.radius),
+            ("daynight.period", self.daynight.period),
+            ("pheromones.max_level", self.pheromones.max_level),
+            (
+                "niche_construction.max_level",
+                self.niche_construction.max_level,
+            ),
+            (
+                "speciation.fixed_threshold",
+                self.speciation.fixed_threshold,
+            ),
+            ("speciation.min_threshold", self.speciation.min_threshold),
+            ("speciation.max_threshold", self.speciation.max_threshold),
+            ("speciation.factor", self.speciation.factor),
+        ] {
+            if value <= 0.0 {
+                return Err(ConfigError::Invalid(format!("{name} must be positive")));
+            }
+        }
+        for (name, value) in [
+            (
+                "mutation.weight_probability",
+                self.mutation.weight_probability,
+            ),
+            (
+                "mutation.add_connection_probability",
+                self.mutation.add_connection_probability,
+            ),
+            (
+                "mutation.add_node_probability",
+                self.mutation.add_node_probability,
+            ),
+            (
+                "mutation.toggle_probability",
+                self.mutation.toggle_probability,
+            ),
+            (
+                "mutation.prune_probability",
+                self.mutation.prune_probability,
+            ),
+            (
+                "mutation.trait_probability",
+                self.mutation.trait_probability,
+            ),
+            (
+                "reproduction.crossover_rate",
+                self.reproduction.crossover_rate,
+            ),
+            (
+                "reproduction.mate_energy_fraction",
+                self.reproduction.mate_energy_fraction,
+            ),
+            ("aging.extrinsic_mortality", self.aging.extrinsic_mortality),
+            ("food.seasons.amplitude", self.food.seasons.amplitude),
+            ("food.droughts.spawn_rate", self.food.droughts.spawn_rate),
+            ("food.droughts.severity", self.food.droughts.severity),
+            ("pheromones.decay_rate", self.pheromones.decay_rate),
+            (
+                "niche_construction.decay_rate",
+                self.niche_construction.decay_rate,
+            ),
+            (
+                "epigenetics.stress_repro_fraction",
+                self.epigenetics.stress_repro_fraction,
+            ),
+            (
+                "epigenetics.methylation_rate",
+                self.epigenetics.methylation_rate,
+            ),
+            (
+                "epigenetics.demethylation_rate",
+                self.epigenetics.demethylation_rate,
+            ),
+        ] {
+            if !(0.0..=1.0).contains(&value) {
+                return Err(ConfigError::Invalid(format!("{name} must be in [0, 1]")));
+            }
+        }
+        if self.creature.hard_cap == 0 || self.creature.initial_count > self.creature.hard_cap {
+            return Err(ConfigError::Invalid(
+                "initial_count must not exceed a positive hard_cap".into(),
+            ));
+        }
+        if self.creature.max_age == 0
+            || self.food.droughts.duration == 0
+            || self.activity_tracking.window_size == 0
+            || self.activity_tracking.lineage_window == 0
+            || self.epigenetics.brain_update_interval == 0
+            || self.speciation.sample_size < 2
+        {
+            return Err(ConfigError::Invalid("age, duration and update intervals must be positive; speciation.sample_size must be >= 2".into()));
+        }
+        if self.energy.starting > self.energy.maximum
+            || self.reproduction.child_energy > self.energy.maximum
+            || self.reproduction.parent_cost > self.reproduction.threshold
+        {
+            return Err(ConfigError::Invalid("starting/child energy must not exceed maximum; parent_cost must not exceed threshold".into()));
+        }
+        if self.creature.max_turn > std::f64::consts::TAU
+            || self.creature.vision.fov > std::f64::consts::TAU
+        {
+            return Err(ConfigError::Invalid(
+                "max_turn and vision.fov must not exceed 2π".into(),
+            ));
+        }
+        if self.speciation.min_threshold > self.speciation.max_threshold
+            || !(1..=2).contains(&self.activity_tracking.hash_version)
+        {
+            return Err(ConfigError::Invalid(
+                "invalid species threshold bounds or activity hash_version (expected 1 or 2)"
+                    .into(),
+            ));
+        }
+        let total_nodes = self
+            .brain
+            .inputs
+            .checked_add(self.brain.outputs)
+            .and_then(|n| n.checked_add(self.brain.hidden))
+            .and_then(|n| n.checked_add(1));
+        if total_nodes.is_none_or(|n| n > crate::brain::MAX_NODES)
+            || self.brain.inputs > crate::brain::MAX_INPUTS
+            || self.brain.outputs > crate::brain::MAX_OUTPUTS
+        {
+            return Err(ConfigError::Invalid(
+                "initial brain exceeds fixed node/input/output capacity".into(),
+            ));
+        }
+        for biome in &self.food.biomes {
+            if biome.radius <= 0.0 || biome.regrowth_multiplier < 0.0 {
+                return Err(ConfigError::Invalid(
+                    "biome radius must be positive and regrowth_multiplier nonnegative".into(),
+                ));
+            }
+        }
+
         if !(self.sharing.transfer_efficiency > 0.0 && self.sharing.transfer_efficiency <= 1.0) {
             return Err(ConfigError::Invalid(format!(
                 "sharing.transfer_efficiency (or legacy benefit_multiplier) must be in (0, 1] \
@@ -981,3 +1211,45 @@ impl std::fmt::Display for ConfigError {
 }
 
 impl std::error::Error for ConfigError {}
+
+#[cfg(test)]
+mod validation_tests {
+    use super::*;
+    fn config() -> Config {
+        Config::parse(include_str!("../../../configs/default.toml")).unwrap()
+    }
+
+    #[test]
+    fn rejects_nonfinite_costs_and_oversized_brains() {
+        let mut cfg = config();
+        cfg.energy.connection_cost = f64::NAN;
+        assert!(cfg.validate().unwrap_err().to_string().contains("finite"));
+        cfg = config();
+        cfg.brain.hidden = crate::brain::MAX_NODES;
+        assert!(cfg.validate().unwrap_err().to_string().contains("capacity"));
+    }
+
+    #[test]
+    fn rejects_invalid_resource_cost_probability_and_interval() {
+        for field in ["cost", "probability", "interval", "capacity"] {
+            let mut cfg = config();
+            match field {
+                "cost" => cfg.energy.base_metabolism = -1.0,
+                "probability" => cfg.food.droughts.spawn_rate = 1.01,
+                "interval" => cfg.epigenetics.brain_update_interval = 0,
+                _ => cfg.creature.hard_cap = cfg.creature.initial_count - 1,
+            }
+            assert!(cfg.validate().is_err(), "{field}");
+        }
+    }
+
+    #[test]
+    fn allows_no_food_and_unreachable_reproduction_controls() {
+        let mut cfg = config();
+        cfg.food.max_per_cell = 0.0;
+        cfg.food.regrowth_rate = 0.0;
+        cfg.epigenetics.enabled = false;
+        cfg.reproduction.threshold = cfg.energy.maximum * 10.0;
+        assert!(cfg.validate().is_ok());
+    }
+}
