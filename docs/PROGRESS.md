@@ -211,6 +211,15 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 - [ ] Visual QA in a browser (needs the user's OK — the demo runs the sim locally)
 - [ ] Deploy (push to main — needs the user's explicit OK)
 
+### Phase 9.0: Energy Conservation Bug in Sharing [BLOCKING — found 2026-11-15]
+- [ ] **Sharing creates energy from nothing.** The donor pays `share_amount` (5) but the recipient gets 5 × `benefit_multiplier` (1.5) = 7.5 (sim.rs, sharing step). Two neighbours sharing every tick each net +2.5/tick, about 8× base metabolism, so clusters can camp in place indefinitely (seen in the demo). Run data: shares rise to ~350/tick (≈ +875 free energy/tick population-wide) while mean energy climbs 65 → 117 at the cap.
+  - Breaks design principle 4 ("food is the only source of energy").
+  - Probably why the population pins at hard_cap; it will also confound the Phase 9a regrowth sweep.
+  - **The "cooperation evolved (87%)" result is invalidated**: cooperation was selected as a free-energy exploit, not by Hamilton's rule.
+  - Fix: conserve energy (recipient gets ≤ the donor's cost, with a transfer loss). Hamilton's B > C should come from the *marginal fitness value* of energy (a starving recipient gains more than a well-fed donor loses), not from creating energy. Consider restricting gifts to donors above the reproduction threshold.
+  - Add an energy-conservation integration test: total energy change per tick = food eaten − all costs (no other sources).
+  - Re-run the v2 cooperation experiments after the fix.
+
 ### Phase 9: Food-Limited Ecology + Cognition [PLANNED — agreed 2026-11-15]
 **Why**: (1) Population pins at hard_cap (500) by ~tick 1000 and births are blocked at the cap (sim.rs:993). The cap, not food competition, decides who reproduces, which weakens selection and hides drought/niche/epigenetics effects. (2) Brains are tiny (~11–16 evolved neurons, ~220 connections vs ~140k neurons / ~50M synapses in a fruit fly, FlyWire 2024; 302 neurons in C. elegans). More importantly, they are purely feed-forward with no memory and no lifetime learning: behaviour is reflexive, closer to Braitenberg vehicles or bacterial chemotaxis. Never claim "fruit-fly level".
 
@@ -238,6 +247,21 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 - [ ] A "cognitive test battery" in sim-runner: freeze evolved genomes from saved snapshots and test them in standard mini-arenas: detour (food behind a barrier), delayed foraging (remember a patch after it vanishes from view), kin vs non-kin discrimination, predator avoidance
 - [ ] Score per generation → a figure showing cognitive capability evolving over time; compare ON/OFF for recurrence/plasticity
 - [ ] Requires genome snapshot export (also needed for arms-race CIAO plots, Cliff & Miller 1995)
+
+### Phase 10: Real Ecosystem — Water, Nutrient Cycling, Parasites [PLANNED — agreed 2026-11-15]
+Order: AFTER the Phase 7 ablations, so first results aren't mixed with new mechanics.
+- [ ] **Water as a second essential resource**: water pools in low elevation (reuse ElevationMap); per-organism hydration drains each tick (faster when warm and for larger bodies); drinking at water cells. Droughts shrink water bodies.
+  - Brain: hydration input + "water" ray type, so inputs 19 → ~20–21; update validate/demo.
+  - Essential resources, Liebig's law of the minimum (Tilman 1982). Expect commuting between water and food, and waterhole ecology.
+  - Tune with a Pi sweep (avoid instant extinction).
+  - Demo: render real water in the terrain.
+- [ ] **Nutrient recycling / decomposition**: corpses become a nutrient grid that boosts regrowth; optional decomposer niche. Closes the matter loop (Lindeman 1942).
+- [ ] **Parasites / disease**: pathogens transmitted between neighbours, evolving against host resistance genes → Red Queen dynamics; gives sex a real advantage (Hamilton 1980; Van Valen 1973).
+- [ ] **Multiple nutrients** (e.g. C/N) for resource-ratio coexistence (Tilman 1982) — optional, after water.
+
+### Phase 11: Real Brains + Integration [IDEAS — 2026-11-15, check prior art first]
+- [ ] **Connectome seeding**: initialise some creatures with the real C. elegans connectome (302 neurons, ~7k synapses; White et al. 1986; WormWiring / OpenWorm c302 data), mapping chemosensory neurons → food inputs and motor neurons → turn/speed. Experiment: connectome-seeded vs random-start populations — does real wiring give an evolutionary head start, or is it rewired? Requires recurrence (9b). Fly larva (~3k neurons, Winding et al. 2023) is a possible stretch goal; an adult fly (FlyWire 2024, ~140k neurons) is not feasible per creature on a Pi.
+- [ ] **Integration over evolution**: measure integrated-information / complexity proxies of evolved brains over time (Edlund et al. 2011; Albantakis et al. 2014). Frame it as complexity measurement, NOT consciousness; feed-forward nets score Φ = 0 under IIT. Reference: Butlin, Long et al. (2023) indicator properties.
 
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
