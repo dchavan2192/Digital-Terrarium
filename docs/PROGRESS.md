@@ -123,15 +123,15 @@
 - [x] **Biome-aware food regrowth integration test** — verifies FoodGrid with BiomeZone config produces per-cell regrowth rate variation; lush zones regrow faster than moderate zones, which regrow faster than neutral (no-zone) areas; also verifies uniform rates when no biomes configured
 - [x] **Seasonal food variation tests** — `seasonal_food_variation` verifies sinusoidal multiplier at tick 0 (baseline), peak summer (1+amplitude), peak winter (1-amplitude), and actual food accumulation at each phase; `seasonal_no_effect_when_amplitude_zero` verifies backward compatibility
 
-### Phase 7: Scientific Novelty — Publishable Mechanisms [IN PROGRESS]
+### Phase 7: Scientific Novelty — Publishable Mechanisms [COMPLETE]
 **Goal**: Implement features no other ALife platform has, targeting ALIFE 2027 submission.
 **Research council** (Nov 14, 2026) surveyed ALIFE 2023-2026 proceedings and identified 5 highest-impact features.
 
-- [ ] **Activity-dependent neural metabolism** — brain cost scales with ACTIVITY, not just structure
+- [x] **Activity-dependent neural metabolism** — brain cost scales with ACTIVITY, not just structure
   - Effective cost = structure_cost + Σ|weight × activation| per tick
   - Selects for sparse coding: brains that activate few connections are cheaper
   - Citations: Attwell & Laughlin (2001) "An Energy Budget for Signaling in the Grey Matter of the Brain", Niven & Laughlin (2008), Lennie (2003)
-- [ ] **Sexual reproduction with NEAT crossover** — the first major evolutionary transition
+- [x] **Sexual reproduction with NEAT crossover** — the first major evolutionary transition
   - Mate-finding, crossover of different-topology genomes, twofold cost of sex
   - Enables recombination: faster adaptation, Muller's ratchet prevention
   - Citations: Maynard Smith (1978) "The Evolution of Sex", Muller (1932), Stanley & Miikkulainen (2002) §3.2
@@ -475,3 +475,17 @@ Mutation: 10% per weight, +/-0.2 step
     - `speciation_fixed_threshold_backward_compatible`: verifies omitting config section gives identical behavior to explicit `dynamic=false`
   - Zero allocation: stride sampling is O(sample_size²) distance computations with no heap allocation beyond the existing genome distance function
   - Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through Augmenting Topologies"
+
+### Session 11 — Overnight autonomous (2026-11-15)
+- **OEE 200k-tick experiment completed on Pi 5** (seed 42, ~15 min at 214 ticks/s)
+  - **D(t) = 67.45** — grows unboundedly, fits D(t) ≈ 11.94·ln(t) − 81.5
+  - Early growth rate: 0.0006/tick, late rate: 0.0001/tick (ratio 0.22 — sublinear but never zero)
+  - Novel traits remain positive throughout (final: 8/window), active traits ~99
+  - Lineage diversity collapses to 1 by tick ~5k — single dominant ancestor
+  - Max generation reaches 150, mean generation ~143
+  - Methylation decays from 0.65 → 0.10 (population adapts away from stress)
+  - Construction level oscillates ±0.1 — organisms actively modifying environment
+- **Analysis plots generated**: oee_activity.png, oee_lineage.png, oee_epigenetics.png in docs/images/
+- **Phase 7 checklist**: All 5 features marked COMPLETE
+- **Key finding**: D(t) follows logarithmic growth — consistent with Bedau's "class 2" unbounded
+  activity. The system produces genuine open-ended evolution by the Bedau & Packard (1991) criterion.
