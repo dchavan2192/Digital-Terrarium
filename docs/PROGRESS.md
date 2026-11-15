@@ -554,11 +554,40 @@ Mutation: 10% per weight, +/-0.2 step
   - Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through Augmenting Topologies"
 
 ### Session 11 — Overnight autonomous (2026-11-15)
-- **OEE 200k-tick experiment running on Pi 5** (seed 42)
-  - Preliminary data (60k ticks): D(t) growing monotonically (0 → 46.7), novel traits declining (13 → 3)
-  - Lineage diversity collapsed to 1 (single dominant ancestor) — expected in asexual populations
-  - Methylation relaxing over time (0.29 → 0.12) — creatures becoming less stressed
-  - Max generation climbing steadily (28 → 75) — healthy generational turnover
-- **Analysis pipeline**: Created `analysis/plot_oee.py` with dark-theme plots for D(t), lineage, epigenetics
-- **Phase 7 checklist**: All 5 features now marked complete in PROGRESS.md
-- **Local code synced**: Pulled all Phase 7 commits from remote to local machine
+- **OEE 200k-tick experiment completed on Pi 5** (seed 42, ~15 min at 214 ticks/s)
+  - **D(t) = 67.45** — grows unboundedly, fits D(t) ≈ 11.94·ln(t) − 81.5
+  - Early growth rate: 0.0006/tick, late rate: 0.0001/tick (ratio 0.22 — sublinear but never zero)
+  - Novel traits remain positive throughout (final: 8/window), active traits ~99
+  - Lineage diversity collapses to 1 by tick ~5k — single dominant ancestor
+  - Max generation reaches 150, mean generation ~143
+  - Methylation decays from 0.65 → 0.10 (population adapts away from stress)
+  - Construction level oscillates ±0.1 — organisms actively modifying environment
+- **Analysis plots generated**: oee_activity.png, oee_lineage.png, oee_epigenetics.png in docs/images/
+- **Phase 7 checklist**: All 5 features marked COMPLETE
+- **Key finding**: D(t) follows logarithmic growth — consistent with Bedau's "class 2" unbounded
+  activity. The system produces genuine open-ended evolution by the Bedau & Packard (1991) criterion.
+
+### Session 12 — Overnight autonomous (2026-11-15, continued)
+- **5-seed OEE replication experiment** on Pi 5 (seeds 0-4, 200k ticks each)
+  - Seeds 0-3 complete, seed 4 in progress
+  - D(t) log fits: seed 0 = 12.82·ln(t), seed 1 = 21.58·ln(t), seed 2 = 14.01·ln(t), seed 3 = 18.93·ln(t)
+  - All seeds show unbounded D(t) growth — replication confirms OEE
+  - Mean D(t) at 200k ≈ 82.2 across seeds 0-3
+- **Created multi-seed analysis script**: `analysis/plot_multi_seed.py` (95% CI comparison plots)
+- **Created ablation experiment configs**: `configs/no_epigenetics.toml`, `configs/no_niche_construction.toml`
+- **Created ALIFE 2027 paper outline**: `docs/ALIFE_2027_OUTLINE.md`
+- **Pushed**: `0ec0f20` — analysis tools and paper outline
+
+### Session 13 — Overnight autonomous (2026-11-15, continued)
+- **Epigenetics ablation experiment running** on Pi 5 (5 seeds × 200k ticks, no_epigenetics.toml)
+  - Seed 0 complete (835.2s, faster than baseline — no methylation computation)
+  - Seeds 1-4 in progress
+- **Created ablation analysis script**: `analysis/plot_ablation.py`
+  - D(t) comparison with 95% CI between baseline and ablation conditions
+  - Population stability (CV) comparison
+  - Mann-Whitney U statistical tests for significance
+- **Updated ALIFE 2027 outline**: D(t) numbers updated to confirmed 5-seed data (~15.5·ln(t))
+- **Updated README** with OEE results section — multi-seed plots and summary statistics
+- **Pushed**: `f04f7e4` (ablation script + outline), `c4bbd95` (README OEE section)
+
+> **Caveat (added 2026-11-15, Session 14):** the Session 11–13 OEE numbers were computed BEFORE the Phase 7.5 fixes. Back then `mean_cumulative_activity` averaged over every topology ever seen (not extant ones), the topology hash was order-dependent, and fruit was silently disabled. There was also no neutral shadow model, so 'genuine OEE' is NOT yet established. Treat these numbers as preliminary and re-run them with the fixed code plus the shadow model.
