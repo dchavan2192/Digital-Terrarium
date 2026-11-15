@@ -183,6 +183,12 @@ pub struct TickStats {
     pub net_construction_level: f64,
     /// A_cum(t): total cumulative activity over currently active topologies.
     pub total_cumulative_activity: u64,
+    /// Organisms ready to reproduce (energy >= threshold) this tick that were blocked
+    /// only because the population was at `creature.hard_cap`. Should stay ~0 when the
+    /// population is food-limited (Verhulst 1838 carrying capacity), not cap-limited.
+    pub cap_blocked_births: u64,
+    /// Cumulative `cap_blocked_births` since tick 0.
+    pub total_cap_blocked_births: u64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -979,6 +985,7 @@ impl Simulation {
         let mutation_cfg = &self.config.mutation;
         let mut sexual_births = 0u64;
         let mut asexual_births = 0u64;
+        let mut cap_blocked_births = 0u64;
 
         // Each organism takes part in at most one sexual mating per tick (as
         // initiator or as mate). Reused buffer — no per-tick allocation after warm-up.
@@ -990,7 +997,13 @@ impl Simulation {
             if !org.alive {
                 continue;
             }
-            if org.energy < repro_threshold || (current_alive + offspring.len()) >= hard_cap {
+            if org.energy < repro_threshold {
+                continue;
+            }
+            // Ready to reproduce but the population cap is full. Counted so experiments can
+            // verify the population is food-limited, not cap-limited (Phase 9a).
+            if (current_alive + offspring.len()) >= hard_cap {
+                cap_blocked_births += 1;
                 continue;
             }
             // Already mated this tick (as someone's mate): no second birth this tick.
@@ -1596,6 +1609,8 @@ impl Simulation {
             },
             total_sexual_births: self.stats.total_sexual_births + sexual_births,
             total_asexual_births: self.stats.total_asexual_births + asexual_births,
+            cap_blocked_births,
+            total_cap_blocked_births: self.stats.total_cap_blocked_births + cap_blocked_births,
             founder_lineages,
             total_cumulative_activity: activity_stats.total_cumulative_activity,
             mean_methylation: if self.config.epigenetics.enabled && population > 0 {

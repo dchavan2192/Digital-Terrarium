@@ -216,7 +216,8 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 
 **9a. Food-limited carrying capacity** (do FIRST, before the Phase 7 ablations)
 - [ ] Pi sweep of `food.regrowth_rate` (e.g. 0.0002–0.0005) with `creature.hard_cap` 1500–2000; pick the value where mean population ≈ 60–70% of the cap and the cap almost never binds
-- [ ] New stat: fraction of ticks where births were blocked by the cap (should be ~0)
+- [x] New stats: `cap_blocked_births` / `total_cap_blocked_births` (should stay ~0); `sweep --set KEY=NUMBER` for fixed overrides
+- [ ] Launched via `analysis/launch_pi_phase9a.sh` (hard_cap=2000; regrowth 0.0002–0.0005 × 3 seeds × 100k ticks)
 - [ ] Check runs don't overshoot into extinction (all 5 seeds survive); keep the cap only as a performance backstop
 - [ ] Then run the Phase 7 ON/OFF ablations at this food-limited setting
 - Citations: Verhulst (1838) logistic growth; Allee (1931) density dependence; Lotka (1925) / Volterra (1926)

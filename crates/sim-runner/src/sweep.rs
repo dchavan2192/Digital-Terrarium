@@ -7,8 +7,10 @@ use std::path::Path;
 use crate::run;
 
 /// Run a parameter sweep: for each value, run `seeds` simulations in parallel.
+#[allow(clippy::too_many_arguments)]
 pub fn run_sweep(
     config_path: &Path,
+    overrides: &[String],
     param: &str,
     values: &[f64],
     seeds: u64,
@@ -16,10 +18,27 @@ pub fn run_sweep(
     log_interval: u64,
     output_dir: &Path,
 ) {
-    let base_config = Config::from_file(config_path).unwrap_or_else(|e| {
+    let mut base_config = Config::from_file(config_path).unwrap_or_else(|e| {
         eprintln!("Failed to load config '{}': {}", config_path.display(), e);
         std::process::exit(1);
     });
+    // Fixed overrides applied to every run (e.g. `--set creature.hard_cap=2000`), so
+    // experiments don't need full copies of default.toml that drift out of date.
+    for ov in overrides {
+        let parsed = ov
+            .split_once('=')
+            .and_then(|(k, v)| v.trim().parse::<f64>().ok().map(|v| (k.trim(), v)));
+        match parsed {
+            Some((key, value)) if apply_param(&mut base_config, key, value) => {
+                println!("override: {key} = {value}");
+            }
+            _ => {
+                eprintln!("Bad --set '{ov}': expected KEY=NUMBER with a supported KEY:");
+                print_supported_params();
+                std::process::exit(1);
+            }
+        }
+    }
 
     let total_runs = values.len() as u64 * seeds;
     println!(

@@ -1982,3 +1982,24 @@ fn food_fruit_section_enables_fruit() {
         "fruit grid should hold fruit when enabled"
     );
 }
+
+/// Phase 9a: births blocked only by the population cap are counted, so experiments
+/// can verify the population is food-limited rather than cap-limited.
+#[test]
+fn cap_blocked_births_are_counted() {
+    let mut config = load_config();
+    config.creature.initial_count = 40;
+    config.creature.hard_cap = 40;
+    config.energy.starting = 150.0; // everyone starts above the reproduction threshold
+    let mut sim = Simulation::new(config);
+    sim.step();
+    assert!(
+        sim.stats.cap_blocked_births > 0,
+        "full population with energy above threshold must register cap-blocked births"
+    );
+    let total_after_one = sim.stats.total_cap_blocked_births;
+    for _ in 0..5 {
+        sim.step();
+    }
+    assert!(sim.stats.total_cap_blocked_births >= total_after_one);
+}
