@@ -211,6 +211,33 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 - [ ] Visual QA in a browser (needs the user's OK — the demo runs the sim locally)
 - [ ] Deploy (push to main — needs the user's explicit OK)
 
+### Phase 9: Food-Limited Ecology + Cognition [PLANNED — agreed 2026-11-15]
+**Why**: (1) Population pins at hard_cap (500) by ~tick 1000 and births are blocked at the cap (sim.rs:993). The cap, not food competition, decides who reproduces, which weakens selection and hides drought/niche/epigenetics effects. (2) Brains are tiny (~11–16 evolved neurons, ~220 connections vs ~140k neurons / ~50M synapses in a fruit fly, FlyWire 2024; 302 neurons in C. elegans). More importantly, they are purely feed-forward with no memory and no lifetime learning: behaviour is reflexive, closer to Braitenberg vehicles or bacterial chemotaxis. Never claim "fruit-fly level".
+
+**9a. Food-limited carrying capacity** (do FIRST, before the Phase 7 ablations)
+- [ ] Pi sweep of `food.regrowth_rate` (e.g. 0.0002–0.0005) with `creature.hard_cap` 1500–2000; pick the value where mean population ≈ 60–70% of the cap and the cap almost never binds
+- [ ] New stat: fraction of ticks where births were blocked by the cap (should be ~0)
+- [ ] Check runs don't overshoot into extinction (all 5 seeds survive); keep the cap only as a performance backstop
+- [ ] Then run the Phase 7 ON/OFF ablations at this food-limited setting
+- Citations: Verhulst (1838) logistic growth; Allee (1931) density dependence; Lotka (1925) / Volterra (1926)
+
+**9b. Memory: recurrent NEAT connections**
+- [ ] Allow recurrent edges (previous-tick activations as inputs), evolved by add-connection; stack-allocated `[f64; MAX_NODES]` prev-state buffer per organism, no per-tick allocs; determinism preserved
+- [ ] Config: `brain.allow_recurrent`, `mutation.add_recurrent_probability`
+- [ ] Stats: fraction of brains with recurrent edges, mean recurrent edges
+- Citation: Stanley & Miikkulainen (2002) NEAT supports recurrence
+
+**9c. Lifetime learning: evolved neuromodulated Hebbian plasticity**
+- [ ] Per-connection evolvable plasticity coefficients (ABCD Hebbian rule) gated by a modulatory output/neuron; weights change within a lifetime and are NOT inherited (genome keeps the initial weights), distinct from epigenetic methylation
+- [ ] Config: `[plasticity] enabled, learning_rate`, plus mutation rates for the rule coefficients
+- Citations: Soltoggio et al. (2008) evolved neuromodulated plasticity; Risi & Stanley (2010) adaptive HyperNEAT; Hinton & Nowlan (1987) the Baldwin effect
+- Novelty angle: evolution + in-lifetime learning + epigenetics in one open-ended ecosystem lets us study the Baldwin effect
+
+**9d. Measure intelligence behaviourally (not by neuron count)**
+- [ ] A "cognitive test battery" in sim-runner: freeze evolved genomes from saved snapshots and test them in standard mini-arenas: detour (food behind a barrier), delayed foraging (remember a patch after it vanishes from view), kin vs non-kin discrimination, predator avoidance
+- [ ] Score per generation → a figure showing cognitive capability evolving over time; compare ON/OFF for recurrence/plasticity
+- [ ] Requires genome snapshot export (also needed for arms-race CIAO plots, Cliff & Miller 1995)
+
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
 - [x] WASM build + GitHub Pages live demo — https://dchavan2192.github.io/Digital-Terrarium/
