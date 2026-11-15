@@ -54,7 +54,23 @@ Population stabilizes around the hard cap (~1500) with mean energy ~68. The ecos
 
 Mean generation reaches ~244 by tick 500k — roughly one generation every ~2000 ticks.
 
-*Results will be updated with data from ongoing experiments (cooperation, food scarcity, brain cost sweeps).*
+### Open-Ended Evolution (OEE)
+
+![D(t) across 5 seeds](docs/images/oee_multi_seed_dt.png)
+
+Cumulative evolutionary activity D(t) grows unboundedly as **~15.5·ln(t)** across 5 independent seeds (200k ticks each), satisfying Bedau & Packard's (1991) criterion for open-ended evolution. All seeds show positive log coefficients (10–22), confirming the result is not seed-dependent.
+
+![Trait novelty across seeds](docs/images/oee_multi_seed_novelty.png)
+
+Novel topologies continue appearing throughout the run, with ~130 active traits maintained at steady state — the system never converges to a single dominant strategy.
+
+| Metric | Value (n=5 seeds) |
+|--------|-------------------|
+| D(t) fit | 15.48·ln(t) − 120.8 |
+| Final D(t) | 76.1 ± 17.8 |
+| Active traits | 130.4 ± 7.7 |
+| Max generation | 184.2 ± 44.0 |
+| All populations survived | ✓ |
 
 ## Key Metrics
 

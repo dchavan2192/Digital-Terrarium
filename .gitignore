@@ -6,6 +6,10 @@
 /output
 analysis/.venv/
 .claude/settings.local.json
+.claude/worktrees/
+.local-backups/
+**/__pycache__/
+docs/.Rhistory
 
 # WASM build artifacts in web/ (built by CI, not committed)
 web/*.wasm

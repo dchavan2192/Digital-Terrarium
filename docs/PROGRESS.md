@@ -2,7 +2,23 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-14
+**Last updated**: 2026-11-15
+
+## Latest audit and execution priority (2026-11-15)
+
+See [implementation and roadmap audit](AUDIT_2026-11-15.md) for source-level findings and validation limits. This section supersedes conflicting historical status/metrics below; it does not mark proposed fixes as implemented.
+
+- [ ] **Before Phase 9a:** audit energy accounting. Default sharing still creates 2.5 energy per successful unclipped transfer (donor pays 5, recipient receives 7.5). Define food-transfer vs group-subsidy semantics and test the no-food reciprocal loop.
+- [ ] **Before new experiments:** resolve nonpositive-energy combat/death ordering; negative prey reserves currently permit negative damage. Define rescue and queued-action semantics explicitly.
+- [ ] Validate each sweep config after parameter changes; add missing physical/numerical bounds.
+- [ ] **Then Phase 9a:** tune food-limited ecology with negligible cap binding, accounting for fruit and all experimental arms. Track rejected eligible births and energy sources/sinks.
+- [ ] Fix crossover historical node identity and validate inherited topology. Fitter-parent disjoint/excess inheritance alone is not the bug; structural mutation already follows crossover.
+- [ ] Add genome/checkpoint export, unique run manifests, source/metric versions, reliable completion status, and independent environmental RNG or replayable drought schedules.
+- [ ] Run targeted Phase 7 ablations first. Current launcher has four arms, not the proposed 16-arm factorial. Implement a neutral shadow before interpreting excess evolutionary activity; finite runs cannot establish unbounded growth.
+- [ ] Move behavioral evaluation (9d) before recurrence (9b) and plasticity (9c); establish measurable tasks and controls first.
+- [ ] Reconcile historical metrics and claims below and in README with versioned results. Phase 7 mechanisms are implemented, not all experimentally validated.
+
+Validation for this audit: `cargo check --workspace --offline` passed. No local simulations, Pi jobs, browser QA, or deployments were run.
 
 ---
 
