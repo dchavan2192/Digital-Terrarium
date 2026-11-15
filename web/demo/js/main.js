@@ -103,8 +103,27 @@ function fillIcons(root = document) {
 // --------------------------------------------------------------------------
 // boot
 // --------------------------------------------------------------------------
+// Show which commit this demo was built from. The deploy workflow writes
+// version.json; it is absent in local development, where the tag stays hidden.
+async function showBuildTag() {
+  try {
+    const res = await fetch('version.json', { cache: 'no-store' });
+    if (!res.ok) return;
+    const v = await res.json();
+    const tag = $('#buildTag');
+    if (!tag || !v.sha) return;
+    const when = v.date ? new Date(v.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    tag.textContent = `build ${String(v.sha).slice(0, 7)}${when ? ` · ${when}` : ''}`;
+    tag.href = `https://github.com/dchavan2192/Digital-Terrarium/commit/${v.sha}`;
+    tag.hidden = false;
+  } catch {
+    // No version file: nothing to show.
+  }
+}
+
 async function boot() {
   fillIcons();
+  showBuildTag();
   S.bootAt = performance.now();
   const seed = parseSeed(params.get('seed')) ?? randomSeed();
   const { sim, error } = await loadSim({ wasmUrl: 'terrarium.wasm', configUrl: 'demo.toml', seed, forceMock: params.has('mock') });

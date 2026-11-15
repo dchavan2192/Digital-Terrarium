@@ -72,11 +72,11 @@ Every number in `README.md`, `ALIFE_2027_OUTLINE.md`, `EXPERIMENT_FINDINGS.md` a
 - No code needs reverting; the fixes are forward. What resets is every result and every tuned parameter from 2026-11-09 on.
 
 **New bugs (code does not do what the config and docs say):**
-- [ ] B1. The "barren" biome does nothing to algae. `best_multiplier` starts at 1.0 and takes the maximum, so a multiplier of 0.3 never applies (`world.rs`, FoodGrid::new). Fruit still grows there at 0.6× the base rate, so the barren zone is richer than open ground. Known since Session 7 and never fixed.
-- [ ] B2. Fruit does not regrow in a cell whose algae is full: the `continue` for full algae comes before the fruit block (`world.rs`, regrow_with_construction).
+- [x] B1 (fixed 2026-11-15; fruit now grows only in zones with a multiplier above 1). The "barren" biome did nothing to algae. `best_multiplier` starts at 1.0 and takes the maximum, so a multiplier of 0.3 never applies (`world.rs`, FoodGrid::new). Fruit still grows there at 0.6× the base rate, so the barren zone is richer than open ground. Known since Session 7 and never fixed.
+- [x] B2 (fixed 2026-11-15). Fruit did not regrow in a cell whose algae is full: the `continue` for full algae comes before the fruit block (`world.rs`, regrow_with_construction).
 - [ ] B3. A lineage can add at most 29 neurons, ever. `next_node_id` only goes up and node ids are never reused, so add-node stops for good at `MAX_NODES` = 64 (`genome.rs:345`). At about 580 generations per 100k ticks, long runs will hit this wall, and structural novelty then falls by construction. This matters for any open-ended evolution claim.
-- [ ] B4. Attacking a victim whose energy is already negative gives negative damage: the attacker loses energy and its predation stats go down (`sim.rs:888`). Clamp at zero.
-- [ ] B5. Nothing validates `child_energy <= parent_cost`, so a config could create energy at birth. The defaults (30 and 30) are fine.
+- [x] B4 (fixed 2026-11-15). Attacking a victim whose energy is already negative gave negative damage: the attacker loses energy and its predation stats go down (`sim.rs:888`). Clamp at zero.
+- [x] B5 (fixed 2026-11-15; `Config::validate` now rejects it). Nothing validated `child_energy <= parent_cost`, so a config could create energy at birth. The defaults (30 and 30) are fine.
 
 **Design problems that distort results (decisions, not coding errors):**
 - D1. An attack costs 5 energy on every tick the attack output is positive, whether or not anything is in range. In the fixed-code runs attacks are 0.0 per tick: predation is extinct. Earlier "predation emerged" findings were under free energy.
@@ -86,7 +86,45 @@ Every number in `README.md`, `ALIFE_2027_OUTLINE.md`, `EXPERIMENT_FINDINGS.md` a
 - D5. Eating is free, and a creature cannot sense food in its own cell (vision rays start one cell out). "Always eat" is optimal, so the eat output carries no decision.
 - D6. Hard-coded constants remain: diet efficiency 0.7, night vision ×0.5, the 30° kin threshold, offspring offset.
 
-**Why the world holds about 70 creatures.** It is arithmetic. Energy in: 10,000 cells × 0.0005 regrowth × about 1.3 (biomes) × 15 energy per food ≈ 100 energy per tick. Energy out: about 1.0–1.2 per creature per tick (0.3 metabolism, 0.25 brain, plus movement, temperature, crowding and construction). That gives 80–100 creatures; the runs show 65–88, with mean energy 28.7, below what a newborn starts with. A world of about 1,000 creatures needs regrowth near 0.006, or cheaper brains. So the 0.1 sweep should cover **0.002–0.008**, not 0.001–0.005.
+**Rule changes made on 2026-11-15 (owner asked for the design items to be implemented where the science supports them):**
+
+| Item | What the literature supports | What changed | Old rule still available as |
+|---|---|---|---|
+| D1 attack cost | The energy cost of predation is in the pursuit and strike, not in readiness to attack (Holling 1959; Scantlebury et al. 2014) | `attack_cost` is paid only when a strike lands on a target in range | `combat.idle_attack_cost = 5` |
+| D2 construction cost | Sustained work at 1–2× resting metabolism is physiologically plausible (Peterson, Nagy & Diamond 1990; Hammond & Diamond 1997), so the cost level was kept. The defect was that abstaining was nearly impossible | Dead zone widened from 0.01 to 0.2; effort and cost now rise smoothly from zero above it. The 0.2 is a modelling choice, not an empirical value | `niche_construction.activation_threshold = 0.01` |
+| D3 mutation bias | Supported only in part. Real genomes can carry a deletion bias (Mira, Ochman & Moran 2001), so the bias is not wrong in itself. But the old comment's citation ("Dolson & Park 2012") could not be verified, and an unbiased default makes brain-size trends attributable to selection | `prune_probability` 0.04 → 0.02, which gives about zero neutral drift in connection count | `mutation.prune_probability = 0.04` |
+| D5 free eating, no contact sense | Animals sense food on contact (Dethier 1976); handling food and searching for it compete for time (Holling 1959; Stephens & Krebs 1986) | New 20th brain input `food_here`; speed × `feeding_speed_factor` (0.5) while the eat output is on | `creature.feeding_speed_factor = 1` (the input stays) |
+
+- D3 correction: the earlier note overstated this bias. The expected drift was about −0.017 connections per birth, roughly −10 per 100k ticks at 580 generations. The fixed-code runs lost 7.8 of 223 connections in 100k ticks, so the whole observed "pruning" is what mutation alone predicts. Selection was not visibly shrinking brains.
+- D4 (brain upkeep is 40% of the resting budget) and D6 (remaining hard-coded constants) are unchanged.
+- Citations in this table are from memory; verify before using them in a paper.
+
+**Pi check of the new rules** (`hard_cap = 2000`, 20k ticks, 3 seeds, late-half means; old-rule runs at 0.006 were still running when this was written):
+
+| Rules | Regrowth | Population | Lowest point | Attacks per tick | Predators |
+|---|---|---|---|---|---|
+| New | 0.003 | 510, 575, 511 | 135, 116, 144 | 2.0, 0.25, 5.2 | 8, 1, 15 |
+| New | 0.006 | 691, 784, 759 | 308, 350, 409 | 18.7, 18.8, 20.2 | 49, 51, 49 |
+| Old | 0.003 | 444, 460 (2 seeds) | 310, 315 | 1.05, 0.5 | 2, 1 |
+
+- The new rules do not collapse into universal cannibalism. At 0.006, about 7% of creatures get most of their energy from hunting.
+- The opening die-off is deeper under the new rules (lows of 116–144 against 310–315), because always-eating brains now travel at half speed until evolution gates eating on `food_here`.
+- The cap never blocked a birth.
+- Population is not proportional to food at high density: doubling regrowth from 0.003 to 0.006 raised it only about 1.4×.
+
+**Why the world holds about 70 creatures.** It is arithmetic. Energy in: 10,000 cells × 0.0005 regrowth × about 1.3 (biomes) × 15 energy per food ≈ 100 energy per tick. Energy out: about 1.0–1.2 per creature per tick (0.3 metabolism, 0.25 brain, plus movement, temperature, crowding and construction). That gives 80–100 creatures; the runs show 65–88, with mean energy 28.7, below what a newborn starts with. That arithmetic fits the sparse world but breaks down at high density: 0.006 gives about 750 creatures, not 1,000, because crowding and predation costs grow. The 0.1 sweep should cover **0.002–0.012**.
+
+### Demo state after visual check (2026-11-15)
+
+Checked with real screenshots (desktop first view, after 5k ticks, map view, phone) driven through Chrome's DevTools protocol.
+- [x] The demo world was nearly empty on the default food rate (5–15 creatures by tick 6,000). `configs/demo.toml` now sets `food.regrowth_rate = 0.002`: the population recovers from the opening die-off by about tick 600 and then swings between about 200 and 420 with the seasons, under the cap of 500.
+- [x] Creatures were a few pixels wide. Default render scale raised from 1.0 to 2.2 (`web/demo/js/scene/creatures.js`).
+- [x] Header said "500 creatures" regardless of the count; now "up to 500".
+- [x] Deploy workflow runs the test suite before building, and stamps `version.json`; the demo header shows the commit it was built from.
+- [ ] The tour card overlaps the Food legend on first view.
+- [ ] The "Colour = species" chip is clipped at the right edge at 1440 px.
+- [ ] The feed is dominated by species churn ("Sp. 54" by day 6). The species tracker in `sim-wasm` splits too eagerly.
+- [ ] Not yet checked by eye: inspector drawer, Follow camera, the other data layers, tablet width.
 
 ### The consciousness goal
 
@@ -117,7 +155,7 @@ UAL is the best first target. It is defined behaviourally, it was proposed as an
 Each stage ends in a gate. Do not start a stage until the previous gate is met.
 
 **Stage 0: a trustworthy instrument** (about 1–2 weeks)
-- [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.002–0.008 at `hard_cap = 2000`. Fix B1–B5 first, and decide D1–D3, because each changes the energy budget. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
+- [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.002–0.012 at `hard_cap = 2000`, on the 2026-11-15 rules. B3 (the 29-neuron lifetime cap) is still open. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
 - [ ] 0.2 Energy ledger. Account for every source and sink each tick (food, fruit, metabolism, movement, brain, crowding, temperature, combat loss, sharing loss, reproduction, deaths, clamping at the energy cap). In debug builds, assert that the change in total energy equals the ledger. Expose the ledger in `TickStats`.
 - [ ] 0.3 Mechanism-effect tests. For every `enabled` flag and major parameter, an ON run and an OFF run must diverge within a set number of ticks. This catches the fruit class of bug.
 - [ ] 0.4 Persistence. Serde for `Genome`, `Organism` and simulation state; `--checkpoint-every` and `--resume` in sim-runner; periodic genome export. Test: 2,000 ticks straight must equal 1,000 + save + load + 1,000, bit for bit.

@@ -14,7 +14,7 @@ import * as THREE from 'three';
 import { SPECIES_LINEAR, OTHER_SLOT, SCENE_HEX, hexToLinear } from '../palette.js';
 
 export const VIS = {
-  scale: 1.0, // multiplier on the spec's body length (lead can tune via ?scale=)
+  scale: 2.2, // multiplier on the spec's body length; 1.0 left creatures a few pixels wide (tune via ?scale=)
   bodyLen: 0.07, // §4.1: world-space body length 0.07 × √body_size scene units
   eatMs: 250,
   attackMs: 200,
