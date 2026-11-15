@@ -387,7 +387,7 @@ Opens on creature click as a drawer (desktop) or bottom sheet (phone). Data come
 
 ### 7.2 Brain graph (SVG, live)
 
-- **Layout:** three columns. **19 inputs** on the left, grouped and labelled: Vision (5 rays × dist/type), Self (energy, heading, size), Social (signal, kin), World (temperature, scent, light, built ground). **Hidden** nodes in the middle, x-position = NEAT `depth` (0..1), y = order. **7 outputs** on the right: turn, speed, eat, attack, signal, share, build.
+- **Layout:** three columns. **20 inputs** on the left, grouped and labelled: Vision (5 rays × dist/type), Self (energy, heading, size), Social (signal, kin), World (temperature, scent, light, built ground, food here; the last was added on 2026-11-15). **Hidden** nodes in the middle, x-position = NEAT `depth` (0..1), y = order. **7 outputs** on the right: turn, speed, eat, attack, signal, share, build.
 - **Nodes:** circles r = 5 px (inputs/outputs r = 6). Fill = activation on a diverging map (`#4C8FD6` −1 → `#2A2C28` 0 → `#E69F00` +1), stroke `--ink-3`.
 - **Edges:** cubic curves. Width = `0.5 + 2.5 × |w|` (clamped), colour by sign (positive `--ink-2` warm grey, negative dashed). **Methylated** (epigenetically silenced) weights are drawn at `opacity × (1 − methylation)`, with a tooltip "silenced by stress (Jablonka & Lamb 2005)".
 - **Live activations:** node fills update every frame. On edges, optionally animate a 2-px dot moving along strongly-active edges (|w·a| > 0.5), v2.
@@ -546,7 +546,7 @@ Population crash/boom, predation/cooperation surges, records, milestones and sea
 - brain topology: `nodes: [{id, kind: in|hidden|out|bias, depth}]`, `edges: [{from, to, weight, enabled, methylation}]` from `genome.connections` and `hidden_nodes`. Exists.
 - `children_alive`, `children_total`. **NEW**: there is no child index. `children_alive` can be computed by scanning `parent_id` (O(n), fine at 4 Hz). `children_total` needs a counter on `Organism`.
 - **energy budget over the last 100 ticks**, per category (food, fruit, hunting, shares received / base metabolism, movement, brain, temperature, construction, attack cost, shares given, reproduction). **NEW**: none of these per-organism flows are recorded except lifetime `energy_from_food` and `energy_from_attacks`. Proposal: an `[f32; 12]` EMA accumulator on `Organism` (allocation-free, deterministic, no RNG use, so it doesn't affect determinism).
-- `last_inputs[19]`, `last_outputs[7]` for the "what is it doing" sentence. **NEW**: inputs are built on the stack and discarded.
+- `last_inputs[20]`, `last_outputs[7]` for the "what is it doing" sentence. **NEW**: inputs are built on the stack and discarded.
 
 `tw_brain_activations(id) -> ptr` (per frame while the inspector is open): `[f32; MAX_NODES]` node activations from the last forward pass. **NEW**: `Brain::forward` discards its stack activations. Options: (a) re-run `forward` on the stored `last_inputs` in sim-wasm, which is pure and doesn't touch the RNG, so it is safe, and needs a `forward_with_activations` variant; or (b) store activations for one "watched" id only. **Prefer (a).**
 

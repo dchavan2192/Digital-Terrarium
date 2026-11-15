@@ -67,6 +67,7 @@ body_radius = 3.0       # Collision/eating radius in world units
 max_speed = 2.0         # Maximum movement speed (units/tick)
 max_turn = 0.2          # Maximum turn rate (radians/tick)
 max_age = 2000          # Death by old age (lowered from 3000 for faster evolutionary turnover)
+feeding_speed_factor = 0.5  # Speed multiplier while in feeding mode (eat output > 0): handling vs searching (Holling 1959)
 
 [creature.vision]
 ray_count = 5           # Number of vision rays cast
@@ -104,7 +105,8 @@ mate_energy_fraction = 0.5  # Mate needs >= threshold × this energy to be eligi
 [combat]
 # Predator-prey dynamics: Lotka-Volterra (1925/1926), Yaeger Polyworld (1994)
 attack_range = 8.0            # Must be close to attack (roughly 2x body_radius)
-attack_cost = 5.0             # Energy spent per attack attempt (discourages spam)
+attack_cost = 5.0             # Energy spent per strike, paid only when a target is in range
+idle_attack_cost = 0.0        # Cost per tick of attacking with nothing in range (0: no strike, no cost)
 attack_damage = 20.0          # Base damage per successful hit
 energy_transfer_ratio = 0.75  # Attacker absorbs 75% of damage as energy (raised from 0.5 to make predation viable)
 
@@ -112,7 +114,7 @@ energy_transfer_ratio = 0.75  # Attacker absorbs 75% of damage as energy (raised
 # Energy sharing: Hamilton (1964) kin selection, Trivers (1971) reciprocal altruism
 share_range = 10.0            # Must be close to share (slightly > attack_range)
 share_amount = 5.0            # Energy the donor pays per share action
-benefit_multiplier = 1.5      # Recipient gets share_amount * 1.5 (Hamilton: B > C enables rB > C)
+transfer_efficiency = 0.9      # Recipient gets 90% of what the donor pays; must be <= 1 (energy conservation)
 
 [aging]
 # Gompertz-Makeham mortality: h(age) = λ + α·exp(β·age)
@@ -124,12 +126,16 @@ aging_rate = 0.002            # β — default aging rate (evolvable via genome)
 [mutation]
 weight_probability = 0.1  # Chance each weight mutates during reproduction
 weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
-# Structural mutations (per offspring). Stanley & Miikkulainen (2002) NEAT;
-# Dolson & Park (2012): prune rate should exceed add rate to curb complexity bloat.
+# Structural mutations (per offspring). Stanley & Miikkulainen (2002) NEAT.
+# Rates are balanced so the expected change in enabled connections is about zero
+# with no selection: +0.02 (add) +0.01 (add-node nets +1) −0.02 (prune) −~0.01 (toggle
+# mostly disables). Any trend in brain size then reflects selection, not mutation bias.
+# Real genomes can carry a deletion bias (Mira, Ochman & Moran 2001); raise
+# prune_probability to study that deliberately.
 add_connection_probability = 0.02  # Add a new feed-forward edge
 add_node_probability = 0.01        # Split an edge with a new hidden node
 toggle_probability = 0.01          # Flip one edge's enabled flag
-prune_probability = 0.04           # Delete one edge (2x add rate)
+prune_probability = 0.02           # Delete one edge (was 0.04: a built-in drift toward smaller brains)
 trait_probability = 0.05           # Per-trait chance to mutate each scalar trait
 
 [density_pressure]
@@ -151,7 +157,7 @@ min_threshold = 0.1           # Floor: prevents over-splitting
 max_threshold = 2.0           # Ceiling: prevents one giant species
 
 [brain]
-inputs = 19             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light + niche_level
+inputs = 20             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light + niche_level + food_here
 hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)
 outputs = 7             # turn, speed, eat, attack, signal, share, construct
 
@@ -230,7 +236,7 @@ decay_rate = 0.999      # Slow decay — environment remembers for ~1000 ticks
 max_level = 1.0         # Maximum construction level per cell
 regrowth_bonus = 0.5    # Cell regrowth × (1.0 + level * bonus); multiplies biome/season/drought rate
 energy_cost = 0.5       # Cost per unit of |construct| output
-activation_threshold = 0.01  # Dead zone: |construct| must exceed this to build/degrade
+activation_threshold = 0.2   # Dead zone: |construct| below this does nothing and costs nothing
 
 # Epigenetic inheritance — heritable non-genetic methylation marks.
 # Under stress (low energy), active connections accumulate methylation that

@@ -11,7 +11,11 @@
 # default.toml for sweeps so results stay comparable.
 #
 # To run the demo world headless for comparison, merge by hand or use
-# sim-runner with default.toml and these four values changed.
+# sim-runner with default.toml and these values changed.
+
+[food]
+regrowth_rate = 0.002   # default 0.0005: the default world holds only a few dozen creatures; this one
+                        # holds a few hundred, so there is something to watch (checked 2026-11-15)
 
 [food.seasons]
 period = 3600.0         # default 10000: one season cycle ~1 min at 60 ticks/s

@@ -33,7 +33,7 @@ pub const OUTPUT_LABELS: [&str; 7] = [
 ];
 
 /// Non-ray input labels, in the order sim.rs writes them after the vision rays.
-pub const INPUT_TAIL_LABELS: [&str; 9] = [
+pub const INPUT_TAIL_LABELS: [&str; 10] = [
     "energy",
     "heading",
     "heard_signal",
@@ -43,6 +43,7 @@ pub const INPUT_TAIL_LABELS: [&str; 9] = [
     "pheromone",
     "light",
     "niche_level",
+    "food_here",
 ];
 
 // ---------------------------------------------------------------------------

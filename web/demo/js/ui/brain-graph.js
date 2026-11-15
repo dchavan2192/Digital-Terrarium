@@ -12,11 +12,11 @@ const GROUPS = [
   { name: 'Vision', match: (l) => l.startsWith('ray') },
   { name: 'Self', match: (l) => ['energy', 'heading', 'body_size'].includes(l) },
   { name: 'Social', match: (l) => ['heard_signal', 'kin_similarity'].includes(l) },
-  { name: 'World', match: (l) => ['temperature', 'pheromone', 'light', 'niche_level'].includes(l) },
+  { name: 'World', match: (l) => ['temperature', 'pheromone', 'light', 'niche_level', 'food_here'].includes(l) },
 ];
 const SHORT = {
   energy: 'energy', heading: 'heading', body_size: 'size', heard_signal: 'signal', kin_similarity: 'kin',
-  temperature: 'temp', pheromone: 'scent', light: 'light', niche_level: 'built', construct: 'build', bias: 'bias',
+  temperature: 'temp', pheromone: 'scent', light: 'light', niche_level: 'built', food_here: 'food here', construct: 'build', bias: 'bias',
 };
 
 function shortLabel(l) {

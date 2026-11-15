@@ -4,25 +4,220 @@
 
 **Last updated**: 2026-11-15
 
-## Latest audit and execution priority (2026-11-15)
+---
 
-See [implementation and roadmap audit](AUDIT_2026-11-15.md) for source-level findings and validation limits. This section supersedes conflicting historical status/metrics below; it does not mark proposed fixes as implemented.
+## Active development session — 2026-11-15
 
-- [ ] **Before Phase 9a:** audit energy accounting. Default sharing still creates 2.5 energy per successful unclipped transfer (donor pays 5, recipient receives 7.5). Define food-transfer vs group-subsidy semantics and test the no-food reciprocal loop.
-- [ ] **Before new experiments:** resolve nonpositive-energy combat/death ordering; negative prey reserves currently permit negative damage. Define rescue and queued-action semantics explicitly.
-- [ ] Validate each sweep config after parameter changes; add missing physical/numerical bounds.
-- [ ] **Then Phase 9a:** tune food-limited ecology with negligible cap binding, accounting for fruit and all experimental arms. Track rejected eligible births and energy sources/sinks.
-- [ ] Fix crossover historical node identity and validate inherited topology. Fitter-parent disjoint/excess inheritance alone is not the bug; structural mutation already follows crossover.
-- [ ] Add genome/checkpoint export, unique run manifests, source/metric versions, reliable completion status, and independent environmental RNG or replayable drought schedules.
-- [ ] Run targeted Phase 7 ablations first. Current launcher has four arms, not the proposed 16-arm factorial. Implement a neutral shadow before interpreting excess evolutionary activity; finite runs cannot establish unbounded growth.
-- [ ] Move behavioral evaluation (9d) before recurrence (9b) and plasticity (9c); establish measurable tasks and controls first.
-- [ ] Reconcile historical metrics and claims below and in README with versioned results. Phase 7 mechanisms are implemented, not all experimentally validated.
+Local work has been reconciled with upstream before further implementation. [The earlier local audit](AUDIT_2026-11-15.md) reviewed `26c0ec8`, which was 14 commits behind upstream; its sharing and negative-damage findings are already fixed upstream. The staged roadmap below remains authoritative pending the research council and implementation checks. Long simulations (>3 minutes) run on `pi@dchavan`; this session is authorized to commit and push completed tasks and update the linked portfolio demo.
 
-Validation for this audit: `cargo check --workspace --offline` passed. No local simulations, Pi jobs, browser QA, or deployments were run.
+## Audit and Roadmap (Fable 5.2, 2026-11-15): read this first
+
+This section supersedes "Current State" below, which describes the Session 2 codebase and is kept only as history. Phases 9–11 further down remain as detailed item lists; the stages here set their order.
+
+### Where the project stands
+
+The engineering is in good shape. The science has no standing results yet.
+
+**What is solid**
+- A deterministic, config-driven core (`sim-core`, about 4,600 lines) with no rendering code, 52 tests, and CI plus the Pages deploy green at `f009ab0`.
+- A headless runner with sweeps, a Pi workflow, and an explainable 3D web demo driven by the same engine through `sim-wasm`.
+- A literature base: `docs/research/PRIOR_ART.md`, `OEE_SHADOW_DESIGN.md`, and the bibliography.
+
+**What is not**
+
+On 2026-11-15 three silent bugs were found. Each one invalidates earlier results.
+
+| Bug | Effect | How it was found |
+|---|---|---|
+| Sharing paid the recipient 1.5× the donor's cost | Free energy; populations lived on it; the "87% cooperation" result was an exploit | The owner noticed creatures camping in the demo |
+| `[food.fruit]` was never read | Fruit was off in every run | The front-end engineer noticed a config flag reading false |
+| Newborns counted as stressed | Methylation saturated by tick 2,000 | Code audit |
+
+Every number in `README.md`, `ALIFE_2027_OUTLINE.md`, `EXPERIMENT_FINDINGS.md` and the session logs below predates these fixes. Treat the count of established results as zero.
+
+**First run with honest energetics** (Pi, commit `f009ab0`, `hard_cap = 2000`, 100k ticks, 3 seeds per rate, 12 runs):
+
+| `food.regrowth_rate` | Outcome |
+|---|---|
+| 0.0002 | Extinct in 3 of 3 (between ticks 8.8k and 27.8k) |
+| 0.0003 | Extinct in 2 of 3; the survivor held about 55 creatures and dipped to 1 |
+| 0.0004 | Survived in 3 of 3, holding about 63–77 creatures (lows of 16, 29 and 1) |
+| 0.0005 (current default) | Survived in 3 of 3, holding about 65–88 creatures (lows of 17, 7 and 24) |
+
+- The cap never blocked a birth in any run.
+- Sharing fell from about 350 per tick to well under 1 per tick.
+- **Conclusion:** the old ecosystem of 500–1,500 creatures was sustained by the sharing bug. With real energetics the default world supports about 70 creatures and sits close to extinction. Every parameter was tuned against the bug, so the ecology must be retuned before any experiment. The live demo now runs this sparse world too.
+
+### Findings, in priority order
+
+1. **Bugs are being found by luck, not by tests.** No test asserted that energy comes only from food, or that a config flag has any effect. Stage 0 adds an energy ledger and mechanism-effect tests.
+2. **No persistence.** `Genome` and `Organism` are not serialisable, and there is no checkpoint, resume or genome export. A week-long Pi run dies with a power cut. Evolved brains cannot be tested, compared across eras, or seeded from a connectome. Every later stage depends on this.
+3. **The brain cannot support the stated goal.** It is feed-forward only, holds at most 64 nodes (38 hidden after 19 inputs and 7 outputs), keeps no state between ticks, and does not learn within a life. Nothing that any theory of consciousness treats as relevant can arise in it.
+4. **The world does not pay for cognition.** Evolution builds only what the environment rewards. Today a reflex ("turn toward food, eat") is close to optimal, so brains have no reason to grow. Adding brain capacity without changing the ecology will produce nothing.
+5. **Crossover only mixes weights** (audit item G). The sex arm of any experiment is meaningless until a child can inherit structure from both parents.
+6. **Cross-platform determinism is untested.** `sim-core` makes 24 calls to platform maths functions (`powf`, `exp`, `sin` and others). "Same seed = same run" may hold only on one machine; Mac, Pi and browser runs may diverge.
+7. **Documentation asserts things that are stale or false.** README: population about 1,500, 30 tests, about 4,400 ticks/s. Outline abstract: "satisfying Bedau's criterion". `PRIOR_ART.md` lists the novelty claims to withdraw.
+8. **Statistical power.** With 3–5 seeds only very large effects are detectable. Plan for 10–20 seeds, with metrics chosen before the run.
+9. **The Pi is at its thermal limit.** It reached 85.6 °C and hard-throttled (`throttled=0xe0006`) with four concurrent runs and the fan at maximum.
+10. **Repo hygiene for open source.**
+    - `.claude/settings.local.json` is tracked on `main`.
+    - The owner's main checkout has diverged from `origin`; current work lives in `.worktrees/merge` on branch `merge-remote`.
+    - There is no CONTRIBUTING.md or CITATION.cff.
+    - `sim.rs` is a single 1,643-line file and will not absorb water, parasites and plasticity cleanly.
+
+### Second pass: line-by-line read of the core (2026-11-15)
+
+**Covered:** the whole tick loop in `sim.rs` (sensing, actions, metabolism, combat, sharing, reproduction, death, regrowth), the brain forward pass, genome mutation and crossover, and food-grid construction. **Not yet read:** the spatial index, the pheromone, elevation and construction grids, the stats and species code, `sim-wasm`, the viewer and the runner.
+
+**When each known bug entered** (first commit was 2026-11-07):
+- Sharing multiplier: commit `9795f27`, 2026-11-09. Every run since then had free energy.
+- Fruit never read: 2026-11-13, the day fruit was added.
+- Methylation saturation: 2026-11-14, the day epigenetics was added.
+- No code needs reverting; the fixes are forward. What resets is every result and every tuned parameter from 2026-11-09 on.
+
+**New bugs (code does not do what the config and docs say):**
+- [x] B1 (fixed 2026-11-15; fruit now grows only in zones with a multiplier above 1). The "barren" biome did nothing to algae. `best_multiplier` starts at 1.0 and takes the maximum, so a multiplier of 0.3 never applies (`world.rs`, FoodGrid::new). Fruit still grows there at 0.6× the base rate, so the barren zone is richer than open ground. Known since Session 7 and never fixed.
+- [x] B2 (fixed 2026-11-15). Fruit did not regrow in a cell whose algae is full: the `continue` for full algae comes before the fruit block (`world.rs`, regrow_with_construction).
+- [ ] B3. A lineage can add at most 29 neurons, ever. `next_node_id` only goes up and node ids are never reused, so add-node stops for good at `MAX_NODES` = 64 (`genome.rs:345`). At about 580 generations per 100k ticks, long runs will hit this wall, and structural novelty then falls by construction. This matters for any open-ended evolution claim.
+- [x] B4 (fixed 2026-11-15). Attacking a victim whose energy is already negative gave negative damage: the attacker loses energy and its predation stats go down (`sim.rs:888`). Clamp at zero.
+- [x] B5 (fixed 2026-11-15; `Config::validate` now rejects it). Nothing validated `child_energy <= parent_cost`, so a config could create energy at birth. The defaults (30 and 30) are fine.
+
+**Design problems that distort results (decisions, not coding errors):**
+- D1. An attack costs 5 energy on every tick the attack output is positive, whether or not anything is in range. In the fixed-code runs attacks are 0.0 per tick: predation is extinct. Earlier "predation emerged" findings were under free energy.
+- D2. Construction costs up to 0.5 energy per tick (more than base metabolism, 0.3) whenever the output is outside ±0.01. That selects against the feature the niche-construction experiment is meant to study.
+- D3. Mutation is biased toward smaller brains: prune 4% against add 2%. Connection counts drift down with no selection at all, which confounds every brain-size result.
+- D4. Brain upkeep is about 0.25 energy per tick (215 connections) against base metabolism of 0.3, so thinking is over 40% of the resting budget.
+- D5. Eating is free, and a creature cannot sense food in its own cell (vision rays start one cell out). "Always eat" is optimal, so the eat output carries no decision.
+- D6. Hard-coded constants remain: diet efficiency 0.7, night vision ×0.5, the 30° kin threshold, offspring offset.
+
+**Rule changes made on 2026-11-15 (owner asked for the design items to be implemented where the science supports them):**
+
+| Item | What the literature supports | What changed | Old rule still available as |
+|---|---|---|---|
+| D1 attack cost | The energy cost of predation is in the pursuit and strike, not in readiness to attack (Holling 1959; Scantlebury et al. 2014) | `attack_cost` is paid only when a strike lands on a target in range | `combat.idle_attack_cost = 5` |
+| D2 construction cost | Sustained work at 1–2× resting metabolism is physiologically plausible (Peterson, Nagy & Diamond 1990; Hammond & Diamond 1997), so the cost level was kept. The defect was that abstaining was nearly impossible | Dead zone widened from 0.01 to 0.2; effort and cost now rise smoothly from zero above it. The 0.2 is a modelling choice, not an empirical value | `niche_construction.activation_threshold = 0.01` |
+| D3 mutation bias | Supported only in part. Real genomes can carry a deletion bias (Mira, Ochman & Moran 2001), so the bias is not wrong in itself. But the old comment's citation ("Dolson & Park 2012") could not be verified, and an unbiased default makes brain-size trends attributable to selection | `prune_probability` 0.04 → 0.02, which gives about zero neutral drift in connection count | `mutation.prune_probability = 0.04` |
+| D5 free eating, no contact sense | Animals sense food on contact (Dethier 1976); handling food and searching for it compete for time (Holling 1959; Stephens & Krebs 1986) | New 20th brain input `food_here`; speed × `feeding_speed_factor` (0.5) while the eat output is on | `creature.feeding_speed_factor = 1` (the input stays) |
+
+- D3 correction: the earlier note overstated this bias. The expected drift was about −0.017 connections per birth, roughly −10 per 100k ticks at 580 generations. The fixed-code runs lost 7.8 of 223 connections in 100k ticks, so the whole observed "pruning" is what mutation alone predicts. Selection was not visibly shrinking brains.
+- D4 (brain upkeep is 40% of the resting budget) and D6 (remaining hard-coded constants) are unchanged.
+- Citations in this table are from memory; verify before using them in a paper.
+
+**Pi check of the new rules** (`hard_cap = 2000`, 20k ticks, 3 seeds, late-half means; old-rule runs at 0.006 were still running when this was written):
+
+| Rules | Regrowth | Population | Lowest point | Attacks per tick | Predators |
+|---|---|---|---|---|---|
+| New | 0.003 | 510, 575, 511 | 135, 116, 144 | 2.0, 0.25, 5.2 | 8, 1, 15 |
+| New | 0.006 | 691, 784, 759 | 308, 350, 409 | 18.7, 18.8, 20.2 | 49, 51, 49 |
+| Old | 0.003 | 444, 460 (2 seeds) | 310, 315 | 1.05, 0.5 | 2, 1 |
+
+- The new rules do not collapse into universal cannibalism. At 0.006, about 7% of creatures get most of their energy from hunting.
+- The opening die-off is deeper under the new rules (lows of 116–144 against 310–315), because always-eating brains now travel at half speed until evolution gates eating on `food_here`.
+- The cap never blocked a birth.
+- Population is not proportional to food at high density: doubling regrowth from 0.003 to 0.006 raised it only about 1.4×.
+
+**Why the world holds about 70 creatures.** It is arithmetic. Energy in: 10,000 cells × 0.0005 regrowth × about 1.3 (biomes) × 15 energy per food ≈ 100 energy per tick. Energy out: about 1.0–1.2 per creature per tick (0.3 metabolism, 0.25 brain, plus movement, temperature, crowding and construction). That gives 80–100 creatures; the runs show 65–88, with mean energy 28.7, below what a newborn starts with. That arithmetic fits the sparse world but breaks down at high density: 0.006 gives about 750 creatures, not 1,000, because crowding and predation costs grow. The 0.1 sweep should cover **0.002–0.012**.
+
+### Demo state after visual check (2026-11-15)
+
+Checked with real screenshots (desktop first view, after 5k ticks, map view, phone) driven through Chrome's DevTools protocol.
+- [x] The demo world was nearly empty on the default food rate (5–15 creatures by tick 6,000). `configs/demo.toml` now sets `food.regrowth_rate = 0.002`: the population recovers from the opening die-off by about tick 600 and then swings between about 200 and 420 with the seasons, under the cap of 500.
+- [x] Creatures were a few pixels wide. Default render scale raised from 1.0 to 2.2 (`web/demo/js/scene/creatures.js`).
+- [x] Header said "500 creatures" regardless of the count; now "up to 500".
+- [x] Deploy workflow runs the test suite before building, and stamps `version.json`; the demo header shows the commit it was built from.
+- [ ] The tour card overlaps the Food legend on first view.
+- [ ] The "Colour = species" chip is clipped at the right edge at 1440 px.
+- [ ] The feed is dominated by species churn ("Sp. 54" by day 6). The species tracker in `sim-wasm` splits too eagerly.
+- [ ] Not yet checked by eye: inspector drawer, Follow camera, the other data layers, tablet width.
+
+### The consciousness goal
+
+**What cannot be done.** No simulation can prove that digital consciousness can be created. There is no accepted theory of consciousness and no agreed way to measure it, so no behaviour or network structure can settle the question. A project that claims otherwise will not be taken seriously, and the claim would be false.
+
+**What can be done.** Show which consciousness-relevant capacities evolve under ecological selection *without being designed in*, and which environmental pressures produce them. Most machine-consciousness work builds an architecture by hand. The evolutionary studies I know of (Edlund et al. 2011; Joshi, Tononi & Koch 2013; Albantakis et al. 2014) evolved tiny agents on single tasks, not an ecosystem. Whether this niche is really open needs its own prior-art pass (item 4.0).
+
+**Restated goal:** an open-source evolutionary testbed for the origins of consciousness-relevant capacities, with theory-derived tests anyone can run. A positive result is evidence about what it takes for those capacities to evolve. It is a step, and should be described as one.
+
+**Which theories give testable targets** (citations are from memory; verify before using them in a paper):
+
+| Framework | What it says matters | What Terrarium could measure |
+|---|---|---|
+| Unlimited Associative Learning (UAL): Ginsburg & Jablonka (2019); Birch, Ginsburg & Jablonka (2020) | Open-ended learning about novel, compound stimuli and actions, proposed as the evolutionary marker of minimal consciousness | A behavioural battery: trace conditioning, second-order conditioning, novel compound discrimination, reversal learning |
+| Recurrent processing: Lamme | Feedback loops | The fraction of brains with recurrent edges, and whether lesioning them costs fitness |
+| Global workspace: Baars; Dehaene, Lau & Kouider (2017) | A limited-capacity hub that broadcasts to many processes | Whether evolved networks form a bottleneck hub, and how broad the deficit is when it is lesioned |
+| Higher-order theories / metacognition | Monitoring one's own states | An opt-out task: does a creature decline a risky choice when its information is poor? |
+| Attention schema: Graziano; Wilterson & Graziano (2021) | A model of one's own attention | Later; needs an attention mechanism first |
+| Integrated information: Tononi | Causal integration (zero for feed-forward networks) | Integration proxies tracked over evolutionary time |
+| Indicator-properties report: Butlin, Long et al. (2023) | A checklist drawn from the theories above, plus agency and embodiment | A per-lineage scorecard |
+
+UAL is the best first target. It is defined behaviourally, it was proposed as an *evolutionary* transition, and "UAL evolved in an open-ended ecosystem" can be defended without taking a side on what consciousness is.
+
+**Ethics.** If indicators accumulate, the project needs a written precautionary policy before scaling up (Birch 2017, 2024). It is cheap to write now and awkward to retrofit.
+
+### Plan
+
+Each stage ends in a gate. Do not start a stage until the previous gate is met.
+
+**Stage 0: a trustworthy instrument** (about 1–2 weeks)
+- [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.002–0.012 at `hard_cap = 2000`, on the 2026-11-15 rules. B3 (the 29-neuron lifetime cap) is still open. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
+- [ ] 0.2 Energy ledger. Account for every source and sink each tick (food, fruit, metabolism, movement, brain, crowding, temperature, combat loss, sharing loss, reproduction, deaths, clamping at the energy cap). In debug builds, assert that the change in total energy equals the ledger. Expose the ledger in `TickStats`.
+- [ ] 0.3 Mechanism-effect tests. For every `enabled` flag and major parameter, an ON run and an OFF run must diverge within a set number of ticks. This catches the fruit class of bug.
+- [ ] 0.4 Persistence. Serde for `Genome`, `Organism` and simulation state; `--checkpoint-every` and `--resume` in sim-runner; periodic genome export. Test: 2,000 ticks straight must equal 1,000 + save + load + 1,000, bit for bit.
+- [ ] 0.5 Cross-platform determinism. Hash the state after 5,000 ticks on Linux in CI, in WASM under node, and on the Pi. If the hashes differ, move the affected maths to a portable implementation (the `libm` crate).
+- [ ] 0.6 Truth pass on the docs. Fix README metrics and the outline abstract, and withdraw the claims `PRIOR_ART.md` lists. Start `docs/RESULTS.md`, where a result is listed only with its commit, config, seeds and analysis script. Nothing enters README unless it is in that file.
+- [ ] 0.7 Repo. Decide whether to untrack `.claude/settings.local.json` (owner's call), resync the main checkout, add CONTRIBUTING.md and CITATION.cff.
+- [ ] 0.8 Pi. Run 3 jobs at once or improve cooling. No multi-day run before 0.4.
+- **Gate:** tests green including 0.2–0.5, and a 10-seed baseline that reproduces on two machines.
+
+**Stage 1: first results that stand** (about 2–3 weeks of Pi time)
+- [ ] 1.1 Crossover with global innovation numbers, validated against neat-python or TensorNEAT.
+- [ ] 1.2 Neutral shadow model, following Polyworld's lockstep mode (Yaeger, Griffith & Sporns 2008) and `OEE_SHADOW_DESIGN.md`.
+- [ ] 1.3 `docs/PREREG.md`: hypotheses, metrics, seeds and analysis fixed before the runs.
+- [ ] 1.4 Factorial experiment: sex × niche construction × epigenetics, at least 10 seeds per cell, scored against the shadow, with a shuffled-methylation control.
+- [ ] 1.5 Cooperation re-test under energy-conserving sharing. A null result is a result.
+- [ ] 1.6 Model description in ODD format, using MODES metric names.
+- **Gate:** at least one effect that survives the shadow control and replicates. That is the ALIFE 2027 paper (check the submission date).
+
+**Stage 2: a brain that could support cognition** (about 3–4 weeks; can overlap Stage 1's Pi time)
+- [ ] 2.1 Recurrent connections (Phase 9b).
+- [ ] 2.2 Raise `MAX_NODES` from 64 to 256, so capacity is limited by energy cost and not by the buffer.
+- [ ] 2.3 Evolved neuromodulated plasticity (Phase 9c; Soltoggio et al. 2008).
+- [ ] 2.4 Cognitive test battery in sim-runner, run on exported genomes in fixed arenas: detour, delayed response, trace conditioning, reversal learning, second-order conditioning, novel compound discrimination. Report it as a UAL checklist.
+- **Gate:** the battery runs in CI on a reference genome; feed-forward creatures fail the memory tasks; evolved recurrent creatures pass at least one.
+
+**Stage 3: a world that pays for cognition** (about 4–6 weeks)
+- [ ] 3.0 Split `sim.rs` into one module per tick phase before adding mechanics.
+- [ ] 3.1 Water in low ground (Phase 10). Commuting between water and food rewards spatial memory.
+- [ ] 3.2 Cue-predicted resources whose meaning changes within a lifetime, for example a food type that turns toxic for a season. Evolution cannot hard-wire the answer, so learning is rewarded (Hinton & Nowlan 1987).
+- [ ] 3.3 Parasites (Phase 10).
+- [ ] 3.4 Individual recognition and repeated encounters, so reciprocity becomes possible (Trivers 1971).
+- [ ] 3.5 Predator–prey tournaments across eras (Cliff & Miller 1995).
+- **Gate:** learning or recurrent genotypes outcompete reflex genotypes in the new ecology and not in the old one. That shows cognition is being selected for, and is publishable by itself.
+
+**Stage 4: the indicator programme** (ongoing once Stages 2 and 3 are in)
+- [ ] 4.0 Prior-art pass on evolved-agent consciousness research, in the style of `PRIOR_ART.md`, before claiming the niche.
+- [ ] 4.1 Per-lineage scorecard over evolutionary time: recurrence, integration proxies, hub structure with lesion tests, the opt-out metacognition task, the UAL battery.
+- [ ] 4.2 Pre-registered experiments that discriminate between theories. Examples: does UAL arrive together with a jump in integration? Does a workspace-like hub appear only under multi-task pressure?
+- [ ] 4.3 `docs/ETHICS.md`: the precautionary policy and what would trigger a review.
+- [ ] 4.4 Scale. Once brains pass about 1,000 neurons the Pi is the wrong machine; batch the brain forward pass for a GPU and compare against JaxLife.
+- [ ] 4.5 Release the battery and scorecard as an open benchmark. Others are more likely to adopt that than the simulator.
+
+### What not to do
+- Do not claim consciousness, sentience or "fruit-fly level" anywhere.
+- Do not add water, parasites or other mechanics before Stage 0 and the Stage 1 experiments. Each one changes every baseline.
+- Do not start multi-day Pi runs before checkpointing exists.
+- Do not let unattended sessions write results into README. Results go through `docs/RESULTS.md`.
+
+### Next five actions
+1. Launch the 0.1 regrowth sweep. This needs the owner's go-ahead, because the Pi is hard-throttling.
+2. Build the 0.2 energy ledger and the 0.3 mechanism-effect tests.
+3. Build 0.4 persistence.
+4. Do the 0.6 truth pass on README and the outline.
+5. Build 1.1 innovation-number crossover.
 
 ---
 
-## Current State
+## Current State (historical: Session 2 codebase, superseded by the audit above)
 
 ### What's Built and Working
 - [x] **sim-core**: World, food grid, spatial grid (counting-sort), brain (13->8->3 FF net), genome (evolvable weights + mutation rate + color hue), organism, deterministic tick loop
@@ -227,12 +422,26 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 - [ ] Visual QA in a browser (needs the user's OK — the demo runs the sim locally)
 - [ ] Deploy (push to main — needs the user's explicit OK)
 
+### Phase 9.0: Energy Conservation Bug in Sharing [BLOCKING — found 2026-11-15]
+- [x] **FIXED (2026-11-15): Sharing created energy from nothing.** The donor pays `share_amount` (5) but the recipient gets 5 × `benefit_multiplier` (1.5) = 7.5 (sim.rs, sharing step). Two neighbours sharing every tick each net +2.5/tick, about 8× base metabolism, so clusters can camp in place indefinitely (seen in the demo). Run data: shares rise to ~350/tick (≈ +875 free energy/tick population-wide) while mean energy climbs 65 → 117 at the cap.
+  - Breaks design principle 4 ("food is the only source of energy").
+  - Probably why the population pins at hard_cap; it will also confound the Phase 9a regrowth sweep.
+  - **The "cooperation evolved (87%)" result is invalidated**: cooperation was selected as a free-energy exploit, not by Hamilton's rule.
+  - Fix: conserve energy (recipient gets ≤ the donor's cost, with a transfer loss). Hamilton's B > C should come from the *marginal fitness value* of energy (a starving recipient gains more than a well-fed donor loses), not from creating energy. Consider restricting gifts to donors above the reproduction threshold.
+  - Add an energy-conservation integration test: total energy change per tick = food eaten − all costs (no other sources).
+  - Re-run the v2 cooperation experiments after the fix.
+  - Fix landed: `sharing.transfer_efficiency` (default 0.9, alias of the legacy `benefit_multiplier`) is validated to (0, 1]; `combat.energy_transfer_ratio` is validated to [0, 1]. New tests: `energy_never_increases_without_food` and `energy_creating_share_efficiency_is_rejected`.
+  - [ ] Still to do: re-run cooperation experiments; optionally restrict gifts to donors above the reproduction threshold.
+- [ ] **Prior-art audit (docs/research/PRIOR_ART.md)**: withdraw the false claims in PROGRESS and docs/ALIFE_2027_OUTLINE.md ("no neural-agent platform has niche construction": JaxLife 2024 and Chiba et al. 2020 do; "EpiAL is the only epigenetics precedent": Turner et al. 2013, Brawer et al. 2017; the EpiAL citation is ICAART 2010). Cite Polyworld's lockstep mode (Yaeger, Griffith & Sporns 2008) as the reference design for the shadow model. Call our cost of sex a "twofold per-offspring investment cost". Adopt the ODD protocol (Grimm et al. 2020) and the MODES metric names. Narrow novelty claim: a factorial genetic × epigenetic × ecological inheritance test in evolved neural agents, scored against a neutral shadow.
+
 ### Phase 9: Food-Limited Ecology + Cognition [PLANNED — agreed 2026-11-15]
 **Why**: (1) Population pins at hard_cap (500) by ~tick 1000 and births are blocked at the cap (sim.rs:993). The cap, not food competition, decides who reproduces, which weakens selection and hides drought/niche/epigenetics effects. (2) Brains are tiny (~11–16 evolved neurons, ~220 connections vs ~140k neurons / ~50M synapses in a fruit fly, FlyWire 2024; 302 neurons in C. elegans). More importantly, they are purely feed-forward with no memory and no lifetime learning: behaviour is reflexive, closer to Braitenberg vehicles or bacterial chemotaxis. Never claim "fruit-fly level".
 
 **9a. Food-limited carrying capacity** (do FIRST, before the Phase 7 ablations)
 - [ ] Pi sweep of `food.regrowth_rate` (e.g. 0.0002–0.0005) with `creature.hard_cap` 1500–2000; pick the value where mean population ≈ 60–70% of the cap and the cap almost never binds
-- [ ] New stat: fraction of ticks where births were blocked by the cap (should be ~0)
+- [x] New stats: `cap_blocked_births` / `total_cap_blocked_births` (should stay ~0); `sweep --set KEY=NUMBER` for fixed overrides
+- [x] Ran `analysis/launch_pi_phase9a.sh` on the fixed code (hard_cap=2000; regrowth 0.0002–0.0005 × 3 seeds × 100k ticks). Result: the range was far too low. Populations of 55–88 at best, extinction at 0.0002–0.0003, zero cap-blocked births. See the audit table at the top. Results on the Pi in `output/phase9a/`; pre-fix partial runs in `output/phase9a_prebugfix/`.
+- [ ] Follow-up sweep over 0.001–0.005 (audit item 0.1)
 - [ ] Check runs don't overshoot into extinction (all 5 seeds survive); keep the cap only as a performance backstop
 - [ ] Then run the Phase 7 ON/OFF ablations at this food-limited setting
 - Citations: Verhulst (1838) logistic growth; Allee (1931) density dependence; Lotka (1925) / Volterra (1926)
@@ -253,6 +462,21 @@ sim-core keeps zero rendering code. The macroquad viewer stays as the native dev
 - [ ] A "cognitive test battery" in sim-runner: freeze evolved genomes from saved snapshots and test them in standard mini-arenas: detour (food behind a barrier), delayed foraging (remember a patch after it vanishes from view), kin vs non-kin discrimination, predator avoidance
 - [ ] Score per generation → a figure showing cognitive capability evolving over time; compare ON/OFF for recurrence/plasticity
 - [ ] Requires genome snapshot export (also needed for arms-race CIAO plots, Cliff & Miller 1995)
+
+### Phase 10: Real Ecosystem — Water, Nutrient Cycling, Parasites [PLANNED — agreed 2026-11-15]
+Order: AFTER the Phase 7 ablations, so first results aren't mixed with new mechanics.
+- [ ] **Water as a second essential resource**: water pools in low elevation (reuse ElevationMap); per-organism hydration drains each tick (faster when warm and for larger bodies); drinking at water cells. Droughts shrink water bodies.
+  - Brain: hydration input + "water" ray type, so inputs 19 → ~20–21; update validate/demo.
+  - Essential resources, Liebig's law of the minimum (Tilman 1982). Expect commuting between water and food, and waterhole ecology.
+  - Tune with a Pi sweep (avoid instant extinction).
+  - Demo: render real water in the terrain.
+- [ ] **Nutrient recycling / decomposition**: corpses become a nutrient grid that boosts regrowth; optional decomposer niche. Closes the matter loop (Lindeman 1942).
+- [ ] **Parasites / disease**: pathogens transmitted between neighbours, evolving against host resistance genes → Red Queen dynamics; gives sex a real advantage (Hamilton 1980; Van Valen 1973).
+- [ ] **Multiple nutrients** (e.g. C/N) for resource-ratio coexistence (Tilman 1982) — optional, after water.
+
+### Phase 11: Real Brains + Integration [IDEAS — 2026-11-15, check prior art first]
+- [ ] **Connectome seeding**: initialise some creatures with the real C. elegans connectome (302 neurons, ~7k synapses; White et al. 1986; WormWiring / OpenWorm c302 data), mapping chemosensory neurons → food inputs and motor neurons → turn/speed. Experiment: connectome-seeded vs random-start populations — does real wiring give an evolutionary head start, or is it rewired? Requires recurrence (9b). Fly larva (~3k neurons, Winding et al. 2023) is a possible stretch goal; an adult fly (FlyWire 2024, ~140k neurons) is not feasible per creature on a Pi.
+- [ ] **Integration over evolution**: measure integrated-information / complexity proxies of evolved brains over time (Edlund et al. 2011; Albantakis et al. 2014). Frame it as complexity measurement, NOT consciousness; feed-forward nets score Φ = 0 under IIT. Reference: Butlin, Long et al. (2023) indicator properties.
 
 ### Phase 6: Analysis & Distribution [PLANNED]
 - [ ] Python analysis pipeline for experiment plots
@@ -570,11 +794,40 @@ Mutation: 10% per weight, +/-0.2 step
   - Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through Augmenting Topologies"
 
 ### Session 11 — Overnight autonomous (2026-11-15)
-- **OEE 200k-tick experiment running on Pi 5** (seed 42)
-  - Preliminary data (60k ticks): D(t) growing monotonically (0 → 46.7), novel traits declining (13 → 3)
-  - Lineage diversity collapsed to 1 (single dominant ancestor) — expected in asexual populations
-  - Methylation relaxing over time (0.29 → 0.12) — creatures becoming less stressed
-  - Max generation climbing steadily (28 → 75) — healthy generational turnover
-- **Analysis pipeline**: Created `analysis/plot_oee.py` with dark-theme plots for D(t), lineage, epigenetics
-- **Phase 7 checklist**: All 5 features now marked complete in PROGRESS.md
-- **Local code synced**: Pulled all Phase 7 commits from remote to local machine
+- **OEE 200k-tick experiment completed on Pi 5** (seed 42, ~15 min at 214 ticks/s)
+  - **D(t) = 67.45** — grows unboundedly, fits D(t) ≈ 11.94·ln(t) − 81.5
+  - Early growth rate: 0.0006/tick, late rate: 0.0001/tick (ratio 0.22 — sublinear but never zero)
+  - Novel traits remain positive throughout (final: 8/window), active traits ~99
+  - Lineage diversity collapses to 1 by tick ~5k — single dominant ancestor
+  - Max generation reaches 150, mean generation ~143
+  - Methylation decays from 0.65 → 0.10 (population adapts away from stress)
+  - Construction level oscillates ±0.1 — organisms actively modifying environment
+- **Analysis plots generated**: oee_activity.png, oee_lineage.png, oee_epigenetics.png in docs/images/
+- **Phase 7 checklist**: All 5 features marked COMPLETE
+- **Key finding**: D(t) follows logarithmic growth — consistent with Bedau's "class 2" unbounded
+  activity. The system produces genuine open-ended evolution by the Bedau & Packard (1991) criterion.
+
+### Session 12 — Overnight autonomous (2026-11-15, continued)
+- **5-seed OEE replication experiment** on Pi 5 (seeds 0-4, 200k ticks each)
+  - Seeds 0-3 complete, seed 4 in progress
+  - D(t) log fits: seed 0 = 12.82·ln(t), seed 1 = 21.58·ln(t), seed 2 = 14.01·ln(t), seed 3 = 18.93·ln(t)
+  - All seeds show unbounded D(t) growth — replication confirms OEE
+  - Mean D(t) at 200k ≈ 82.2 across seeds 0-3
+- **Created multi-seed analysis script**: `analysis/plot_multi_seed.py` (95% CI comparison plots)
+- **Created ablation experiment configs**: `configs/no_epigenetics.toml`, `configs/no_niche_construction.toml`
+- **Created ALIFE 2027 paper outline**: `docs/ALIFE_2027_OUTLINE.md`
+- **Pushed**: `0ec0f20` — analysis tools and paper outline
+
+### Session 13 — Overnight autonomous (2026-11-15, continued)
+- **Epigenetics ablation experiment running** on Pi 5 (5 seeds × 200k ticks, no_epigenetics.toml)
+  - Seed 0 complete (835.2s, faster than baseline — no methylation computation)
+  - Seeds 1-4 in progress
+- **Created ablation analysis script**: `analysis/plot_ablation.py`
+  - D(t) comparison with 95% CI between baseline and ablation conditions
+  - Population stability (CV) comparison
+  - Mann-Whitney U statistical tests for significance
+- **Updated ALIFE 2027 outline**: D(t) numbers updated to confirmed 5-seed data (~15.5·ln(t))
+- **Updated README** with OEE results section — multi-seed plots and summary statistics
+- **Pushed**: `f04f7e4` (ablation script + outline), `c4bbd95` (README OEE section)
+
+> **Caveat (added 2026-11-15, Session 14):** the Session 11–13 OEE numbers were computed BEFORE the Phase 7.5 fixes. Back then `mean_cumulative_activity` averaged over every topology ever seen (not extant ones), the topology hash was order-dependent, and fruit was silently disabled. There was also no neutral shadow model, so 'genuine OEE' is NOT yet established. Treat these numbers as preliminary and re-run them with the fixed code plus the shadow model.

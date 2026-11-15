@@ -66,7 +66,7 @@ terrarium/
 1. **sim-core has ZERO rendering code.** It runs identically headless or with the viewer.
 2. **Same seed = same run.** Deterministic via `ChaCha8Rng`. Never break this invariant.
 3. **Every number in config, not code.** All tunable parameters live in `configs/default.toml`. Never hard-code simulation constants.
-4. **Energy is the universal currency.** Moving, thinking, reproducing — everything costs energy. Food is the only source.
+4. **Energy is the universal currency.** Moving, thinking, reproducing — everything costs energy. Food is the only source; no transfer (sharing, combat, reproduction) may create energy.
 5. **Intelligence has a price.** Brain cost per neuron per tick is the key evolutionary tension.
 
 ## Code Conventions
@@ -74,8 +74,8 @@ terrarium/
 - **Rust 2024 edition.** The keyword `gen` is reserved — use `r#gen` when calling `rand::Rng::gen`.
 - **`cargo fmt --all`** before every commit. CI enforces this.
 - **`cargo clippy -- -D warnings`** must pass. CI treats warnings as errors.
-- **`cargo test --workspace`** must pass. Currently 43 integration tests + 4 activity.rs unit tests + 1 doc test.
-- **Brain I/O is fixed by the sensor layout**: `brain.inputs = 2 × ray_count + 9` (19 with 5 rays) and `brain.outputs = 7`. `Config::validate` rejects anything else.
+- **`cargo test --workspace`** must pass. Currently 54 integration tests + 4 activity.rs unit tests + 1 doc test.
+- **Brain I/O is fixed by the sensor layout**: `brain.inputs = 2 × ray_count + 10` (20 with 5 rays) and `brain.outputs = 7`. `Config::validate` rejects anything else.
 - Keep `#[inline]` on hot-path functions in world.rs and brain.rs.
 - Stack-allocate in the tick loop. No `Vec` allocations per organism per tick — use fixed-size arrays with `MAX_*` constants.
 - Prefer `.min()` / `.max()` / `.clamp()` over if-else for bounds.
@@ -108,17 +108,17 @@ cargo test --workspace
 2. `cargo clippy --workspace -- -D warnings` — zero warnings
 3. `cargo test --workspace` — all tests pass
 4. Write a clear commit message describing *why*, not just *what*
-5. Add `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` to the commit message
+5. Add a `Co-Authored-By:` line naming the Claude model that did the work (currently `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`) to the commit message
 6. Do NOT push unless the user explicitly asks
 
 ## Simulation Tick Pipeline
 
 1. Rebuild spatial index (counting-sort)
 2. For each organism (rayon-parallel, read-only, no RNG): sense (vision rays, kin similarity, signal, temperature, pheromone, light, niche level) → think (NEAT brain forward) → produce Action
-3. Apply actions: turn, move (elevation slope penalty), eat algae/fruit, metabolize; epigenetic methylation under stress (energy < `stress_repro_fraction × reproduction.threshold`) and in-place refresh of the living brain's weights `w·(1−m)`
+3. Apply actions: turn, move (elevation slope penalty; speed × `feeding_speed_factor` while the eat output is on), eat algae/fruit, metabolize; epigenetic methylation under stress (energy < `stress_repro_fraction × reproduction.threshold`) and in-place refresh of the living brain's weights `w·(1−m)`
 4. Pheromone deposit + decay; niche construction deposit/degrade + decay
-5. Combat: attack nearest neighbor, size-scaled damage, 75% energy transfer
-6. Sharing: donate energy to nearest neighbor (recipient gets 1.5x — Hamilton's rule)
+5. Combat: attack nearest neighbor, size-scaled damage, 75% energy transfer. `attack_cost` is paid only when a strike lands on a target in range (`idle_attack_cost`, default 0, otherwise)
+6. Sharing: donate energy to nearest neighbor (recipient gets `transfer_efficiency` ≤ 1 of it — energy is conserved; kin benefit must come from energy being worth more to the recipient)
 7. Reproduce: energy > threshold → asexual clone or sexual NEAT crossover. In sexual births the mate pays `mate_cost` too (twofold cost of sex), and each organism mates at most once per tick. Child inherits methylation + Gaussian epimutation noise
 8. Die: energy <= 0, max age, or Gompertz-Makeham probabilistic mortality
 9. Spawn/expire drought zones (stochastic localized food crashes)
@@ -127,8 +127,8 @@ cargo test --workspace
 
 ## Neural Network (NEAT)
 
-- **Topology**: Variable — starts fully connected (19→8→7), evolves via add-connection (2%), add-node (1%), toggle (1%), prune-connection (4%); all in `[mutation]`
-- **19 Inputs**: 5 vision rays × 2 (distance + type) + energy + heading + signal + body_size + kin_similarity + temperature + pheromone + light + niche_level
+- **Topology**: Variable — starts fully connected (20→8→7), evolves via add-connection (2%), add-node (1%), toggle (1%), prune-connection (2%); all in `[mutation]`. Rates are balanced for about zero neutral drift in connection count
+- **20 Inputs**: 5 vision rays × 2 (distance + type) + energy + heading + signal + body_size + kin_similarity + temperature + pheromone + light + niche_level + food_here (food in the creature's own cell)
 - **7 Outputs**: turn [-1,1], speed [0,1], eat, attack, signal [-1,1], share, construct [-1,1]
 - **Epigenetics**: effective weight = `weight × (1 − methylation)`, applied both at birth and to the living brain
 - **Activation**: fast_tanh (Pade approximant, ~3-5x faster than std)
@@ -136,11 +136,7 @@ cargo test --workspace
 
 ## Key Experiment Results (November 2026)
 
-**COOPERATION EVOLVED** — v2 experiments confirmed Hamilton's kin selection:
-- `sharing.benefit_multiplier = 1.5` → 87% cooperation rate at `share_amount=5`
-- Kin share ratio ~1.0 (virtually all sharing between relatives)
-- Sharing populations 3x larger than non-sharing (1500 vs 450)
-- See `docs/EXPERIMENT_FINDINGS.md` for full analysis
+**COOPERATION RESULT WITHDRAWN (2026-11-15)** — the v2 "87% cooperation" finding came from an energy-creation bug: sharing paid recipients 1.5× the donor's cost, so neighbours sharing back and forth gained free energy. Sharing is now energy-conserving (`transfer_efficiency` ≤ 1, enforced by `Config::validate` and the `energy_never_increases_without_food` test). Cooperation experiments must be re-run.
 
 **Predation partially emerged** — trophic level shifted from 1.0 to 1.1-1.3 after combat rebalance (energy_per_food 30→15, transfer_ratio 0.5→0.75).
 
@@ -161,11 +157,15 @@ All in `configs/default.toml`. Key ones:
 | `energy.activity_weight_cost` | 0.0005 | Cost per unit of |weight × activation| |
 | `energy.base_metabolism` | 0.3 | Flat survival cost (× body_size^0.75) |
 | `combat.energy_transfer_ratio` | 0.75 | Predator absorbs 75% of damage as energy |
-| `sharing.benefit_multiplier` | 1.5 | Recipient gets 1.5x what donor pays (Hamilton's rule) |
+| `sharing.transfer_efficiency` | 0.9 | Recipient gets 90% of what donor pays; validated ≤ 1 (energy conservation). Legacy key `benefit_multiplier` must also be ≤ 1 |
 | `reproduction.threshold` | 60 | Energy needed to reproduce |
 | `reproduction.sexual` | true | NEAT crossover with a nearby mate |
 | `reproduction.mate_cost` | 30 (= parent_cost) | Mate's cost per sexual birth — twofold cost of sex |
 | `creature.hard_cap` | 500 | Max living creatures |
+| `creature.feeding_speed_factor` | 0.5 | Speed multiplier in feeding mode (handling vs searching, Holling 1959) |
+| `combat.idle_attack_cost` | 0.0 | Cost of attacking with no target in range (5 = old rule) |
+| `mutation.prune_probability` | 0.02 | Balanced against add rates (0.04 = old shrink bias) |
+| `niche_construction.activation_threshold` | 0.2 | Construct outputs below this do nothing and cost nothing |
 | `speciation.dynamic` | true | Auto-compute species threshold from genome variance |
 | `epigenetics.stress_repro_fraction` | 0.25 | Stressed when energy < 0.25 × reproduction.threshold |
 | `niche_construction.regrowth_bonus` | 0.5 | Cell regrowth × (1 + level × bonus) |
@@ -183,7 +183,7 @@ Every mechanic is research-backed:
 | Trophic levels | Lindeman (1942) |
 | Speciation | Stanley & Miikkulainen (2002) — NEAT compatibility distance |
 | Intelligence cost | Aiello & Wheeler (1995), Laughlin et al. (1998) |
-| Kin selection | Hamilton (1964) — rB > C confirmed in experiments |
+| Kin selection | Hamilton (1964) — to be re-tested with energy-conserving sharing |
 | Cooperation | Trivers (1971) — reciprocal altruism |
 | Density pressure | Allee (1931) |
 | Seasonal cycles | Botkin (1990) |

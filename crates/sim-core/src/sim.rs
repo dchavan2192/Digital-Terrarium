@@ -183,6 +183,12 @@ pub struct TickStats {
     pub net_construction_level: f64,
     /// A_cum(t): total cumulative activity over currently active topologies.
     pub total_cumulative_activity: u64,
+    /// Organisms ready to reproduce (energy >= threshold) this tick that were blocked
+    /// only because the population was at `creature.hard_cap`. Should stay ~0 when the
+    /// population is food-limited (Verhulst 1838 carrying capacity), not cap-limited.
+    pub cap_blocked_births: u64,
+    /// Cumulative `cap_blocked_births` since tick 0.
+    pub total_cap_blocked_births: u64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -333,6 +339,7 @@ impl Simulation {
         let max_turn = self.config.creature.max_turn;
         let max_speed = self.config.creature.max_speed;
         let energy_per_food = self.config.food.energy_per_food;
+        let feeding_speed_factor = self.config.creature.feeding_speed_factor;
         let base_metabolism = self.config.energy.base_metabolism;
         let movement_cost_factor = self.config.energy.movement_cost;
         let brain_cost_per_neuron = self.config.energy.brain_cost;
@@ -402,6 +409,7 @@ impl Simulation {
         // Each organism independently: cast vision rays → run brain forward pass → produce Action.
         let organisms = &self.organisms;
         let food_grid = &self.food_grid;
+        let food_max_per_cell = self.food_grid.max_per_cell.max(f64::MIN_POSITIVE);
         let pheromone_grid = &self.pheromone_grid;
         let construction_grid = &self.construction_grid;
         let spatial_grid = &self.spatial_grid;
@@ -580,6 +588,19 @@ impl Simulation {
                 // 0.0 when niche construction is disabled (grid stays zeroed).
                 // Citation: Odling-Smee, Laland & Feldman (2003)
                 inputs[idx] = construction_grid.level_at(ox, oy);
+                idx += 1;
+
+                // Input 20: food in the creature's own cell [0, 1] (algae + fruit, as a
+                // fraction of one full cell). Vision rays start one cell out, so without
+                // this the creature cannot tell whether it is standing on food. Models
+                // contact chemoreception (taste on contact), e.g. Dethier (1976).
+                let here = food_grid.food_at(ox, oy)
+                    + if fruit_enabled {
+                        food_grid.fruit_at(ox, oy)
+                    } else {
+                        0.0
+                    };
+                inputs[idx] = (here / food_max_per_cell).min(1.0);
 
                 let brain_inputs = &inputs[..organisms[i].brain.inputs];
                 let (output, brain_activity) = organisms[i].brain.forward(brain_inputs);
@@ -668,8 +689,8 @@ impl Simulation {
                 ];
                 for (o, &raw_val) in raw_outputs.iter().enumerate().take(NUM_OUTPUTS) {
                     // Exponential decay of existing bin counts
-                    for b in 0..NUM_ENTROPY_BINS {
-                        org.output_bins[o][b] *= ENTROPY_DECAY;
+                    for bin_val in org.output_bins[o].iter_mut().take(NUM_ENTROPY_BINS) {
+                        *bin_val *= ENTROPY_DECAY;
                     }
                     // Increment current bin
                     let bin = activation_to_bin(raw_val);
@@ -680,8 +701,15 @@ impl Simulation {
             // Move — larger creatures are slower (speed / body_size).
             // Elevation slope penalty: steep terrain reduces effective speed.
             // Citation: MacArthur & Wilson (1967), Wright (1943)
+            // Feeding mode (eat output > 0) slows travel: handling food and searching
+            // for it compete for the same time (Holling 1959; Stephens & Krebs 1986).
             let body_size = org.genome.body_size;
-            let base_speed = action.speed * max_speed / body_size;
+            let feeding_factor = if action.eat > 0.0 {
+                feeding_speed_factor
+            } else {
+                1.0
+            };
+            let base_speed = action.speed * max_speed / body_size * feeding_factor;
             let cos_h = org.heading.cos();
             let sin_h = org.heading.sin();
             let next_x = wrap_coord(org.pos_x + cos_h * base_speed, world_w);
@@ -810,11 +838,16 @@ impl Simulation {
                 if !org.alive {
                     continue;
                 }
-                let intensity = self.actions[i].construct;
-                if intensity.abs() > construct_dead_zone {
+                // Outputs inside the dead zone mean "do nothing" and cost nothing.
+                // Above it, effort rises smoothly from zero to full intensity, and the
+                // cost is proportional to the work done (Odling-Smee et al. 2003).
+                let raw = self.actions[i].construct;
+                if raw.abs() > construct_dead_zone {
+                    let effort = (raw.abs() - construct_dead_zone) / (1.0 - construct_dead_zone);
+                    let intensity = effort * raw.signum();
                     self.construction_grid
                         .modify(org.pos_x, org.pos_y, intensity);
-                    org.energy -= intensity.abs() * construct_cost;
+                    org.energy -= effort * construct_cost;
                 }
             }
             self.construction_grid.decay();
@@ -833,6 +866,7 @@ impl Simulation {
         let mut attacks = 0usize;
         let attack_range = self.config.combat.attack_range;
         let attack_cost = self.config.combat.attack_cost;
+        let idle_attack_cost = self.config.combat.idle_attack_cost;
         let attack_damage = self.config.combat.attack_damage;
         let transfer_ratio = self.config.combat.energy_transfer_ratio;
         let attack_range_sq = attack_range * attack_range;
@@ -853,9 +887,6 @@ impl Simulation {
             let org_x = self.organisms[i].pos_x;
             let org_y = self.organisms[i].pos_y;
 
-            // Pay the attack cost regardless of hitting anything
-            self.organisms[i].energy -= attack_cost;
-
             // Find nearest living neighbor within attack range
             let mut best_target: Option<usize> = None;
             let mut best_dist_sq = attack_range_sq;
@@ -874,17 +905,24 @@ impl Simulation {
             });
 
             if let Some(target) = best_target {
+                // The strike itself is what costs energy (Holling 1959; Scantlebury
+                // et al. 2014), so the cost is paid only when there is a target.
+                self.organisms[i].energy -= attack_cost;
                 // Damage scales with attacker size, reduced by victim size
                 // Bigger creatures hit harder and absorb hits better
                 let attacker_size = self.organisms[i].genome.body_size;
                 let victim_size = self.organisms[target].genome.body_size;
                 let scaled_damage = attack_damage * attacker_size / victim_size;
-                let actual_damage = scaled_damage.min(self.organisms[target].energy);
+                // Never negative: a victim already below zero energy has nothing to lose.
+                let actual_damage = scaled_damage.min(self.organisms[target].energy).max(0.0);
                 self.organisms[target].energy -= actual_damage;
                 let gained = actual_damage * transfer_ratio;
                 self.organisms[i].energy_from_attacks += gained;
                 self.organisms[i].energy = (self.organisms[i].energy + gained).min(max_energy);
                 attacks += 1;
+            } else {
+                // No target in range: nothing was struck (cost defaults to 0).
+                self.organisms[i].energy -= idle_attack_cost;
             }
         }
 
@@ -903,7 +941,7 @@ impl Simulation {
         let mut kin_shares = 0usize;
         let share_range = self.config.sharing.share_range;
         let share_amount = self.config.sharing.share_amount;
-        let benefit_multiplier = self.config.sharing.benefit_multiplier;
+        let transfer_efficiency = self.config.sharing.transfer_efficiency;
         let share_range_sq = share_range * share_range;
 
         for i in 0..self.organisms.len() {
@@ -937,10 +975,11 @@ impl Simulation {
             });
 
             if let Some(target) = best_target {
-                // Donor pays share_amount, recipient gets share_amount * benefit_multiplier.
-                // When multiplier > 1, B > C so Hamilton's rB > C can be satisfied.
+                // Donor pays share_amount; recipient gets share_amount * transfer_efficiency
+                // (<= 1, validated), so sharing never creates energy. Any benefit to kin
+                // must come from energy being worth more to the recipient (Hamilton 1964).
                 self.organisms[i].energy -= share_amount;
-                let received = share_amount * benefit_multiplier;
+                let received = share_amount * transfer_efficiency;
                 self.organisms[target].energy =
                     (self.organisms[target].energy + received).min(max_energy);
                 shares += 1;
@@ -979,6 +1018,7 @@ impl Simulation {
         let mutation_cfg = &self.config.mutation;
         let mut sexual_births = 0u64;
         let mut asexual_births = 0u64;
+        let mut cap_blocked_births = 0u64;
 
         // Each organism takes part in at most one sexual mating per tick (as
         // initiator or as mate). Reused buffer — no per-tick allocation after warm-up.
@@ -990,7 +1030,13 @@ impl Simulation {
             if !org.alive {
                 continue;
             }
-            if org.energy < repro_threshold || (current_alive + offspring.len()) >= hard_cap {
+            if org.energy < repro_threshold {
+                continue;
+            }
+            // Ready to reproduce but the population cap is full. Counted so experiments can
+            // verify the population is food-limited, not cap-limited (Phase 9a).
+            if (current_alive + offspring.len()) >= hard_cap {
+                cap_blocked_births += 1;
                 continue;
             }
             // Already mated this tick (as someone's mate): no second birth this tick.
@@ -1444,8 +1490,8 @@ impl Simulation {
             let mut total_connections = 0.0;
             for org in &self.organisms {
                 let mut org_entropy = 0.0;
-                for o in 0..NUM_OUTPUTS {
-                    org_entropy += shannon_entropy(&org.output_bins[o]);
+                for bins in org.output_bins.iter().take(NUM_OUTPUTS) {
+                    org_entropy += shannon_entropy(bins);
                 }
                 total_entropy += org_entropy / NUM_OUTPUTS as f64;
                 total_connections += org.brain.connection_count() as f64;
@@ -1596,6 +1642,8 @@ impl Simulation {
             },
             total_sexual_births: self.stats.total_sexual_births + sexual_births,
             total_asexual_births: self.stats.total_asexual_births + asexual_births,
+            cap_blocked_births,
+            total_cap_blocked_births: self.stats.total_cap_blocked_births + cap_blocked_births,
             founder_lineages,
             total_cumulative_activity: activity_stats.total_cumulative_activity,
             mean_methylation: if self.config.epigenetics.enabled && population > 0 {

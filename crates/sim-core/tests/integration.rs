@@ -58,7 +58,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -86,7 +86,7 @@ fn config_loads_from_default_toml() {
     assert_eq!(cfg.world.width, 1000.0);
     assert_eq!(cfg.world.height, 1000.0);
     assert_eq!(cfg.creature.initial_count, 300);
-    assert_eq!(cfg.brain.inputs, 19);
+    assert_eq!(cfg.brain.inputs, 20);
     assert_eq!(cfg.brain.hidden, 8);
     assert_eq!(cfg.brain.outputs, 7);
 }
@@ -128,7 +128,7 @@ child_energy = 50.0
 weight_probability = 0.1
 weight_step = 0.2
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 [aging]
@@ -270,7 +270,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -313,8 +313,8 @@ fn brain_topology_matches_genome() {
         assert_eq!(org.brain.outputs, sim.config.brain.outputs);
         // Initial population should have 8 hidden nodes
         assert_eq!(org.genome.hidden_nodes.len(), 8);
-        // Connection count: bias→8h + 19i→8h + bias→7o + 8h→7o = 8+152+7+56 = 223
-        assert_eq!(org.brain.connection_count(), 223);
+        // Connection count: bias→8h + 20i→8h + bias→7o + 8h→7o = 8+160+7+56 = 231
+        assert_eq!(org.brain.connection_count(), 231);
     }
 }
 
@@ -380,7 +380,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -939,7 +939,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -1044,7 +1044,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -1109,7 +1109,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -1197,7 +1197,7 @@ weight_probability = 0.3
 weight_step = 0.5
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -1309,7 +1309,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -1375,7 +1375,7 @@ weight_probability = 0.1
 weight_step = 0.2
 
 [brain]
-inputs = 19
+inputs = 20
 hidden = 8
 outputs = 7
 
@@ -1569,7 +1569,7 @@ fn niche_construction_modifies_environment() {
 #[test]
 fn config_rejects_mismatched_brain_io() {
     let old = DEFAULT_CONFIG
-        .replace("inputs = 19", "inputs = 15")
+        .replace("inputs = 20", "inputs = 15")
         .replace("outputs = 7", "outputs = 6");
     let err = Config::parse(&old).expect_err("15/6 brain should be rejected");
     assert!(err.to_string().contains("brain.inputs"), "got: {err}");
@@ -1587,16 +1587,17 @@ fn shipped_configs_validate() {
     load_config();
 }
 
-/// K: omitted mutation keys default to the previously hard-coded values.
+/// K: omitted mutation keys take the documented defaults. Prune equals add-connection
+/// so the neutral drift in connection count is about zero (was 0.04, a shrink bias).
 #[test]
-fn mutation_probabilities_default_to_legacy_values() {
+fn mutation_probabilities_have_documented_defaults() {
     let cfg = small_config();
     assert_eq!(cfg.mutation.add_connection_probability, 0.02);
     assert_eq!(cfg.mutation.add_node_probability, 0.01);
     assert_eq!(cfg.mutation.toggle_probability, 0.01);
-    assert_eq!(cfg.mutation.prune_probability, 0.04);
+    assert_eq!(cfg.mutation.prune_probability, 0.02);
     assert_eq!(cfg.mutation.trait_probability, 0.05);
-    assert_eq!(cfg.niche_construction.activation_threshold, 0.01);
+    assert_eq!(cfg.niche_construction.activation_threshold, 0.2);
     assert_eq!(cfg.reproduction.mate_energy_fraction, 0.5);
     assert_eq!(
         cfg.reproduction.effective_mate_cost(),
@@ -1981,4 +1982,388 @@ fn food_fruit_section_enables_fruit() {
         total_fruit > 0.0,
         "fruit grid should hold fruit when enabled"
     );
+}
+
+/// Phase 9a: births blocked only by the population cap are counted, so experiments
+/// can verify the population is food-limited rather than cap-limited.
+#[test]
+fn cap_blocked_births_are_counted() {
+    let mut config = load_config();
+    config.creature.initial_count = 40;
+    config.creature.hard_cap = 40;
+    config.energy.starting = 150.0; // everyone starts above the reproduction threshold
+    let mut sim = Simulation::new(config);
+    sim.step();
+    assert!(
+        sim.stats.cap_blocked_births > 0,
+        "full population with energy above threshold must register cap-blocked births"
+    );
+    let total_after_one = sim.stats.total_cap_blocked_births;
+    for _ in 0..5 {
+        sim.step();
+    }
+    assert!(sim.stats.total_cap_blocked_births >= total_after_one);
+}
+
+/// Energy conservation: with no food in the world, total living energy must never
+/// increase. Food is the only energy source (design principle 4). Regression for the
+/// sharing exploit where recipients got 1.5x the donor's cost.
+#[test]
+fn energy_never_increases_without_food() {
+    let mut config = load_config();
+    config.food.energy_per_food = 0.0;
+    config.food.fruit.enabled = false;
+    config.sharing.share_amount = 5.0;
+    config.sharing.transfer_efficiency = 1.0; // the most generous legal setting
+    let mut sim = Simulation::new(config);
+    let total = |s: &Simulation| -> f64 {
+        s.organisms
+            .iter()
+            .filter(|o| o.alive)
+            .map(|o| o.energy)
+            .sum()
+    };
+    let mut prev = total(&sim);
+    let mut shares_seen = 0usize;
+    for t in 0..400 {
+        sim.step();
+        shares_seen += sim.stats.shares;
+        let now = total(&sim);
+        assert!(
+            now <= prev + 1e-6,
+            "tick {t}: total energy rose from {prev:.4} to {now:.4} with no food"
+        );
+        prev = now;
+        if sim.is_extinct() {
+            break;
+        }
+    }
+    assert!(
+        shares_seen > 0,
+        "test should exercise sharing at least once"
+    );
+}
+
+/// Sharing that would create energy is rejected at config load.
+#[test]
+fn energy_creating_share_efficiency_is_rejected() {
+    let text = DEFAULT_CONFIG.replace("transfer_efficiency = 0.9", "transfer_efficiency = 1.5");
+    assert!(Config::parse(&text).is_err());
+    let legacy = DEFAULT_CONFIG.replace("transfer_efficiency = 0.9", "benefit_multiplier = 1.5");
+    assert!(
+        Config::parse(&legacy).is_err(),
+        "legacy key must obey the same bound"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 2026-11-15 rule changes: strike-only attack cost, construction dead zone,
+// feeding/handling trade-off, contact food sense, biome and fruit fixes.
+// ---------------------------------------------------------------------------
+
+/// Brain output slots, in the order `brain.rs` reads them.
+const OUT_SPEED: usize = 1;
+const OUT_EAT: usize = 2;
+const OUT_ATTACK: usize = 3;
+const OUT_SHARE: usize = 5;
+const OUT_CONSTRUCT: usize = 6;
+
+/// Pin one brain output of organism `i`: every incoming connection to that output
+/// node is zeroed and the bias connection is set to `bias_weight` (±50 saturates
+/// tanh to ±1; 0 gives exactly 0). Rebuilds the brain.
+fn pin_output(sim: &mut Simulation, i: usize, out_idx: usize, bias_weight: f64) {
+    let org = &mut sim.organisms[i];
+    let node = (1 + org.genome.num_inputs + out_idx) as u16;
+    let mut has_bias = false;
+    for c in &mut org.genome.connections {
+        if c.to == node {
+            if c.from == 0 {
+                c.weight = bias_weight;
+                c.enabled = true;
+                has_bias = true;
+            } else {
+                c.weight = 0.0;
+            }
+        }
+    }
+    assert!(has_bias, "initial genome should wire bias -> every output");
+    org.brain = org.genome.build_brain();
+}
+
+/// A calm single-purpose world: no terrain, no temperature cost, no pheromones,
+/// no epigenetics, no sharing, so one tick's energy change is easy to attribute.
+fn quiet_config(initial_count: usize) -> Config {
+    let mut config = load_config();
+    config.creature.initial_count = initial_count;
+    config.elevation.enabled = false;
+    config.temperature.enabled = false;
+    config.epigenetics.enabled = false;
+    config.niche_construction.enabled = false;
+    config.food.droughts.spawn_rate = 0.0;
+    config.aging.extrinsic_mortality = 0.0;
+    config.aging.initial_senescence = 0.0;
+    config.energy.starting = 50.0; // below the reproduction threshold: no births
+    config
+}
+
+fn pin_all_quiet(sim: &mut Simulation, i: usize) {
+    pin_output(sim, i, OUT_SPEED, -50.0); // speed 0
+    pin_output(sim, i, OUT_EAT, -50.0);
+    pin_output(sim, i, OUT_ATTACK, -50.0);
+    pin_output(sim, i, OUT_SHARE, -50.0);
+    pin_output(sim, i, OUT_CONSTRUCT, 0.0);
+}
+
+/// An attack with nothing in range is not a strike and costs nothing by default;
+/// `idle_attack_cost` restores the old always-pay rule.
+#[test]
+fn attack_without_target_costs_nothing_by_default() {
+    let run = |attack_on: bool, idle_cost: f64| -> f64 {
+        let mut config = quiet_config(1);
+        config.combat.idle_attack_cost = idle_cost;
+        let mut sim = Simulation::new(config);
+        pin_all_quiet(&mut sim, 0);
+        if attack_on {
+            pin_output(&mut sim, 0, OUT_ATTACK, 50.0);
+        }
+        sim.step();
+        sim.organisms[0].energy
+    };
+    let passive = run(false, 0.0);
+    let attacking_alone = run(true, 0.0);
+    assert!(
+        (passive - attacking_alone).abs() < 1e-9,
+        "attacking empty space must cost nothing: {passive} vs {attacking_alone}"
+    );
+    let old_rule = run(true, 5.0);
+    assert!(
+        (passive - old_rule - 5.0).abs() < 1e-9,
+        "idle_attack_cost = 5 must reproduce the old rule: {passive} vs {old_rule}"
+    );
+}
+
+/// A strike on a target in range costs `attack_cost`, hurts the victim, and never
+/// creates energy. A victim already at or below zero energy yields nothing.
+#[test]
+fn strike_costs_attacker_and_never_deals_negative_damage() {
+    let setup = |victim_energy: f64| -> Simulation {
+        let mut sim = Simulation::new(quiet_config(2));
+        for i in 0..2 {
+            pin_all_quiet(&mut sim, i);
+            sim.organisms[i].genome.body_size = 1.0;
+        }
+        pin_output(&mut sim, 0, OUT_ATTACK, 50.0);
+        sim.organisms[0].pos_x = 500.0;
+        sim.organisms[0].pos_y = 500.0;
+        sim.organisms[1].pos_x = 503.0;
+        sim.organisms[1].pos_y = 500.0;
+        sim.organisms[1].energy = victim_energy;
+        sim
+    };
+
+    // Healthy victim: one strike lands.
+    let mut sim = setup(50.0);
+    let before: f64 = sim.organisms.iter().map(|o| o.energy).sum();
+    sim.step();
+    assert_eq!(sim.stats.attacks, 1);
+    let after: f64 = sim.organisms.iter().map(|o| o.energy).sum();
+    assert!(after < before, "a strike must lose energy overall");
+    assert!(
+        sim.organisms[1].energy < 50.0 - 19.0,
+        "victim takes ~20 damage"
+    );
+    assert!(
+        sim.organisms[0].energy_from_attacks > 0.0,
+        "attacker absorbs part of the damage"
+    );
+
+    // Victim that metabolism will push below zero before the strike: the attacker
+    // must not be charged negative damage (its attack intake can never go negative).
+    let mut sim = setup(0.05);
+    sim.step();
+    let attacker = sim
+        .organisms
+        .iter()
+        .find(|o| o.id == 0)
+        .expect("attacker survives");
+    assert!(
+        attacker.energy_from_attacks >= 0.0,
+        "negative damage leaked into the attacker: {}",
+        attacker.energy_from_attacks
+    );
+}
+
+/// Construction outputs inside the dead zone do nothing and cost nothing; a
+/// saturated output pays the full construction cost.
+#[test]
+fn construction_dead_zone_is_free() {
+    let run = |niche_on: bool, construct_bias: f64| -> f64 {
+        let mut config = quiet_config(1);
+        config.niche_construction.enabled = niche_on;
+        let mut sim = Simulation::new(config);
+        pin_all_quiet(&mut sim, 0);
+        pin_output(&mut sim, 0, OUT_CONSTRUCT, construct_bias);
+        sim.step();
+        sim.organisms[0].energy
+    };
+    // Each comparison uses the same brain with the feature on and off, so the only
+    // difference is the construction cost (brain-activity cost is identical).
+    let idle = run(true, 0.0) - run(false, 0.0); // output 0: inside the dead zone
+    let weak = run(true, 0.1) - run(false, 0.1); // tanh(0.1) ~ 0.1 < 0.2: still inside
+    let full = run(false, 50.0) - run(true, 50.0); // output 1: full effort
+    assert!(idle.abs() < 1e-9, "doing nothing must be free: {idle}");
+    assert!(
+        weak.abs() < 1e-9,
+        "sub-threshold output must be free: {weak}"
+    );
+    let cost = load_config().niche_construction.energy_cost;
+    assert!(
+        (full - cost).abs() < 1e-6,
+        "full effort must cost energy_cost ({cost}), got {full}"
+    );
+}
+
+/// Feeding mode halves travel speed (handling vs searching), and the contact food
+/// sense lets a brain enter feeding mode only when it stands on food.
+#[test]
+fn feeding_slows_travel_and_food_here_is_sensed() {
+    // Distance moved in one tick by a creature at full speed.
+    let travel = |eat_bias: f64, wire_eat_to_food_here: bool, food_everywhere: bool| -> f64 {
+        let mut config = quiet_config(1);
+        config.food.fruit.enabled = false;
+        let mut sim = Simulation::new(config);
+        pin_all_quiet(&mut sim, 0);
+        pin_output(&mut sim, 0, OUT_SPEED, 50.0);
+        pin_output(&mut sim, 0, OUT_EAT, eat_bias);
+        if wire_eat_to_food_here {
+            // eat = tanh(50 * food_here - 1): on only when the creature is on food.
+            let org = &mut sim.organisms[0];
+            let n_in = org.genome.num_inputs;
+            let food_here_node = n_in as u16; // last input; node ids are 1-based
+            let eat_node = (1 + n_in + OUT_EAT) as u16;
+            let gene = org
+                .genome
+                .connections
+                .iter_mut()
+                .find(|c| c.to == eat_node && c.from != 0)
+                .expect("some non-bias connection into the eat node");
+            gene.from = food_here_node;
+            gene.weight = 50.0;
+            gene.enabled = true;
+            org.genome
+                .connections
+                .sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
+            org.brain = org.genome.build_brain();
+        }
+        let fill = if food_everywhere { 1.0 } else { 0.0 };
+        sim.food_grid.cells.fill(fill);
+        sim.organisms[0].genome.body_size = 1.0;
+        sim.organisms[0].pos_x = 500.0;
+        sim.organisms[0].pos_y = 500.0;
+        sim.organisms[0].heading = 0.0;
+        sim.step();
+        (sim.organisms[0].pos_x - 500.0).hypot(sim.organisms[0].pos_y - 500.0)
+    };
+
+    let cruising = travel(-50.0, false, true);
+    let feeding = travel(50.0, false, true);
+    let factor = load_config().creature.feeding_speed_factor;
+    assert!(
+        cruising > 1.0,
+        "full speed should cover real ground: {cruising}"
+    );
+    assert!(
+        (feeding - cruising * factor).abs() < 1e-6,
+        "feeding mode must scale speed by {factor}: {feeding} vs {cruising}"
+    );
+
+    // Hard-wired to the new sense, the same brain feeds only when on food.
+    let on_food = travel(-1.0, true, true);
+    let on_bare_ground = travel(-1.0, true, false);
+    assert!(
+        (on_food - cruising * factor).abs() < 1e-6,
+        "on food the creature should be in feeding mode: {on_food}"
+    );
+    assert!(
+        (on_bare_ground - cruising).abs() < 1e-6,
+        "on bare ground it should cruise at full speed: {on_bare_ground}"
+    );
+}
+
+/// A barren biome (multiplier < 1) lowers algae regrowth and grows no fruit.
+#[test]
+fn barren_biome_is_actually_barren() {
+    let world = WorldConfig {
+        width: 200.0,
+        height: 200.0,
+        seed: 1,
+    };
+    let food = FoodConfig {
+        cell_size: 10.0,
+        max_per_cell: 1.0,
+        regrowth_rate: 0.002,
+        energy_per_food: 15.0,
+        biomes: vec![
+            BiomeZone {
+                x: 50.0,
+                y: 50.0,
+                radius: 40.0,
+                regrowth_multiplier: 0.3,
+            },
+            BiomeZone {
+                x: 150.0,
+                y: 150.0,
+                radius: 40.0,
+                regrowth_multiplier: 3.0,
+            },
+        ],
+        seasons: SeasonsConfig::default(),
+        droughts: DroughtConfig::default(),
+        fruit: sim_core::config::FruitConfig {
+            enabled: true,
+            ..Default::default()
+        },
+    };
+    let grid = FoodGrid::new(&world, &food, &food.fruit);
+    let barren = grid.regrowth_at(5, 5); // centre (55, 55), inside the barren zone
+    let open = grid.regrowth_at(10, 0); // centre (105, 5), outside both zones
+    let lush = grid.regrowth_at(15, 15); // centre (155, 155), inside the lush zone
+    assert!(
+        barren < open,
+        "barren {barren} must be below open ground {open}"
+    );
+    assert!(lush > open, "lush {lush} must be above open ground {open}");
+    assert_eq!(
+        grid.fruit_regrowth_at(5, 5),
+        0.0,
+        "no fruit in barren zones"
+    );
+    assert!(grid.fruit_regrowth_at(15, 15) > 0.0, "fruit in lush zones");
+}
+
+/// Fruit keeps regrowing in a cell whose algae is already full.
+#[test]
+fn fruit_regrows_when_algae_is_full() {
+    let mut config = load_config();
+    config.food.droughts.spawn_rate = 0.0;
+    let mut sim = Simulation::new(config);
+    sim.food_grid.cells.fill(1.0);
+    sim.food_grid.fruit_cells.fill(0.0);
+    let seasons = sim.config.food.seasons.clone();
+    for t in 0..20 {
+        sim.food_grid.regrow(t, &seasons, true);
+    }
+    let fruit: f64 = sim.food_grid.fruit_cells.iter().sum();
+    assert!(
+        fruit > 0.0,
+        "fruit must regrow even where algae is at its maximum"
+    );
+}
+
+/// A birth cannot hand the child more energy than the parent pays.
+#[test]
+fn birth_energy_creation_is_rejected() {
+    let text = DEFAULT_CONFIG.replace("child_energy = 30.0", "child_energy = 45.0");
+    assert_ne!(text, DEFAULT_CONFIG, "test must actually change the config");
+    assert!(Config::parse(&text).is_err());
 }

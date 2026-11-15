@@ -7,8 +7,10 @@ use std::path::Path;
 use crate::run;
 
 /// Run a parameter sweep: for each value, run `seeds` simulations in parallel.
+#[allow(clippy::too_many_arguments)]
 pub fn run_sweep(
     config_path: &Path,
+    overrides: &[String],
     param: &str,
     values: &[f64],
     seeds: u64,
@@ -16,10 +18,27 @@ pub fn run_sweep(
     log_interval: u64,
     output_dir: &Path,
 ) {
-    let base_config = Config::from_file(config_path).unwrap_or_else(|e| {
+    let mut base_config = Config::from_file(config_path).unwrap_or_else(|e| {
         eprintln!("Failed to load config '{}': {}", config_path.display(), e);
         std::process::exit(1);
     });
+    // Fixed overrides applied to every run (e.g. `--set creature.hard_cap=2000`), so
+    // experiments don't need full copies of default.toml that drift out of date.
+    for ov in overrides {
+        let parsed = ov
+            .split_once('=')
+            .and_then(|(k, v)| v.trim().parse::<f64>().ok().map(|v| (k.trim(), v)));
+        match parsed {
+            Some((key, value)) if apply_param(&mut base_config, key, value) => {
+                println!("override: {key} = {value}");
+            }
+            _ => {
+                eprintln!("Bad --set '{ov}': expected KEY=NUMBER with a supported KEY:");
+                print_supported_params();
+                std::process::exit(1);
+            }
+        }
+    }
 
     let total_runs = values.len() as u64 * seeds;
     println!(
@@ -164,6 +183,14 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
         "sharing.share_range" => config.sharing.share_range = value,
         "sharing.share_amount" => config.sharing.share_amount = value,
 
+        // Rule parameters changed on 2026-11-15 (old values reproduce the old rules)
+        "combat.idle_attack_cost" => config.combat.idle_attack_cost = value,
+        "niche_construction.activation_threshold" => {
+            config.niche_construction.activation_threshold = value
+        }
+        "mutation.prune_probability" => config.mutation.prune_probability = value,
+        "creature.feeding_speed_factor" => config.creature.feeding_speed_factor = value,
+
         // Feature toggles (0 = off, nonzero = on) for ON/OFF ablation experiments
         "reproduction.sexual" => config.reproduction.sexual = value != 0.0,
         "niche_construction.enabled" => config.niche_construction.enabled = value != 0.0,
@@ -208,6 +235,10 @@ fn print_supported_params() {
         "combat.attack_cost",
         "combat.attack_damage",
         "combat.energy_transfer_ratio",
+        "combat.idle_attack_cost",
+        "niche_construction.activation_threshold",
+        "mutation.prune_probability",
+        "creature.feeding_speed_factor",
         "reproduction.sexual",
         "niche_construction.enabled",
         "epigenetics.enabled",

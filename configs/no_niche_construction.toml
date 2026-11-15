@@ -1,0 +1,243 @@
+# SUPERSEDED: prefer `sim-runner sweep --param epigenetics.enabled` / `niche_construction.enabled`
+# on configs/default.toml. This full copy does not track later changes to default.toml.
+# Terrarium — Default Configuration
+# Every tunable number lives here. No magic constants in the code.
+# Copy this file and change one section at a time for experiments.
+
+[world]
+width = 1000.0          # World width in units
+height = 1000.0         # World height in units
+seed = 42               # RNG seed — same seed, same run
+
+[food]
+cell_size = 10.0        # Grid cell size in world units (world/cell_size = grid dims)
+max_per_cell = 1.0      # Maximum food a single cell can hold
+regrowth_rate = 0.0005  # Food regrown per cell per tick (cut from 0.0015 — real scarcity)
+energy_per_food = 15.0  # Energy gained per 1.0 unit of food consumed (halved from 30 to make predation viable)
+
+# Spatial resource gradients — ecological niches that drive adaptive radiation.
+# Each biome is a circular zone with a regrowth multiplier (smooth falloff from center).
+# Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
+# Citation: Rosenzweig (1995) "Species Diversity in Space and Time"
+# Seasonal (cyclical) food variation — regrowth oscillates sinusoidally over time.
+# Multiplier = 1.0 + amplitude * sin(2π * tick / period)
+# Creates boom-bust resource cycles that select for energy-buffering strategies.
+# Citation: Botkin (1990) "Forest Dynamics: An Ecological Model"
+[food.seasons]
+amplitude = 0.3         # Regrowth swings 70%-130% of base (0 = no seasons)
+period = 10000.0        # One full cycle every 10k ticks
+
+# Stochastic localized droughts — temporary food-killing zones.
+# Forces migration, predation, and cooperation by creating scarcity pockets.
+# Citation: Holling (1973) "Resilience and Stability of Ecological Systems"
+# Citation: Connell (1978) intermediate disturbance hypothesis
+[food.droughts]
+spawn_rate = 0.0002     # ~one new drought every 5000 ticks
+duration = 3000         # Each drought lasts 3000 ticks
+radius = 150.0          # Affected area radius in world units
+severity = 0.05         # Regrowth drops to 5% inside drought zone
+max_active = 3          # At most 3 simultaneous droughts
+
+[[food.biomes]]
+x = 250.0               # Lush oasis — northwest quadrant
+y = 250.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 750.0               # Lush oasis — southeast quadrant
+y = 750.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 500.0               # Moderate zone — center
+y = 500.0
+radius = 150.0
+regrowth_multiplier = 2.0
+
+[[food.biomes]]
+x = 750.0               # Barren zone — northeast
+y = 250.0
+radius = 180.0
+regrowth_multiplier = 0.3
+
+[creature]
+initial_count = 300     # Creatures spawned at tick 0
+hard_cap = 500          # Maximum living creatures (cut from 1500 — forces competition)
+body_radius = 3.0       # Collision/eating radius in world units
+max_speed = 2.0         # Maximum movement speed (units/tick)
+max_turn = 0.2          # Maximum turn rate (radians/tick)
+max_age = 2000          # Death by old age (lowered from 3000 for faster evolutionary turnover)
+
+[creature.vision]
+ray_count = 5           # Number of vision rays cast
+fov = 2.094             # Field of view in radians (~120 degrees)
+range = 60.0            # How far each ray sees (world units)
+
+[energy]
+starting = 60.0         # Energy a new creature begins with (tick 0 spawns)
+maximum = 200.0         # Energy cap — eating beyond this is wasted
+base_metabolism = 0.3   # Flat energy cost per tick (lowered — connection_cost adds pressure now)
+movement_cost = 0.15    # Multiplied by speed^2 per tick (raised from 0.08)
+brain_cost = 0.001      # Cost per neuron (soma) per tick — cell bodies are cheap
+connection_cost = 0.001 # Cost per connection (synapse) per tick — Attwell & Laughlin (2001)
+                        # At 200 connections = 0.2/tick brain cost (comparable to base_metabolism)
+activity_weight_cost = 0.0005  # Cost per unit of |weight × activation| per tick
+                               # Selects for sparse coding — Attwell & Laughlin (2001), Lennie (2003)
+
+[reproduction]
+threshold = 60.0        # Minimum energy to reproduce
+parent_cost = 30.0      # Energy deducted from the parent
+child_energy = 30.0     # Energy the offspring starts with
+# Sexual reproduction: NEAT crossover between different-topology genomes.
+# The twofold cost of sex: both parents pay parent_cost.
+# Recombination prevents Muller's ratchet and speeds adaptation.
+# Citation: Maynard Smith (1978), Muller (1932), Stanley & Miikkulainen (2002) §3.2
+sexual = true               # Enable sexual reproduction (false = asexual clone only)
+mate_range = 15.0           # Max distance to find a mate
+crossover_rate = 0.7        # Probability of crossover vs clone (when mate available)
+fitness_bias = true         # More-fit parent contributes disjoint/excess genes (NEAT)
+
+[combat]
+# Predator-prey dynamics: Lotka-Volterra (1925/1926), Yaeger Polyworld (1994)
+attack_range = 8.0            # Must be close to attack (roughly 2x body_radius)
+attack_cost = 5.0             # Energy spent per attack attempt (discourages spam)
+attack_damage = 20.0          # Base damage per successful hit
+energy_transfer_ratio = 0.75  # Attacker absorbs 75% of damage as energy (raised from 0.5 to make predation viable)
+
+[sharing]
+# Energy sharing: Hamilton (1964) kin selection, Trivers (1971) reciprocal altruism
+share_range = 10.0            # Must be close to share (slightly > attack_range)
+share_amount = 5.0            # Energy the donor pays per share action
+transfer_efficiency = 0.9      # Recipient gets 90% of what the donor pays; must be <= 1 (energy conservation)
+
+[aging]
+# Gompertz-Makeham mortality: h(age) = λ + α·exp(β·age)
+# Citation: Gompertz (1825), Williams (1957), Kirkwood (1977)
+extrinsic_mortality = 0.0001  # λ — age-independent death rate (accidents/background hazard)
+initial_senescence = 0.00001  # α — baseline senescence at birth (tiny, grows with age)
+aging_rate = 0.002            # β — default aging rate (evolvable via genome)
+
+[mutation]
+weight_probability = 0.1  # Chance each weight mutates during reproduction
+weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
+
+[density_pressure]
+# Population density pressure: crowding increases metabolism.
+# Each nearby creature (within vision range) adds this much to per-tick metabolic cost.
+# Models negative density dependence / interference competition.
+# Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
+cost_per_neighbor = 0.01
+
+[speciation]
+# Dynamic speciation threshold: compute from population genome variance
+# instead of using a fixed value. Adapts species count to actual diversity.
+# Citation: Stanley & Miikkulainen (2002) "Evolving Neural Networks through Augmenting Topologies"
+dynamic = true                # true = compute from variance, false = use fixed_threshold
+fixed_threshold = 0.5         # Fallback when dynamic=false (NEAT compatibility distance)
+sample_size = 50              # Organisms sampled for mean pairwise distance (O(n²) among sample)
+factor = 0.75                 # threshold = factor × mean_distance
+min_threshold = 0.1           # Floor: prevents over-splitting
+max_threshold = 2.0           # Ceiling: prevents one giant species
+
+[brain]
+inputs = 20             # Sensors: 5 rays×2 + energy + heading + signal + body_size + kin_similarity + temp + pheromone + light + niche_level + food_here
+hidden = 8              # Default hidden layer neurons (evolvable per-organism, range 4-32)
+outputs = 7             # turn, speed, eat, attack, signal, share, construct
+
+# North-south temperature gradient — cold at y=0 (north), warm at y=world_height (south).
+# Each creature has an evolvable preferred_temp gene [0,1]. Metabolism penalty scales with
+# mismatch: temp_cost = base_metabolism * cost_factor * |local_temp - preferred_temp|
+# This drives Bergmann's rule (1847): larger body mass in cold climates for heat retention,
+# and allopatric speciation across the thermal gradient.
+# Citation: Bergmann (1847) "Über die Verhältnisse der Wärmeökonomie der Thiere zu ihrer Größe"
+# Citation: Allen (1877) "The influence of Physical Conditions in the Genesis of Species"
+# Fruit food type — grows only inside biome zones at 2x the biome rate.
+# Algae (the existing food) grows everywhere at the base regrowth rate.
+# Creatures have an evolvable diet_preference gene [0,1]: 0=algae specialist,
+# 1=fruit specialist. Generalists (0.5) get ~65% digestion efficiency from either.
+# This drives adaptive radiation: populations diverge along the diet axis,
+# reducing interspecific competition (character displacement).
+# Citation: Grant & Grant (2006) "Evolution of Character Displacement in Darwin's Finches"
+# Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
+[food.fruit]
+enabled = true
+energy_per_fruit = 20.0        # Energy per unit fruit (before diet efficiency)
+biome_rate_multiplier = 2.0    # Fruit regrowth = biome_rate × 2.0 (rich but limited)
+
+[temperature]
+enabled = true
+cost_factor = 0.5       # Up to 50% extra metabolism at max mismatch (mismatch=1.0)
+
+# Per-cell pheromone layer enabling stigmergic (indirect) communication.
+# Each creature deposits pheromone at its current cell each tick.
+# Pheromone decays multiplicatively, creating concentration gradients.
+# Brains attending to local pheromone can evolve trail-following, territory
+# marking, migration coordination, and predator-avoidance.
+# Self-organization: positive feedback loop when creatures follow
+# high-pheromone paths, reinforcing those paths — the Deneubourg mechanism.
+# Citation: Wilson (1975) "Sociobiology: The New Synthesis"
+# Citation: Deneubourg et al. (1990) J. Insect Behavior 3(2):159-168
+[pheromones]
+enabled = true
+deposit_rate = 0.1      # Pheromone added per creature per tick at its cell
+decay_rate = 0.995      # Multiplicative decay per tick (~138-tick half-life) — Deneubourg (1990)
+max_level = 10.0        # Cell cap; prevents unbounded accumulation
+
+# Day/night cycle — sinusoidal light modulates effective vision range.
+# Light level = (1 + sin(2π * tick / period)) / 2, oscillating [0, 1].
+# During night (light < 0.5), vision range is halved.
+# Drives temporal niche partitioning: diurnal vs nocturnal strategies.
+# Pheromone trails become more valuable at night when vision fails.
+# Brain input (light level, input 18) wired in FOURTH step.
+# Citation: Kronfeld-Schor & Dayan (2003) Annual Review of Ecology 34:153-181
+[daynight]
+enabled = true
+period = 40.0           # Ticks per full cycle — Kronfeld-Schor & Dayan (2003): cycle:lifespan ~1:60
+
+# Elevation map — multi-octave sine height field (no external crates).
+# h(x,y) = Σ_k (1/2^k) * sin(2^k*fx*x + φ) * sin(2^k*fy*y + φ)
+# Movement penalty: speed *= 1/(1 + slope_factor * |Δheight|)
+# Creates ridges, valleys and island-like patches that fragment populations
+# and drive allopatric speciation through isolation by distance.
+# Citation: MacArthur & Wilson (1967) "The Theory of Island Biogeography"
+# Citation: Wright (1943) "Isolation by Distance" Genetics 28(2):114-138
+[elevation]
+enabled = true
+slope_factor = 5.0      # At Δh=0.2 (steep), speed halves
+octaves = 4             # Number of sine octaves (detail level)
+seed = 7777             # Height map seed — independent of main sim seed
+
+# Niche construction — organisms modify their local environment.
+# Positive construction boosts food regrowth; negative degrades it.
+# Creates ecological inheritance: offspring inherit a modified environment.
+# Citation: Odling-Smee, Laland & Feldman (2003) "Niche Construction"
+# Citation: Laland et al. (1999) PNAS 96:10242-10247
+[niche_construction]
+enabled = false
+deposit_rate = 0.05     # Material deposited per tick when construct output is active
+decay_rate = 0.999      # Slow decay — environment remembers for ~1000 ticks
+max_level = 1.0         # Maximum construction level per cell
+regrowth_bonus = 0.5    # Regrowth multiplier per unit level (1.0 + level * bonus)
+energy_cost = 0.5       # Cost per unit of |construct| output
+
+# Epigenetic inheritance — heritable non-genetic methylation marks.
+# Under stress (low energy), active connections accumulate methylation that
+# partially silences them (effective_weight = weight * (1 - methylation)).
+# Methylation is inherited ± noise, giving a Lamarckian inheritance channel.
+# Citation: Jablonka & Lamb (2005) "Evolution in Four Dimensions"
+# Citation: Heard & Martienssen (2014) Cell 157(1):95-109
+[epigenetics]
+enabled = true
+stress_threshold = 0.3  # Energy/max_energy below which stress methylation activates
+methylation_rate = 0.005  # Methylation gain per tick under stress
+demethylation_rate = 0.001  # Passive methylation loss per tick when not stressed
+inheritance_noise = 0.02  # σ of noise added to methylation during reproduction
+
+# Open-ended evolution activity tracking — Bedau & Packard (1991), Dolson et al. (2019)
+# Tracks structural novelty (topology hashes) and cumulative activity D(t).
+# If D(t) grows unboundedly, evolution is open-ended; if it plateaus, strategies converge.
+[activity_tracking]
+enabled = true
+window_size = 100       # Ticks between activity snapshots

@@ -58,7 +58,7 @@ Status codes: `0` OK, `-1` invalid UTF-8, `-2` config parse/validation error (th
   "elevation": {"enabled": true, "min": -1.50, "max": 1.73},     // measured over the elevation grid
   "brain": {"inputs": 19, "outputs": 7, "hidden_initial": 8,
             "input_labels": ["ray0_dist","ray0_type", "...", "energy","heading","heard_signal","body_size",
-                             "kin_similarity","temperature","pheromone","light","niche_level"],
+                             "kin_similarity","temperature","pheromone","light","niche_level","food_here"],
             "output_labels": ["turn","speed","eat","attack","signal","share","construct"]},
   "biomes": [{"x": 250, "y": 250, "radius": 200, "regrowth_multiplier": 3.0}, "..."],
   "enabled": {"fruit": true, "temperature": true, "pheromones": true, "daynight": true, "elevation": true,
@@ -302,7 +302,7 @@ sim-wasm derives everything it can without touching sim.rs, genome.rs, activity.
 | sim-core's own per-organism species and stable ids | `species_assignments` is a local and `species_representatives` is private | `pub species_id: u32` on `Organism` + stable ids on representatives (v1 uses sim-wasm's tracker instead) |
 | Energy budget over the last N ticks (food / fruit / hunting / shares in; metabolism / movement / brain / activity / crowding / temperature / construction / attack / shares out / reproduction) | Only lifetime `energy_from_food` and `energy_from_attacks` exist; per-tick costs are locals in `step()` | `[f32; 12]` EMA accumulator on `Organism` |
 | Algae vs fruit split of food energy | Both added to `energy_from_food` | part of the EMA above |
-| Last sensor inputs (19) / outputs (7), node activations | Built on the stack and discarded; `Brain::forward` exposes no activations | `last_inputs`/`last_outputs` on `Organism`, plus `Brain::forward_with_activations` (pure; can be re-run from sim-wasm) |
+| Last sensor inputs (20) / outputs (7), node activations | Built on the stack and discarded; `Brain::forward` exposes no activations | `last_inputs`/`last_outputs` on `Organism`, plus `Brain::forward_with_activations` (pure; can be re-run from sim-wasm) |
 | Per-organism crowding (neighbour count) and brain activity cost | In the private `Action` buffer | part of `last_action` |
 | `children_total` | No counter; v1 gives `children_alive` by scanning | `children_total: u32` on `Organism` |
 | Full ancestry beyond parent/root | Only `parent_id`, `root_ancestor_id`, `clade_id` | a lineage log in sim-wasm (possible later without sim-core changes) |

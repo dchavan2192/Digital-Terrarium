@@ -73,6 +73,8 @@ impl FoodGrid {
                 for col in 0..cols {
                     let cx = col as f64 * food.cell_size + half_cell;
                     let cy = row as f64 * food.cell_size + half_cell;
+                    // The zone that departs most from 1.0 wins, so a barren zone
+                    // (multiplier < 1) lowers regrowth just as a lush one raises it.
                     let mut best_multiplier = 1.0f64;
                     let mut best_fruit_rate = 0.0f64;
                     for biome in &food.biomes {
@@ -84,14 +86,19 @@ impl FoodGrid {
                             // Smooth falloff: full effect at center, fades at edge
                             let t = 1.0 - (dist / biome.radius);
                             let effective = 1.0 + (biome.regrowth_multiplier - 1.0) * t;
-                            // Highest multiplier wins (biomes don't stack)
-                            best_multiplier = best_multiplier.max(effective);
-                            // Fruit rate: biome base rate × fruit multiplier
-                            let fruit_rate = food.regrowth_rate
-                                * biome.regrowth_multiplier
-                                * fruit_config.biome_rate_multiplier
-                                * t;
-                            best_fruit_rate = best_fruit_rate.max(fruit_rate);
+                            // Strongest effect wins (biomes don't stack)
+                            if (effective - 1.0).abs() > (best_multiplier - 1.0).abs() {
+                                best_multiplier = effective;
+                            }
+                            // Fruit grows only in fertile zones (multiplier > 1), at the
+                            // biome rate × the fruit multiplier. Barren zones grow none.
+                            if biome.regrowth_multiplier > 1.0 {
+                                let fruit_rate = food.regrowth_rate
+                                    * biome.regrowth_multiplier
+                                    * fruit_config.biome_rate_multiplier
+                                    * t;
+                                best_fruit_rate = best_fruit_rate.max(fruit_rate);
+                            }
                         }
                     }
                     let idx = row * cols + col;
@@ -186,7 +193,16 @@ impl FoodGrid {
         for row in 0..self.rows {
             for col in 0..self.cols {
                 let idx = row * self.cols + col;
-                if self.cells[idx] >= max {
+                // Skip only when there is nothing left to grow in this cell. Algae and
+                // fruit fill independently: full algae must not stall fruit regrowth.
+                let algae_full = self.cells[idx] >= max;
+                let fruit_rate_here = if fruit_enabled {
+                    self.fruit_regrowth_rates[idx]
+                } else {
+                    0.0
+                };
+                let fruit_full = fruit_rate_here <= 0.0 || self.fruit_cells[idx] >= max;
+                if algae_full && fruit_full {
                     continue;
                 }
                 let rate = self.regrowth_rates[idx];
@@ -216,16 +232,17 @@ impl FoodGrid {
                     Some(cg) => cg.regrowth_multiplier_at(idx),
                     None => 1.0,
                 };
-                self.cells[idx] =
-                    (self.cells[idx] + rate * seasonal * drought_mult * construction_mult).min(max);
+                if !algae_full {
+                    self.cells[idx] = (self.cells[idx]
+                        + rate * seasonal * drought_mult * construction_mult)
+                        .min(max);
+                }
 
-                // Regrow fruit in biome cells
-                if fruit_enabled {
-                    let fruit_rate = self.fruit_regrowth_rates[idx];
-                    if fruit_rate > 0.0 {
-                        self.fruit_cells[idx] =
-                            (self.fruit_cells[idx] + fruit_rate * seasonal * drought_mult).min(max);
-                    }
+                // Regrow fruit in fertile biome cells
+                if !fruit_full {
+                    self.fruit_cells[idx] = (self.fruit_cells[idx]
+                        + fruit_rate_here * seasonal * drought_mult)
+                        .min(max);
                 }
             }
         }
@@ -260,6 +277,12 @@ impl FoodGrid {
     #[inline]
     pub fn regrowth_at(&self, col: usize, row: usize) -> f64 {
         self.regrowth_rates[row * self.cols + col]
+    }
+
+    /// Get the fruit regrowth rate at a given cell (0 outside fertile biome zones).
+    #[inline]
+    pub fn fruit_regrowth_at(&self, col: usize, row: usize) -> f64 {
+        self.fruit_regrowth_rates[row * self.cols + col]
     }
 
     /// Get the grid index for a world position.

@@ -27,6 +27,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      # The live demo is linked from the portfolio, so a commit that fails its
+      # tests must not replace the last good build.
+      - name: Run tests
+        run: cargo test --workspace --release
+
       - name: Build sim-viewer for WASM
         run: cargo build -p sim-viewer --target wasm32-unknown-unknown --release --no-default-features
 
@@ -42,6 +47,10 @@ jobs:
           mkdir -p web/demo
           cp target/wasm32-unknown-unknown/release/sim_wasm.wasm web/demo/terrarium.wasm
           cp configs/demo.toml web/demo/demo.toml
+
+      - name: Stamp the build (shown in the demo header)
+        run: |
+          printf '{"sha":"%s","date":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > web/demo/version.json
 
       - name: Optimize WASM (if wasm-opt available)
         run: |

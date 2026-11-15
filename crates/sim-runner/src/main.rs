@@ -52,6 +52,11 @@ enum Commands {
         #[arg(short, long)]
         param: String,
 
+        /// Fixed override applied to every run, KEY=NUMBER (repeatable),
+        /// e.g. `--set creature.hard_cap=2000`.
+        #[arg(long = "set", value_name = "KEY=NUMBER")]
+        set: Vec<String>,
+
         /// Comma-separated list of values to try.
         #[arg(short, long, value_delimiter = ',')]
         values: Vec<f64>,
@@ -80,6 +85,7 @@ fn main() {
     match cli.command {
         Some(Commands::Sweep {
             config,
+            set,
             param,
             values,
             seeds,
@@ -89,6 +95,7 @@ fn main() {
         }) => {
             sweep::run_sweep(
                 &config,
+                &set,
                 &param,
                 &values,
                 seeds,

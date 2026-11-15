@@ -58,11 +58,11 @@ Mean generation reaches ~244 by tick 500k — roughly one generation every ~2000
 
 ![D(t) across 5 seeds](docs/images/oee_multi_seed_dt.png)
 
-Cumulative evolutionary activity D(t) grows unboundedly as **~15.5·ln(t)** across 5 independent seeds (200k ticks each), satisfying Bedau & Packard's (1991) criterion for open-ended evolution. All seeds show positive log coefficients (10–22), confirming the result is not seed-dependent.
+*Preliminary.* In 5 independent seeds (200k ticks each), cumulative evolutionary activity grew roughly as **~15.5·ln(t)**, with positive log coefficients (10–22) in every seed. This is consistent with ongoing novelty, but it is **not yet evidence of open-ended evolution**. Neutral drift also accumulates activity, so these runs must be compared against a neutral shadow model (Bedau, Snyder & Packard 1998), which is in progress. These runs also predate a fix to the activity metric (it averaged over extinct topologies too), so the numbers will be re-measured.
 
 ![Trait novelty across seeds](docs/images/oee_multi_seed_novelty.png)
 
-Novel topologies continue appearing throughout the run, with ~130 active traits maintained at steady state — the system never converges to a single dominant strategy.
+Novel topologies kept appearing throughout these runs, with ~130 active topologies at steady state.
 
 | Metric | Value (n=5 seeds) |
 |--------|-------------------|

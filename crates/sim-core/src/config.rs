@@ -16,8 +16,8 @@ use std::path::Path;
 /// Maximum number of vision rays the tick loop supports (stack arrays).
 pub const MAX_RAYS: usize = 16;
 /// Scalar (non-ray) sensor inputs wired in sim.rs: energy, heading, heard signal,
-/// body size, kin similarity, temperature, pheromone, light, niche level.
-pub const NUM_SCALAR_INPUTS: usize = 9;
+/// body size, kin similarity, temperature, pheromone, light, niche level, food here.
+pub const NUM_SCALAR_INPUTS: usize = 10;
 /// Brain outputs read by sim.rs: turn, speed, eat, attack, signal, share, construct.
 pub const NUM_BRAIN_OUTPUTS: usize = 7;
 
@@ -184,7 +184,17 @@ pub struct CreatureConfig {
     pub max_speed: f64,
     pub max_turn: f64,
     pub max_age: u64,
+    /// Speed multiplier on ticks when the creature is in feeding mode (eat output > 0).
+    /// Handling food and searching for it compete for the same time (Holling 1959;
+    /// Stephens & Krebs 1986), so a creature that always tries to eat always moves
+    /// slowly. 1.0 disables the trade-off (the pre-2026-11-15 rule).
+    #[serde(default = "default_feeding_speed_factor")]
+    pub feeding_speed_factor: f64,
     pub vision: VisionConfig,
+}
+
+fn default_feeding_speed_factor() -> f64 {
+    0.5
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -316,7 +326,7 @@ fn default_toggle_probability() -> f64 {
     0.01
 }
 fn default_prune_probability() -> f64 {
-    0.04
+    0.02
 }
 fn default_trait_probability() -> f64 {
     0.05
@@ -352,8 +362,15 @@ pub struct AgingConfig {
 pub struct CombatConfig {
     /// Maximum range at which an attack can land (world units).
     pub attack_range: f64,
-    /// Energy cost to the attacker per attack attempt (win or lose).
+    /// Energy cost to the attacker per strike, paid only when a target is in range.
+    /// The energetic cost of predation lies in the pursuit and strike, not in the
+    /// readiness to attack (Holling 1959; Scantlebury et al. 2014).
     pub attack_cost: f64,
+    /// Energy cost per tick of an attack attempt with no target in range.
+    /// Default 0: an attack that never happens costs nothing. Set to `attack_cost`
+    /// to reproduce the pre-2026-11-15 rule, under which predation went extinct.
+    #[serde(default)]
+    pub idle_attack_cost: f64,
     /// Base damage dealt to the victim per successful attack.
     pub attack_damage: f64,
     /// Fraction of damage dealt that the attacker absorbs as energy [0, 1].
@@ -372,16 +389,23 @@ pub struct SharingConfig {
     pub share_range: f64,
     /// Amount of energy the donor pays per share action.
     pub share_amount: f64,
-    /// Multiplier applied to received energy: recipient gets share_amount * benefit_multiplier.
-    /// Models synergistic group benefits (e.g., shared warmth, group defense).
-    /// Must be >= 1.0 for Hamilton's rB > C to be satisfiable.
+    /// Fraction of the donated energy the recipient actually receives:
+    /// recipient gets `share_amount * transfer_efficiency`. Must be in (0, 1] so
+    /// sharing can never create energy (food is the only energy source).
+    ///
+    /// Hamilton's rB > C does NOT need energy to be created: B and C are fitness
+    /// effects, and a unit of energy is worth more to a starving recipient (near
+    /// death or below the reproduction threshold) than to a well-fed donor. The old
+    /// `benefit_multiplier = 1.5` let two neighbours net +2.5 energy/tick each by
+    /// sharing back and forth: a free-energy exploit, not kin selection.
+    /// The legacy key `benefit_multiplier` is still accepted but must also be <= 1.
     /// Citation: Hamilton (1964) "The Genetical Evolution of Social Behaviour"
-    #[serde(default = "default_benefit_multiplier")]
-    pub benefit_multiplier: f64,
+    #[serde(default = "default_transfer_efficiency", alias = "benefit_multiplier")]
+    pub transfer_efficiency: f64,
 }
 
-fn default_benefit_multiplier() -> f64 {
-    1.5
+fn default_transfer_efficiency() -> f64 {
+    0.9
 }
 
 /// Population density pressure — crowding increases metabolism.
@@ -681,7 +705,13 @@ pub struct NicheConstructionConfig {
     pub regrowth_bonus: f64,
     /// Energy cost per unit of construction activity.
     pub energy_cost: f64,
-    /// Dead zone: |construct output| must exceed this to build/degrade (was hard-coded 0.01).
+    /// Dead zone: |construct output| must exceed this to build/degrade. Above it the
+    /// intensity is rescaled to (|output| − threshold) / (1 − threshold), so effort and
+    /// cost rise smoothly from zero. With the old value (0.01) a tanh output was almost
+    /// never inside the dead zone, so every creature paid the construction cost on
+    /// nearly every tick. The default (0.2) is a modelling choice: roughly two thirds
+    /// of random initial brains abstain and one third build or degrade, so abstaining
+    /// is free and there is still variation for selection to act on.
     pub activation_threshold: f64,
 }
 
@@ -750,7 +780,7 @@ impl Default for NicheConstructionConfig {
             max_level: 1.0,
             regrowth_bonus: 0.5,
             energy_cost: 0.5,
-            activation_threshold: 0.01,
+            activation_threshold: 0.2,
         }
     }
 }
@@ -812,6 +842,45 @@ impl Config {
 
     /// Sanity-check values that would cause panics or nonsense if wrong.
     fn validate(&self) -> Result<(), ConfigError> {
+        if !(self.sharing.transfer_efficiency > 0.0 && self.sharing.transfer_efficiency <= 1.0) {
+            return Err(ConfigError::Invalid(format!(
+                "sharing.transfer_efficiency (or legacy benefit_multiplier) must be in (0, 1] \
+                 so sharing conserves energy; got {}",
+                self.sharing.transfer_efficiency
+            )));
+        }
+        if self.reproduction.child_energy > self.reproduction.parent_cost {
+            return Err(ConfigError::Invalid(format!(
+                "reproduction.child_energy ({}) must not exceed parent_cost ({}): a birth \
+                 cannot create energy",
+                self.reproduction.child_energy, self.reproduction.parent_cost
+            )));
+        }
+        if !(self.creature.feeding_speed_factor > 0.0 && self.creature.feeding_speed_factor <= 1.0)
+        {
+            return Err(ConfigError::Invalid(format!(
+                "creature.feeding_speed_factor must be in (0, 1]; got {}",
+                self.creature.feeding_speed_factor
+            )));
+        }
+        if !(0.0..1.0).contains(&self.niche_construction.activation_threshold) {
+            return Err(ConfigError::Invalid(format!(
+                "niche_construction.activation_threshold must be in [0, 1); got {}",
+                self.niche_construction.activation_threshold
+            )));
+        }
+        if self.combat.idle_attack_cost < 0.0 || self.combat.attack_cost < 0.0 {
+            return Err(ConfigError::Invalid(
+                "combat.attack_cost and combat.idle_attack_cost must be >= 0".into(),
+            ));
+        }
+        if !(0.0..=1.0).contains(&self.combat.energy_transfer_ratio) {
+            return Err(ConfigError::Invalid(format!(
+                "combat.energy_transfer_ratio must be in [0, 1] (a predator cannot gain more \
+                 energy than the prey loses); got {}",
+                self.combat.energy_transfer_ratio
+            )));
+        }
         if self.world.width <= 0.0 || self.world.height <= 0.0 {
             return Err(ConfigError::Invalid(
                 "world dimensions must be positive".into(),
