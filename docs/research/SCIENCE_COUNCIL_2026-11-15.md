@@ -64,3 +64,21 @@ This separates inheritance from within-life response, pattern-specific effects f
 ## Continuing review rule
 
 For each new mechanism, record the primary papers, supported design choice, numerical assumptions, strongest alternative explanation, and a falsifying test. Ask another agent to challenge the design before merging. Revisit the closest prior work before claiming novelty, not after generating favorable plots.
+
+## Implemented fixture review: Stage 0.3 scope
+
+`crates/sim-core/tests/mechanism_effects.rs` adds ten short forced-action tests. This follows the council's resolution above: activate the specified causal pathway and compare with an OFF counterfactual. The ODD scheduling/rationale guidance motivates documenting what each intervention measures; these implementation tests are our engineering criteria, not claims from that paper.
+
+| Switch | Forced pathway checked |
+|---|---|
+| Fruit | A fruit specialist with eating enabled consumes a known fruit quantity only when the layer is enabled. Changing disabled fruit yield is inert. |
+| Temperature | Known latitude/preference mismatch incurs the predicted extra expense. Changing the disabled mismatch-cost factor is inert. |
+| Pheromones | Known deposit and decay affect the grid and then a directly connected sensor-driven turn. Disabled deposition changes neither the grid nor action. |
+| Day/night | A night-phase light sensor changes a directly connected turn; a distant food cue outside the half-range cannot trigger eating. Disabled cycle period is inert. |
+| Elevation | Forced movement follows the terrain speed multiplier. Disabled slope cost does not affect movement. |
+| Niche construction | Forced building incurs the configured expense and changes local regrowth. Disabled regrowth bonus is inert. |
+| Epigenetics | Forced low reserves produce marks and living-brain weight suppression. Disabled methylation rate is inert. |
+| Sexual reproduction | Nearby eligible parents produce the predicted sexual/asexual birth modes and energy investments. Disabled crossover rate is inert. |
+| Activity tracking | Enabled tracking observes a known topology while leaving physical state and the next RNG draw unchanged. Disabled window size is inert. |
+
+The OFF comparisons inspect specific physical/grid endpoints and the next RNG draw, rather than merely noticing divergence. Existing integration and energy-ledger fixtures additionally cover transfers, saturation, combat, reproduction, mortality, construction thresholds, seasonal/biome regrowth, and feeding tradeoffs. This verifies scoped switch pathways and major energy flows; it does not exhaust every parameter, interactions, long-term dynamics, or evolutionary benefit. Cross-platform and checkpoint continuation remain separate checks.
