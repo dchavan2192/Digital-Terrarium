@@ -3,7 +3,7 @@
 ## ALIFE 2027 Paper Outline
 
 ### Abstract (~150 words)
-We present Terrarium, a research-grade artificial life platform where neural-agent organisms with NEAT-topology brains live, compete, cooperate, and evolve in a sealed 2D environment. Terrarium integrates five mechanisms rarely combined in ALife: (1) activity-dependent neural metabolism, (2) sexual reproduction with NEAT crossover, (3) niche construction via environmental modification, (4) epigenetic inheritance through stress-responsive methylation, and (5) open-ended evolution (OEE) metrics via the MODES toolbox. We demonstrate that cumulative activity D(t) grows as ~12·ln(t) over 200k ticks across 5 seeds (p < 0.01), satisfying Bedau's criterion for unbounded evolutionary activity. Epigenetic markers respond to environmental stress and are inherited transgenerationally, creating a second channel of inheritance beyond the genome. Niche construction creates positive feedback loops where organisms modify food availability, altering selective pressures for future generations.
+We present Terrarium, a research-grade artificial life platform where neural-agent organisms with NEAT-topology brains live, compete, cooperate, and evolve in a sealed 2D environment. Terrarium integrates five mechanisms rarely combined in ALife: (1) activity-dependent neural metabolism, (2) sexual reproduction with NEAT crossover, (3) niche construction via environmental modification, (4) epigenetic inheritance through stress-responsive methylation, and (5) open-ended evolution (OEE) metrics via the MODES toolbox. We demonstrate that cumulative activity D(t) grows as ~15.5·ln(t) over 200k ticks across 5 seeds (mean = 76.1 ± 17.8), satisfying Bedau's criterion for unbounded evolutionary activity. Epigenetic markers respond to environmental stress and are inherited transgenerationally, creating a second channel of inheritance beyond the genome. Niche construction creates positive feedback loops where organisms modify food availability, altering selective pressures for future generations.
 
 ### 1. Introduction
 - Gap: most ALife platforms lack multiple inheritance channels (genetic + epigenetic + ecological)
@@ -43,7 +43,7 @@ We present Terrarium, a research-grade artificial life platform where neural-age
   - Metric: D(t) growth rate, Muller's ratchet indicators
 
 ### 5. Results
-- 5.1 D(t) grows as ~12·ln(t) across all seeds (preliminary data)
+- 5.1 D(t) grows as 15.48·ln(t) across 5 seeds (confirmed: mean=76.1±17.8, coefficients 10.06-21.58)
 - 5.2 Epigenetics effect on stress response
 - 5.3 Niche construction effect on ecosystem stability
 - 5.4 Sexual reproduction effect on evolutionary rate
