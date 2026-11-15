@@ -98,8 +98,8 @@
 }
 .kpis::-webkit-scrollbar { display: none; }
 .kpi {
-  flex: 0 0 auto;
-  min-width: 168px;
+  flex: 1 0 156px;
+  min-width: 0;
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-rows: auto 1fr;
@@ -129,7 +129,7 @@
 .kpi-delta { font-size: var(--fs-12); color: var(--ink-3); }
 .kpi-delta[data-dir="1"] { color: var(--accent-2); }
 .kpi-delta[data-dir="-1"] { color: var(--warn); }
-.spark { width: 120px; height: 28px; grid-row: 2; grid-column: 2; }
+.spark { width: clamp(40px, 5.5vw, 100px); height: 28px; grid-row: 2; grid-column: 2; }
 .spark polyline { stroke: var(--ink-2); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
 .spark circle { fill: var(--accent); }
 .legend-chip {
@@ -436,7 +436,7 @@
 }
 
 /* ---------- tour (§2.4) ---------- */
-.tour { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+.tour { position: fixed; inset: 0; z-index: 200; pointer-events: auto; }
 .tour-spot {
   position: absolute;
   left: 0;
@@ -457,6 +457,8 @@
   background: var(--bg-2);
   box-shadow: var(--shadow);
   pointer-events: auto;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
   transition: transform var(--t-panel) var(--ease);
 }
 .tour-count { margin: 0 0 4px; font-size: 11px; color: var(--ink-3); }
@@ -464,6 +466,21 @@
 .tour-body { margin: 0 0 14px; color: var(--ink-2); }
 .tour-actions { display: flex; align-items: center; gap: 8px; }
 .grow { flex: 1; }
+
+/* Measured ecosystem reserve budget; quiet until the Energy tab is opened. */
+.energy-panel { padding: 20px 18px; }
+.energy-panel h2 { margin: 0 0 8px; font: 600 var(--fs-20)/1.2 var(--font-serif); }
+.energy-panel .panel-hint { padding: 0; margin: 8px 0 18px; }
+.budget-reserve { margin: 20px 0 0; font-size: 28px; color: var(--accent-2); }
+.budget-reserve span { display: block; font-size: 12px; color: var(--ink-3); }
+.budget-flows { margin: 18px 0; }
+.budget-row { display: flex; justify-content: space-between; gap: 16px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+.budget-row dd { margin: 0; white-space: nowrap; }
+.budget-in dd { color: var(--accent-2); }
+.budget-check { padding: 10px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--accent-2); }
+.budget-check[data-balanced="false"] { color: var(--warn); }
+.budget-detail { font-size: 12px; color: var(--ink-3); }
+.budget-detail summary { cursor: pointer; color: var(--ink-2); }
 
 .noscript { position: fixed; inset: auto 16px 16px; padding: 12px; background: var(--bg-3); border-radius: var(--radius); }
 
@@ -479,7 +496,7 @@
   .wordmark { font-size: 18px; }
   .hdr-actions { margin-left: auto; }
   .kpis { padding: 6px 12px; gap: 6px; }
-  .kpi { min-width: auto; grid-template-columns: auto; padding: 4px 10px; }
+  .kpi { flex: 0 0 auto; min-width: auto; grid-template-columns: auto; padding: 4px 10px; }
   .kpi-label { font-size: 10px; }
   .kpi-value { font-size: var(--fs-20); }
   .kpi-delta, .spark { display: none; }

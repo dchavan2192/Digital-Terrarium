@@ -189,9 +189,115 @@ pub struct TickStats {
     pub cap_blocked_births: u64,
     /// Cumulative `cap_blocked_births` since tick 0.
     pub total_cap_blocked_births: u64,
+    // Organism-reserve accounting boundary: environmental regrowth is outside it.
+    /// Total organism reserves at tick start; excludes environmental food.
+    pub energy_before: f64,
+    /// Total surviving organism reserves at tick end.
+    pub energy_after: f64,
+    /// Metabolizable algae energy harvested before reserve-cap clipping.
+    pub energy_food_input: f64,
+    /// Metabolizable fruit energy harvested before reserve-cap clipping.
+    pub energy_fruit_input: f64,
+    /// Size-scaled basal metabolic expenditure.
+    pub energy_basal_cost: f64,
+    /// Movement expenditure.
+    pub energy_movement_cost: f64,
+    /// Neuron and connection maintenance expenditure.
+    pub energy_brain_structure_cost: f64,
+    /// Activity-dependent neural expenditure.
+    pub energy_brain_activity_cost: f64,
+    /// Density-dependent expenditure.
+    pub energy_crowding_cost: f64,
+    /// Temperature mismatch expenditure.
+    pub energy_temperature_cost: f64,
+    /// Environmental construction expenditure.
+    pub energy_construction_cost: f64,
+    /// Strike plus idle attack expenditure.
+    pub energy_attack_cost: f64,
+    /// Prey reserve removed minus energy harvested by attackers.
+    pub energy_combat_loss: f64,
+    /// Donor reserve spent minus energy offered to recipients.
+    pub energy_sharing_loss: f64,
+    /// Reserve spent by initiating parents and sexual mates.
+    pub energy_reproduction_cost: f64,
+    /// Reserves introduced in newborns; balanced against reproductive expenditure.
+    pub energy_offspring_input: f64,
+    /// Signed reserves removed with dead organisms. Negative values remove overdrafts, not a biological energy source.
+    pub energy_death_removal: f64,
+    /// Food, combat and sharing gains discarded at the organism reserve cap.
+    pub energy_cap_overflow: f64,
+    /// Observed reserve change minus independently recorded net flows; should be near zero.
+    pub energy_balance_residual: f64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
+}
+
+/// Independent per-tick flows across the organism-reserve boundary.
+/// This is not a whole-world energy/thermodynamics model: environmental food
+/// regrowth and digestion losses are outside this boundary. Death removal is
+/// signed because the existing tick order permits temporary negative reserves.
+#[derive(Default)]
+struct EnergyLedger {
+    before: f64,
+    food_input: f64,
+    fruit_input: f64,
+    basal_cost: f64,
+    movement_cost: f64,
+    brain_structure_cost: f64,
+    brain_activity_cost: f64,
+    crowding_cost: f64,
+    temperature_cost: f64,
+    construction_cost: f64,
+    attack_cost: f64,
+    combat_loss: f64,
+    sharing_loss: f64,
+    reproduction_cost: f64,
+    offspring_input: f64,
+    death_removal: f64,
+    cap_overflow: f64,
+}
+
+impl EnergyLedger {
+    fn net_flow(&self) -> f64 {
+        self.food_input + self.fruit_input + self.offspring_input
+            - self.basal_cost
+            - self.movement_cost
+            - self.brain_structure_cost
+            - self.brain_activity_cost
+            - self.crowding_cost
+            - self.temperature_cost
+            - self.construction_cost
+            - self.attack_cost
+            - self.combat_loss
+            - self.sharing_loss
+            - self.reproduction_cost
+            - self.death_removal
+            - self.cap_overflow
+    }
+
+    fn tolerance(&self, after: f64) -> f64 {
+        // Scale with absolute flows (not their cancelling net), and reserve sums.
+        let magnitude = self.before.abs()
+            + after.abs()
+            + self.food_input.abs()
+            + self.fruit_input.abs()
+            + self.offspring_input.abs()
+            + self.basal_cost.abs()
+            + self.movement_cost.abs()
+            + self.brain_structure_cost.abs()
+            + self.brain_activity_cost.abs()
+            + self.crowding_cost.abs()
+            + self.temperature_cost.abs()
+            + self.construction_cost.abs()
+            + self.attack_cost.abs()
+            + self.combat_loss.abs()
+            + self.sharing_loss.abs()
+            + self.reproduction_cost.abs()
+            + self.death_removal.abs()
+            + self.cap_overflow.abs();
+        1e-9 * (1.0 + magnitude)
+    }
 }
 
 /// Compact action output — one per organism per tick.
@@ -317,6 +423,10 @@ impl Simulation {
 
     /// Advance the simulation by one tick.
     pub fn step(&mut self) {
+        let mut ledger = EnergyLedger {
+            before: self.organisms.iter().map(|o| o.energy).sum(),
+            ..EnergyLedger::default()
+        };
         let mut births = 0usize;
         let mut deaths = 0usize;
 
@@ -748,10 +858,13 @@ impl Simulation {
                     0.0
                 };
 
+                ledger.food_input += algae_energy;
+                ledger.fruit_input += fruit_energy;
                 let food_energy = algae_energy + fruit_energy;
                 org.energy_from_food += food_energy;
                 org.energy += food_energy;
                 if org.energy > max_energy {
+                    ledger.cap_overflow += org.energy - max_energy;
                     org.energy = max_energy;
                 }
             }
@@ -776,6 +889,13 @@ impl Simulation {
             } else {
                 0.0
             };
+            ledger.basal_cost += size_metabolism;
+            ledger.movement_cost += movement_cost;
+            ledger.brain_structure_cost += brain_cost_per_neuron * org.brain.neuron_count() as f64
+                + brain_cost_per_connection * org.brain.connection_count() as f64;
+            ledger.brain_activity_cost += activity_weight_cost * action.brain_activity;
+            ledger.crowding_cost += crowding_cost;
+            ledger.temperature_cost += temp_cost;
             org.energy -= size_metabolism + movement_cost + brain_cost + crowding_cost + temp_cost;
 
             org.age += 1;
@@ -847,6 +967,7 @@ impl Simulation {
                     let intensity = effort * raw.signum();
                     self.construction_grid
                         .modify(org.pos_x, org.pos_y, intensity);
+                    ledger.construction_cost += effort * construct_cost;
                     org.energy -= effort * construct_cost;
                 }
             }
@@ -907,6 +1028,7 @@ impl Simulation {
             if let Some(target) = best_target {
                 // The strike itself is what costs energy (Holling 1959; Scantlebury
                 // et al. 2014), so the cost is paid only when there is a target.
+                ledger.attack_cost += attack_cost;
                 self.organisms[i].energy -= attack_cost;
                 // Damage scales with attacker size, reduced by victim size
                 // Bigger creatures hit harder and absorb hits better
@@ -917,11 +1039,14 @@ impl Simulation {
                 let actual_damage = scaled_damage.min(self.organisms[target].energy).max(0.0);
                 self.organisms[target].energy -= actual_damage;
                 let gained = actual_damage * transfer_ratio;
+                ledger.combat_loss += actual_damage - gained;
+                ledger.cap_overflow += (self.organisms[i].energy + gained - max_energy).max(0.0);
                 self.organisms[i].energy_from_attacks += gained;
                 self.organisms[i].energy = (self.organisms[i].energy + gained).min(max_energy);
                 attacks += 1;
             } else {
                 // No target in range: nothing was struck (cost defaults to 0).
+                ledger.attack_cost += idle_attack_cost;
                 self.organisms[i].energy -= idle_attack_cost;
             }
         }
@@ -980,6 +1105,9 @@ impl Simulation {
                 // must come from energy being worth more to the recipient (Hamilton 1964).
                 self.organisms[i].energy -= share_amount;
                 let received = share_amount * transfer_efficiency;
+                ledger.sharing_loss += share_amount - received;
+                ledger.cap_overflow +=
+                    (self.organisms[target].energy + received - max_energy).max(0.0);
                 self.organisms[target].energy =
                     (self.organisms[target].energy + received).min(max_energy);
                 shares += 1;
@@ -1155,8 +1283,11 @@ impl Simulation {
                     crate::organism::NUM_OUTPUTS],
             };
             self.next_id += 1;
+            ledger.reproduction_cost += parent_cost;
+            ledger.offspring_input += child_energy;
             self.organisms[parent_idx].energy -= parent_cost;
             if let Some(m) = paid_mate {
+                ledger.reproduction_cost += mate_cost;
                 self.organisms[m].energy -= mate_cost;
                 self.mated_buf[m] = true;
                 self.mated_buf[parent_idx] = true;
@@ -1199,6 +1330,13 @@ impl Simulation {
                 }
             }
         }
+
+        ledger.death_removal = self
+            .organisms
+            .iter()
+            .filter(|o| !o.alive)
+            .map(|o| o.energy)
+            .sum();
 
         // Remove dead organisms to keep memory bounded
         self.organisms.retain(|o| o.alive);
@@ -1594,7 +1732,35 @@ impl Simulation {
             self.lineage_diversity_cached
         };
 
+        let energy_balance_residual = total_energy - ledger.before - ledger.net_flow();
+        debug_assert!(
+            energy_balance_residual.is_finite()
+                && energy_balance_residual.abs() <= ledger.tolerance(total_energy),
+            "tick {} organism reserve balance residual {} exceeds tolerance {}",
+            self.tick,
+            energy_balance_residual,
+            ledger.tolerance(total_energy)
+        );
         self.stats = TickStats {
+            energy_before: ledger.before,
+            energy_after: total_energy,
+            energy_food_input: ledger.food_input,
+            energy_fruit_input: ledger.fruit_input,
+            energy_basal_cost: ledger.basal_cost,
+            energy_movement_cost: ledger.movement_cost,
+            energy_brain_structure_cost: ledger.brain_structure_cost,
+            energy_brain_activity_cost: ledger.brain_activity_cost,
+            energy_crowding_cost: ledger.crowding_cost,
+            energy_temperature_cost: ledger.temperature_cost,
+            energy_construction_cost: ledger.construction_cost,
+            energy_attack_cost: ledger.attack_cost,
+            energy_combat_loss: ledger.combat_loss,
+            energy_sharing_loss: ledger.sharing_loss,
+            energy_reproduction_cost: ledger.reproduction_cost,
+            energy_offspring_input: ledger.offspring_input,
+            energy_death_removal: ledger.death_removal,
+            energy_cap_overflow: ledger.cap_overflow,
+            energy_balance_residual,
             tick: self.tick,
             population,
             births,

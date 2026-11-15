@@ -8,7 +8,7 @@ export const TOUR_STEPS = [
   {
     target: '#viewport',
     title: 'Meet the creatures.',
-    body: 'Each one has a small neural-network brain that started random. It senses food and neighbours, and decides how to move, eat, fight or share. Nobody programmed what they do.',
+    body: 'Each creature starts with a small, random neural-network brain. It senses food and neighbours, then chooses how to move, eat, fight or share. The rules are designed; the brain weights and wiring evolve.',
   },
   {
     target: '#legend',
@@ -18,12 +18,12 @@ export const TOUR_STEPS = [
   {
     target: '#kpis',
     title: 'Colour means species.',
-    body: 'When creatures eat well they reproduce, and their offspring’s brains mutate slightly. Lineages that drift far enough apart count as a new species and get a new colour.',
+    body: 'When creatures eat well they reproduce, and their offspring’s brains mutate. Colours group creatures with similar genomes. These are simulation clusters, not proof of biological species.',
   },
   {
     target: '#side',
     title: 'Follow the story.',
-    body: 'This feed narrates what evolution is doing right now. Click any creature to see its brain thinking, live.',
+    body: 'The feed highlights changes in the world. Click a creature to inspect its brain, or open Energy to see a measured budget of food in and costs out.',
   },
 ];
 
@@ -72,8 +72,10 @@ export function createTour(root, { onOpenSide } = {}) {
     let y = r.bottom + 14;
     if (y + ch > innerHeight - 12) y = r.top - ch - 14;
     if (y < 12) {
-      y = Math.max(12, r.top + r.height / 2 - ch / 2);
-      x = Math.min(innerWidth - cw - 12, Math.max(12, r.left + 24));
+      // Large spotlight (the whole world): keep the card near its top, clear
+      // of the Food legend anchored at bottom-left and camera at top-right.
+      y = Math.max(12, Math.min(innerHeight - ch - 12, r.top + 64));
+      x = Math.max(12, Math.min(innerWidth - cw - 12, r.left + r.width / 2 - cw / 2));
     }
     card.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   }
@@ -99,7 +101,14 @@ export function createTour(root, { onOpenSide } = {}) {
   }
 
   function onKey(e) {
-    if (e.key === 'Escape') {
+    if (e.key === 'Tab') {
+      const controls = [back, skip, next].filter((el) => !el.disabled);
+      const at = controls.indexOf(document.activeElement);
+      const to = (at + (e.shiftKey ? controls.length - 1 : 1)) % controls.length;
+      e.preventDefault();
+      e.stopPropagation();
+      controls[to].focus();
+    } else if (e.key === 'Escape') {
       e.stopPropagation();
       close();
     } else if (e.key === 'ArrowRight') {

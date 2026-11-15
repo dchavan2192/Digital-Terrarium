@@ -22,6 +22,7 @@ import { createFeed } from './ui/feed.js';
 import { createSpeciesTab } from './ui/species.js';
 import { createInspector } from './ui/inspector.js';
 import { createTour, tourSeen } from './ui/tour.js';
+import { renderEnergy } from './ui/energy.js';
 import { icon, podSilhouette } from './ui/icons.js';
 
 const LOG = '[terrarium]';
@@ -309,8 +310,8 @@ function setupUi() {
   S.dialSegs = ring.children;
 
   // tabs
-  const tabs = [$('#tabFeed'), $('#tabSpecies')];
-  const panels = [$('#feedPanel'), $('#speciesPanel')];
+  const tabs = [$('#tabFeed'), $('#tabSpecies'), $('#tabEnergy')];
+  const panels = [$('#feedPanel'), $('#speciesPanel'), $('#energyPanel')];
   tabs.forEach((t, i) =>
     t.addEventListener('click', () => {
       tabs.forEach((x, j) => {
@@ -319,6 +320,7 @@ function setupUi() {
         panels[j].hidden = i !== j;
       });
       if (i === 1 && S.lastStats) S.speciesTab.update(S.lastStats.species, S.lastStats.tick);
+      if (i === 2) renderEnergy($('#energyBudget'), S.lastStats);
       if (mqTablet.matches || mqPhone.matches) openSheet(true);
     }),
   );
@@ -636,6 +638,7 @@ function sample(now) {
   const s = S.sim.stats();
   if (!s) return;
   S.lastStats = s;
+  if (!$('#energyPanel').hidden) renderEnergy($('#energyBudget'), s);
   S.lastSampleTick = s.tick;
   S.colors.update(s.species.filter((x) => x.established), now);
   S.kpis.push(s, S.cfg);
