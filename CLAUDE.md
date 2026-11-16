@@ -133,6 +133,7 @@ cargo test --workspace
 - **Epigenetics**: effective weight = `weight × (1 − methylation)`, applied both at birth and to the living brain
 - **Activation**: fast_tanh (Pade approximant, ~3-5x faster than std)
 - **Forward pass**: Stack-allocated `[f64; MAX_NODES]`, single linear pass through pre-sorted connections
+- **Node identity**: hidden-node ids are issued by the shared `Innovations` registry (the same split of the same connection gets the same id in every lineage) and are NOT buffer positions; `Genome::build_brain` maps them to local slots. The node limit (`MAX_NODES` − fixed nodes = 36 hidden with 20 inputs) applies to neurons held at once, not to a lineage's history
 
 ## Key Experiment Results (November 2026)
 
@@ -201,7 +202,7 @@ Every mechanic is research-backed:
 ## Unsolved Problems / Next Steps
 
 1. **Phase 7 experiments not yet run** — Phase 7.5 correctness fixes (docs/PROGRESS.md) must land first; the Pi runs then measure sexual reproduction, niche construction and epigenetics ON/OFF
-2. **Crossover only mixes weights** (audit item G) — the child's edge set equals the fitter parent's; hidden-node ids are not global innovation numbers
+2. **Crossover follows the NEAT rule** — matching genes mix weights from both parents; other genes come from the fitter parent, so the child's wiring is the fitter parent's. Node ids are population-wide historical markers (`genome::Innovations`), so matching is by true homology. Not yet done: both parents' extra genes when fitness is equal, and a comparison against a reference NEAT implementation
 3. **No neutral shadow model for OEE** — activity stats still lack a neutral baseline (design: docs/research/OEE_SHADOW_DESIGN.md)
 4. **Brain cost vs complexity** — connection and activity costs exist now; whether they constrain topology is untested
 5. **Droughts not yet tested in sweeps** — need experiment data

@@ -15,13 +15,91 @@ use crate::brain::Brain;
 use crate::config::{AgingConfig, BrainConfig, FruitConfig, MutationConfig, TemperatureConfig};
 use rand::Rng;
 
+/// Population-wide identity of a node. Bias, input and output nodes use the fixed
+/// ids `0..=inputs+outputs`; every hidden node has an id handed out by
+/// [`Innovations`], so the same structural innovation carries the same id in every
+/// lineage. Ids are historical markers, NOT positions in a brain's activation
+/// buffer: [`Genome::build_brain`] maps them to local slots.
+pub type NodeId = u32;
+
+/// Historical record of structural innovations, shared by the whole population.
+///
+/// NEAT aligns the genes of two parents by historical origin, not by position
+/// (Stanley & Miikkulainen 2002, sections 2.2 and 3.2). A connection gene is
+/// identified here by its endpoints `(from, to)`, which is a valid historical
+/// marker only if node ids themselves are historical. This registry makes them so:
+/// splitting connection `A -> B` yields the same node id wherever and whenever it
+/// happens. Before 2026-11-16 each genome numbered its own nodes, so two lineages
+/// could give the same id to unrelated neurons and crossover paired genes that
+/// were not homologous.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct Innovations {
+    next_node_id: NodeId,
+    /// `(from << 32) | to` of a split connection -> the node that split created.
+    /// A BTreeMap keeps serialization order deterministic.
+    splits: std::collections::BTreeMap<u64, NodeId>,
+}
+
+impl Innovations {
+    /// Registry for a population whose founders have `brain.hidden` hidden nodes.
+    pub fn new(brain: &BrainConfig) -> Self {
+        Innovations {
+            next_node_id: (1 + brain.inputs + brain.outputs + brain.hidden) as NodeId,
+            splits: std::collections::BTreeMap::new(),
+        }
+    }
+
+    /// Node id for splitting connection `from -> to`.
+    ///
+    /// Returns the id recorded for that split, so independent lineages agree. If
+    /// the genome doing the split already contains that node (it split this
+    /// connection before, and the connection was later re-added), a fresh id is
+    /// issued instead, because a genome cannot hold one node twice.
+    pub fn node_for_split(
+        &mut self,
+        from: NodeId,
+        to: NodeId,
+        already_present: impl Fn(NodeId) -> bool,
+    ) -> NodeId {
+        let key = (u64::from(from) << 32) | u64::from(to);
+        if let Some(&id) = self.splits.get(&key) {
+            if !already_present(id) {
+                return id;
+            }
+            return self.fresh();
+        }
+        let id = self.fresh();
+        self.splits.insert(key, id);
+        id
+    }
+
+    fn fresh(&mut self) -> NodeId {
+        let id = self.next_node_id;
+        self.next_node_id = self
+            .next_node_id
+            .checked_add(1)
+            .expect("node id space exhausted");
+        id
+    }
+
+    /// The next id that would be issued; every existing hidden node id is below it.
+    pub fn next_node_id(&self) -> NodeId {
+        self.next_node_id
+    }
+
+    /// Number of distinct connection splits recorded.
+    pub fn recorded_splits(&self) -> usize {
+        self.splits.len()
+    }
+}
+
 /// A connection gene in the NEAT genome.
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct ConnectionGene {
-    /// Source node ID.
-    pub from: u16,
-    /// Target node ID.
-    pub to: u16,
+    /// Source node id (see [`NodeId`]).
+    pub from: NodeId,
+    /// Target node id (see [`NodeId`]).
+    pub to: NodeId,
     /// Connection weight (evolvable).
     pub weight: f64,
     /// Whether this connection is active. Disabled connections can be re-enabled.
@@ -36,7 +114,7 @@ pub struct ConnectionGene {
 /// Depth 0.0 = input layer, 1.0 = output layer, 0 < depth < 1 = hidden.
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct HiddenNode {
-    pub id: u16,
+    pub id: NodeId,
     pub depth: f64,
 }
 
@@ -51,9 +129,6 @@ pub struct Genome {
 
     /// Hidden nodes with depth values for topological ordering.
     pub hidden_nodes: Vec<HiddenNode>,
-
-    /// Next available node ID for add-node mutations.
-    pub next_node_id: u16,
 
     /// Number of input nodes (fixed from config, stored for mutation logic).
     pub num_inputs: usize,
@@ -106,15 +181,15 @@ impl Genome {
         let inputs = brain_config.inputs;
         let outputs = brain_config.outputs;
         let hidden = brain_config.hidden;
-        let first_output = (1 + inputs) as u16;
-        let first_hidden = (1 + inputs + outputs) as u16;
+        let first_output = (1 + inputs) as NodeId;
+        let first_hidden = (1 + inputs + outputs) as NodeId;
 
         let scale = 1.0 / (inputs as f64).sqrt();
 
         // Create hidden nodes at depth 0.5
         let hidden_nodes: Vec<HiddenNode> = (0..hidden)
             .map(|i| HiddenNode {
-                id: first_hidden + i as u16,
+                id: first_hidden + i as NodeId,
                 depth: 0.5,
             })
             .collect();
@@ -125,7 +200,7 @@ impl Genome {
         for h in 0..hidden {
             connections.push(ConnectionGene {
                 from: 0,
-                to: first_hidden + h as u16,
+                to: first_hidden + h as NodeId,
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
                 methylation: 0.0,
@@ -136,8 +211,8 @@ impl Genome {
         for i in 0..inputs {
             for h in 0..hidden {
                 connections.push(ConnectionGene {
-                    from: (1 + i) as u16,
-                    to: first_hidden + h as u16,
+                    from: (1 + i) as NodeId,
+                    to: first_hidden + h as NodeId,
                     weight: rng.gen_range(-scale..scale),
                     enabled: true,
                     methylation: 0.0,
@@ -149,7 +224,7 @@ impl Genome {
         for o in 0..outputs {
             connections.push(ConnectionGene {
                 from: 0,
-                to: first_output + o as u16,
+                to: first_output + o as NodeId,
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
                 methylation: 0.0,
@@ -160,8 +235,8 @@ impl Genome {
         for h in 0..hidden {
             for o in 0..outputs {
                 connections.push(ConnectionGene {
-                    from: first_hidden + h as u16,
-                    to: first_output + o as u16,
+                    from: first_hidden + h as NodeId,
+                    to: first_output + o as NodeId,
                     weight: rng.gen_range(-scale..scale),
                     enabled: true,
                     methylation: 0.0,
@@ -175,7 +250,6 @@ impl Genome {
         Genome {
             connections,
             hidden_nodes,
-            next_node_id: first_hidden + hidden as u16,
             num_inputs: inputs,
             num_outputs: outputs,
             mutation_rate: mutation_config.weight_probability,
@@ -197,7 +271,12 @@ impl Genome {
     /// 4. Toggle connection (`toggle_probability`, 1%) — flip enabled/disabled
     /// 5. Prune connection (`prune_probability`, 4%) — delete a random connection
     /// 6. Scalar trait mutations (`trait_probability`, 5% each) + color drift
-    pub fn reproduce(&self, mcfg: &MutationConfig, rng: &mut impl Rng) -> Self {
+    pub fn reproduce(
+        &self,
+        mcfg: &MutationConfig,
+        innovations: &mut Innovations,
+        rng: &mut impl Rng,
+    ) -> Self {
         let mut child = self.clone();
 
         // 1. Mutate connection weights
@@ -217,7 +296,7 @@ impl Genome {
         // 3. Add node (default 1%) — split existing connection
         // Citation: Stanley & Miikkulainen (2002) — add-node splits A→B into A→C→B
         if rng.r#gen::<f64>() < mcfg.add_node_probability {
-            child.mutate_add_node(rng);
+            child.mutate_add_node(innovations, rng);
         }
 
         // 4. Toggle connection (default 1%)
@@ -283,12 +362,44 @@ impl Genome {
             child.color_hue -= 360.0;
         }
 
+        // A hidden node left without any connection gene is gone for good: dropping
+        // it frees its slot, so the node limit applies to the neurons a creature
+        // has now, not to how many its lineage ever added.
+        child.prune_orphan_nodes();
+
         // Re-sort connections for genome_distance efficiency
         child
             .connections
             .sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
 
         child
+    }
+
+    /// Remove hidden nodes that no connection gene (enabled or disabled) refers to.
+    pub fn prune_orphan_nodes(&mut self) {
+        let connections = &self.connections;
+        self.hidden_nodes
+            .retain(|n| connections.iter().any(|c| c.from == n.id || c.to == n.id));
+    }
+
+    /// Most hidden nodes one genome can hold: the brain's activation buffer has
+    /// `MAX_NODES` slots, and bias, inputs and outputs take the first ones.
+    pub fn max_hidden_nodes(&self) -> usize {
+        crate::brain::MAX_NODES.saturating_sub(1 + self.num_inputs + self.num_outputs)
+    }
+
+    /// Local slot of a node in this genome's brain, or `None` if the genome has no
+    /// such node. Fixed nodes keep their ids as slots; hidden nodes follow, in the
+    /// order of `hidden_nodes`.
+    pub fn slot_of(&self, id: NodeId) -> Option<usize> {
+        let fixed = self.num_inputs + self.num_outputs;
+        if id as usize <= fixed {
+            return Some(id as usize);
+        }
+        self.hidden_nodes
+            .iter()
+            .position(|n| n.id == id)
+            .map(|pos| fixed + 1 + pos)
     }
 
     /// Add a new connection between two unconnected nodes.
@@ -334,19 +445,11 @@ impl Genome {
         }
     }
 
-    /// Split an existing connection with a new hidden node.
-    ///
-    /// Classic NEAT add-node mutation: connection A→B is disabled, and replaced
-    /// by A→C (weight 1.0) and C→B (original weight). This preserves the network's
-    /// behavior while adding structural complexity.
-    ///
-    /// The new node C gets depth = (depth_A + depth_B) / 2.
-    fn mutate_add_node(&mut self, rng: &mut impl Rng) {
-        if self.next_node_id as usize >= crate::brain::MAX_NODES {
-            return; // hit max nodes
+    /// Split a random enabled connection with a new hidden node (NEAT add-node).
+    fn mutate_add_node(&mut self, innovations: &mut Innovations, rng: &mut impl Rng) {
+        if self.hidden_nodes.len() >= self.max_hidden_nodes() {
+            return; // every brain slot is in use
         }
-
-        // Pick a random enabled connection
         let enabled_indices: Vec<usize> = self
             .connections
             .iter()
@@ -357,25 +460,43 @@ impl Genome {
         if enabled_indices.is_empty() {
             return;
         }
-
         let idx = enabled_indices[crate::math::random_index(rng, enabled_indices.len())];
+        self.split_connection(idx, innovations);
+    }
+
+    /// Split connection gene `idx` with a new hidden node.
+    ///
+    /// Classic NEAT add-node: connection A→B is disabled and replaced by A→C
+    /// (weight 1.0) and C→B (original weight). C's id comes from the shared
+    /// [`Innovations`] registry, so the same split made in another lineage yields
+    /// the same node and the two are recognised as homologous in crossover. C's
+    /// depth is the midpoint of A's and B's, which makes depth a function of the
+    /// node id alone. Returns the new node's id, or `None` if the genome is full.
+    pub fn split_connection(
+        &mut self,
+        idx: usize,
+        innovations: &mut Innovations,
+    ) -> Option<NodeId> {
+        if self.hidden_nodes.len() >= self.max_hidden_nodes() {
+            return None;
+        }
         let old = self.connections[idx];
-
-        // Disable the old connection
-        self.connections[idx].enabled = false;
-
-        // Create new hidden node at midpoint depth
-        let from_depth = self.node_depth(old.from);
-        let to_depth = self.node_depth(old.to);
-        let new_id = self.next_node_id;
+        let (from_depth, to_depth) = (self.node_depth(old.from), self.node_depth(old.to));
         let new_depth = (from_depth + to_depth) / 2.0;
-
+        if !(from_depth < new_depth && new_depth < to_depth) {
+            // The two depths are adjacent floating-point values: there is no room
+            // for a node between them, and evaluation order would be ambiguous.
+            return None;
+        }
+        let new_id = {
+            let hidden = &self.hidden_nodes;
+            innovations.node_for_split(old.from, old.to, |id| hidden.iter().any(|n| n.id == id))
+        };
+        self.connections[idx].enabled = false;
         self.hidden_nodes.push(HiddenNode {
             id: new_id,
             depth: new_depth,
         });
-        self.next_node_id += 1;
-
         // A→C with weight 1.0 (preserves signal magnitude)
         self.connections.push(ConnectionGene {
             from: old.from,
@@ -384,7 +505,6 @@ impl Genome {
             enabled: true,
             methylation: old.methylation,
         });
-
         // C→B with original weight (preserves output contribution)
         self.connections.push(ConnectionGene {
             from: new_id,
@@ -393,10 +513,11 @@ impl Genome {
             enabled: true,
             methylation: old.methylation,
         });
+        Some(new_id)
     }
 
     /// Get depth of any node by ID.
-    fn node_depth(&self, id: u16) -> f64 {
+    fn node_depth(&self, id: NodeId) -> f64 {
         if id == 0 || (id as usize) <= self.num_inputs {
             0.0 // bias or input
         } else if (id as usize) <= self.num_inputs + self.num_outputs {
@@ -411,15 +532,15 @@ impl Genome {
     }
 
     /// Get all node IDs with their depth values.
-    fn all_nodes_with_depth(&self) -> Vec<(u16, f64)> {
+    fn all_nodes_with_depth(&self) -> Vec<(NodeId, f64)> {
         let mut nodes =
             Vec::with_capacity(1 + self.num_inputs + self.num_outputs + self.hidden_nodes.len());
         nodes.push((0, 0.0)); // bias
         for i in 1..=self.num_inputs {
-            nodes.push((i as u16, 0.0));
+            nodes.push((i as NodeId, 0.0));
         }
         for o in 0..self.num_outputs {
-            nodes.push(((1 + self.num_inputs + o) as u16, 1.0));
+            nodes.push(((1 + self.num_inputs + o) as NodeId, 1.0));
         }
         for n in &self.hidden_nodes {
             nodes.push((n.id, n.depth));
@@ -428,14 +549,38 @@ impl Genome {
     }
 
     /// Build a [`Brain`] from this genome's connection genes and hidden nodes.
+    ///
+    /// Node ids are population-wide and unbounded, so they are mapped to local
+    /// slots here (see [`Genome::slot_of`]). The brain's `gene_index` still refers
+    /// to positions in `self.connections`.
     pub fn build_brain(&self) -> Brain {
-        let hidden: Vec<(u16, f64)> = self.hidden_nodes.iter().map(|n| (n.id, n.depth)).collect();
+        let first_hidden_slot = 1 + self.num_inputs + self.num_outputs;
+        let hidden: Vec<(u16, f64)> = self
+            .hidden_nodes
+            .iter()
+            .enumerate()
+            .map(|(pos, n)| ((first_hidden_slot + pos) as u16, n.depth))
+            .collect();
         // Effective weight = weight * (1 - methylation) — epigenetic suppression.
         // Citation: Jablonka & Lamb (2005) "Evolution in Four Dimensions"
+        // A gene whose endpoint is missing would be a broken invariant (orphan
+        // pruning only removes unreferenced nodes); it is kept in place, disabled,
+        // so gene positions stay aligned with `gene_index`.
         let conns: Vec<(u16, u16, f64, bool)> = self
             .connections
             .iter()
-            .map(|c| (c.from, c.to, c.weight * (1.0 - c.methylation), c.enabled))
+            .map(|c| match (self.slot_of(c.from), self.slot_of(c.to)) {
+                (Some(from), Some(to)) => (
+                    from as u16,
+                    to as u16,
+                    c.weight * (1.0 - c.methylation),
+                    c.enabled,
+                ),
+                _ => {
+                    debug_assert!(false, "connection gene refers to a node the genome lacks");
+                    (0, 0, 0.0, false)
+                }
+            })
             .collect();
         Brain::from_neat(self.num_inputs, self.num_outputs, &hidden, &conns)
     }
@@ -450,9 +595,13 @@ impl Genome {
 
     /// NEAT crossover: produce offspring from two parents with potentially different topologies.
     ///
-    /// - Matching genes (same from,to): randomly inherit from either parent (50/50)
-    /// - Disjoint/excess genes: inherit from the fitter parent only
-    /// - Hidden nodes: union of both parents
+    /// - Matching genes (same from,to): randomly inherit from either parent (50/50).
+    ///   Node ids are historical markers shared by the population ([`Innovations`]),
+    ///   so equal endpoints mean the two genes descend from the same innovation.
+    /// - Disjoint/excess genes: inherit from the fitter parent only. This is the
+    ///   NEAT rule; the child's wiring is the fitter parent's, with weights of the
+    ///   shared genes drawn from both.
+    /// - Hidden nodes: those referenced by the inherited genes
     /// - Scalar traits: average of both parents
     /// - Standard mutations applied to offspring
     ///
@@ -462,6 +611,7 @@ impl Genome {
         parent_b: &Genome,
         a_is_fitter: bool,
         mcfg: &MutationConfig,
+        innovations: &mut Innovations,
         rng: &mut impl Rng,
     ) -> Self {
         let (fitter, weaker) = if a_is_fitter {
@@ -526,19 +676,10 @@ impl Genome {
         // Prune orphan hidden nodes not referenced by any connection
         hidden_nodes.retain(|n| connections.iter().any(|c| c.from == n.id || c.to == n.id));
 
-        let next_node_id = hidden_nodes
-            .iter()
-            .map(|n| n.id + 1)
-            .max()
-            .unwrap_or(fitter.next_node_id)
-            .max(fitter.next_node_id)
-            .max(weaker.next_node_id);
-
         // Blend scalar traits
         let mut child = Genome {
             connections,
             hidden_nodes,
-            next_node_id,
             num_inputs: fitter.num_inputs,
             num_outputs: fitter.num_outputs,
             mutation_rate: (parent_a.mutation_rate + parent_b.mutation_rate) / 2.0,
@@ -566,7 +707,7 @@ impl Genome {
             .sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
 
         // Apply standard mutations
-        child = child.reproduce(mcfg, rng);
+        child = child.reproduce(mcfg, innovations, rng);
 
         child
     }

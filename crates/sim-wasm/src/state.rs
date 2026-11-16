@@ -181,7 +181,7 @@ struct StatsOut<'a> {
 
 #[derive(Serialize)]
 struct NodeOut {
-    id: u16,
+    id: u32,
     kind: &'static str,
     label: String,
     depth: f64,
@@ -190,8 +190,8 @@ struct NodeOut {
 
 #[derive(Serialize)]
 struct EdgeOut {
-    from: u16,
-    to: u16,
+    from: u32,
+    to: u32,
     weight: f64,
     enabled: bool,
     methylation: f64,
@@ -1165,7 +1165,7 @@ impl WasmSim {
         });
         for i in 0..ni {
             nodes.push(NodeOut {
-                id: (1 + i) as u16,
+                id: (1 + i) as u32,
                 kind: "in",
                 label: input_label(i, ray_count),
                 depth: 0.0,
@@ -1174,7 +1174,7 @@ impl WasmSim {
         }
         for oi in 0..no {
             nodes.push(NodeOut {
-                id: (1 + ni + oi) as u16,
+                id: (1 + ni + oi) as u32,
                 kind: "out",
                 label: output_label(oi),
                 depth: 1.0,

@@ -64,4 +64,5 @@ Read the two newest sections of PROGRESS.md ("Cross-platform determinism" and "H
 - Item 3 partly done: checkpointed, pinned-executable Pi batches exist and the held-out validation is running (`validation_20261116T021704Z_23586`). Independent environmental RNG was added on 2026-11-16 (`env_rng`, `food.droughts.schedule_seed`).
 - A validation batch is ACTIVE on the Pi. Do not pull, rebuild or launch anything else there until `status` reads `completed`. To continue after an interruption: `RESUME=output/phase9a/validation_20261116T021704Z_23586 bash analysis/launch_pi_validation.sh`.
 - Local `main` is ahead of `origin/main`; the owner must push.
-- Items 4–6 unchanged.
+- Item 4 done on 2026-11-16: population-wide node identity (`genome::Innovations`), no lifetime neuron cap. Recurrence can now be built on it.
+- Items 5–6 unchanged.

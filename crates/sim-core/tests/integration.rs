@@ -2073,7 +2073,7 @@ const OUT_CONSTRUCT: usize = 6;
 /// tanh to ±1; 0 gives exactly 0). Rebuilds the brain.
 fn pin_output(sim: &mut Simulation, i: usize, out_idx: usize, bias_weight: f64) {
     let org = &mut sim.organisms[i];
-    let node = (1 + org.genome.num_inputs + out_idx) as u16;
+    let node = (1 + org.genome.num_inputs + out_idx) as u32;
     let mut has_bias = false;
     for c in &mut org.genome.connections {
         if c.to == node {
@@ -2239,8 +2239,8 @@ fn feeding_slows_travel_and_food_here_is_sensed() {
             // eat = tanh(50 * food_here - 1): on only when the creature is on food.
             let org = &mut sim.organisms[0];
             let n_in = org.genome.num_inputs;
-            let food_here_node = n_in as u16; // last input; node ids are 1-based
-            let eat_node = (1 + n_in + OUT_EAT) as u16;
+            let food_here_node = n_in as u32; // last input; node ids are 1-based
+            let eat_node = (1 + n_in + OUT_EAT) as u32;
             let gene = org
                 .genome
                 .connections

@@ -57,6 +57,9 @@ pub struct Simulation {
     /// runs with the same drought seed and settings see the same droughts even if
     /// a feature is switched off in one of them (Glasserman & Yao 1992).
     pub env_rng: ChaCha8Rng,
+    /// Population-wide record of structural innovations (node identity for NEAT
+    /// crossover). See [`crate::genome::Innovations`].
+    pub innovations: crate::genome::Innovations,
     next_id: OrganismId,
 
     // Per-tick stats (updated at end of each tick)
@@ -417,6 +420,7 @@ impl Simulation {
             next_id += 1;
         }
 
+        let innovations = crate::genome::Innovations::new(&config.brain);
         let activity_tracker =
             crate::activity::ActivityTracker::new(config.activity_tracking.window_size);
 
@@ -431,6 +435,7 @@ impl Simulation {
             spatial_grid,
             rng,
             env_rng,
+            innovations,
             next_id,
             stats: TickStats::default(),
             positions: Vec::with_capacity(cap),
@@ -1238,20 +1243,24 @@ impl Simulation {
                             &mate.genome,
                             a_is_fitter,
                             mutation_cfg,
+                            &mut self.innovations,
                             &mut self.rng,
                         )
                     } else {
                         asexual_births += 1;
-                        org.genome.reproduce(mutation_cfg, &mut self.rng)
+                        org.genome
+                            .reproduce(mutation_cfg, &mut self.innovations, &mut self.rng)
                     }
                 } else {
                     // No mate found — asexual fallback
                     asexual_births += 1;
-                    org.genome.reproduce(mutation_cfg, &mut self.rng)
+                    org.genome
+                        .reproduce(mutation_cfg, &mut self.innovations, &mut self.rng)
                 }
             } else {
                 asexual_births += 1;
-                org.genome.reproduce(mutation_cfg, &mut self.rng)
+                org.genome
+                    .reproduce(mutation_cfg, &mut self.innovations, &mut self.rng)
             };
 
             // Epigenetic inheritance: child inherits methylation + Gaussian

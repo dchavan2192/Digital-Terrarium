@@ -29,7 +29,7 @@ fn config(count: usize) -> Config {
 
 fn output(s: &mut Simulation, i: usize, slot: usize, value: f64) {
     let g = &mut s.organisms[i].genome;
-    let node = (g.num_inputs + 1 + slot) as u16;
+    let node = (g.num_inputs + 1 + slot) as u32;
     for c in &mut g.connections {
         if c.to == node {
             c.weight = if c.from == 0 { value } else { 0.0 };

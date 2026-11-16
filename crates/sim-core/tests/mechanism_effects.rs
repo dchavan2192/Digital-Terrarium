@@ -38,7 +38,7 @@ fn config(count: usize) -> Config {
 
 fn output(s: &mut Simulation, i: usize, slot: usize, bias: f64) {
     let g = &mut s.organisms[i].genome;
-    let node = (g.num_inputs + 1 + slot) as u16;
+    let node = (g.num_inputs + 1 + slot) as u32;
     for edge in &mut g.connections {
         if edge.to == node {
             edge.weight = if edge.from == 0 { bias } else { 0.0 };
@@ -53,8 +53,8 @@ fn sensor_to_output(s: &mut Simulation, sensor: usize, slot: usize, bias: f64, w
     output(s, 0, slot, bias);
     let g = &mut s.organisms[0].genome;
     g.connections.push(ConnectionGene {
-        from: (sensor + 1) as u16,
-        to: (g.num_inputs + 1 + slot) as u16,
+        from: (sensor + 1) as u32,
+        to: (g.num_inputs + 1 + slot) as u32,
         weight,
         enabled: true,
         methylation: 0.0,
@@ -295,7 +295,7 @@ fn epigenetic_toggle_controls_forced_stress_and_live_weight_suppression() {
     let on = run(true, 0.1);
     let off = run(false, 0.1);
     let off_changed = run(false, 0.5);
-    let turn_node = (on.config.brain.inputs + 1) as u16;
+    let turn_node = (on.config.brain.inputs + 1) as u16; // brain slot of a fixed node
     let bias = |s: &Simulation| {
         s.organisms[0]
             .brain

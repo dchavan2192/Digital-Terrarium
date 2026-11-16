@@ -23,7 +23,8 @@ Completed this session:
 - [ ] 0.1 Long-duration holdout validation still required; no new defaults chosen.
 - [x] 0.5 Cross-platform state equivalence measured and fixed (2026-11-15, later session; see "Cross-platform determinism" below). Checkpoint files still require the build that wrote them.
 - [x] Independent environment RNG/replayable drought schedules (2026-11-16, see below).
-- [ ] Node-history/crossover fixes, broader UI visual QA.
+- [x] Node-history/crossover fixes (2026-11-16, see "Node identity" below).
+- [ ] Broader UI visual QA (inspector, Follow camera).
 
 ### Cross-platform determinism (2026-11-15, session after the Codex handoff)
 
@@ -56,6 +57,16 @@ Reviewed the handoff's code (energy ledger, checkpoints, runner provenance, mech
 - **Tested** (`crates/sim-core/tests/environment_stream.rs`): the schedule is identical with sex, epigenetics or niche construction off and with a quarter of the food, while the organisms in those arms do diverge; the schedule seed replays across world seeds and does not change the founding population.
 - **Still shared:** nothing else in the environment is random (seasons and terrain are deterministic). Mutation, mating and mortality share the main stream by design.
 - **Consequence:** trajectories with droughts enabled changed again. The validation batch running on the Pi uses the build from before this change (`environmental_rng = "shared_with_evolution"` in its manifests); that is fine for a calibration of average behaviour, and its pinned executable is unaffected. Mac and WASM still match (re-checked through tick 12,000).
+
+### Node identity (2026-11-16)
+
+- **Problem 1, homology:** each genome numbered its own hidden nodes. Two lineages could give one id to unrelated neurons, and different ids to the same innovation, so crossover matched genes that did not share an origin. NEAT requires alignment by historical marking (Stanley & Miikkulainen 2002, §2.2 and §3.2).
+- **Problem 2, lifetime cap (B3):** ids were also positions in the 64-slot activation buffer and only went up, so a lineage could add 29 neurons in its whole history.
+- **Fix:** `genome::Innovations`, one registry per simulation. Splitting connection A→B yields the same node id in every lineage; a genome that already holds that node gets a fresh one. Ids are `u32` historical markers; `Genome::build_brain` maps them to local slots. Hidden nodes left without any gene are pruned at birth, so the limit (36 hidden with 20 inputs) is on neurons held at once. A node's depth is the midpoint of the split connection's ends, so depth is a function of the id and inherited genes always stay feed-forward.
+- **What crossover does, stated accurately:** matching genes take their weight from either parent; all other genes come from the fitter parent. The child's wiring therefore equals the fitter parent's. That is the NEAT rule, not a defect (the scientific council's point), so audit item G is resolved as "homology fixed", not as "graph union added".
+- **Tested** (`crates/sim-core/tests/innovation.rs`): same split gives the same id across lineages; re-splitting issues a fresh id; a shared innovation is inherited once in crossover; 200 add-and-prune rounds never hit a cap; a full genome with ids beyond 64 builds and runs; relabelling a node does not change brain output; 1,500 ticks of heavy structural turnover leave every genome and brain valid and checkpoint exactly.
+- **Checkpoint format is version 3.** Mac and WASM still match through tick 12,000.
+- **Not done:** the equal-fitness rule, a cross-check against a reference NEAT library, and raising `MAX_NODES` (roadmap 2.2).
 
 ### Requested for future development (owner, 2026-11-16)
 
@@ -135,7 +146,7 @@ Every number in `README.md`, `ALIFE_2027_OUTLINE.md`, `EXPERIMENT_FINDINGS.md` a
 **New bugs (code does not do what the config and docs say):**
 - [x] B1 (fixed 2026-11-15; fruit now grows only in zones with a multiplier above 1). The "barren" biome did nothing to algae. `best_multiplier` starts at 1.0 and takes the maximum, so a multiplier of 0.3 never applies (`world.rs`, FoodGrid::new). Fruit still grows there at 0.6× the base rate, so the barren zone is richer than open ground. Known since Session 7 and never fixed.
 - [x] B2 (fixed 2026-11-15). Fruit did not regrow in a cell whose algae is full: the `continue` for full algae comes before the fruit block (`world.rs`, regrow_with_construction).
-- [ ] B3. A lineage can add at most 29 neurons, ever. `next_node_id` only goes up and node ids are never reused, so add-node stops for good at `MAX_NODES` = 64 (`genome.rs:345`). At about 580 generations per 100k ticks, long runs will hit this wall, and structural novelty then falls by construction. This matters for any open-ended evolution claim.
+- [x] B3 (fixed 2026-11-16, see "Node identity"). A lineage could add at most 29 neurons, ever: `next_node_id` only went up and node ids doubled as buffer positions, so add-node stopped for good at `MAX_NODES` = 64.
 - [x] B4 (fixed 2026-11-15). Attacking a victim whose energy is already negative gave negative damage: the attacker loses energy and its predation stats go down (`sim.rs:888`). Clamp at zero.
 - [x] B5 (fixed 2026-11-15; `Config::validate` now rejects it). Nothing validated `child_energy <= parent_cost`, so a config could create energy at birth. The defaults (30 and 30) are fine.
 
@@ -227,7 +238,7 @@ Each stage ends in a gate. Do not start a stage until the previous gate is met.
 - **Gate:** tests green including 0.2–0.5, and a 10-seed baseline that reproduces on two machines.
 
 **Stage 1: first results that stand** (about 2–3 weeks of Pi time)
-- [ ] 1.1 Crossover with global innovation numbers, validated against neat-python or TensorNEAT.
+- [x] 1.1 Crossover with population-wide node identity (2026-11-16). Still open: validate against neat-python or TensorNEAT, and the equal-fitness rule (inherit both parents' extra genes).
 - [ ] 1.2 Neutral shadow model, following Polyworld's lockstep mode (Yaeger, Griffith & Sporns 2008) and `OEE_SHADOW_DESIGN.md`.
 - [ ] 1.3 `docs/PREREG.md`: hypotheses, metrics, seeds and analysis fixed before the runs.
 - [ ] 1.4 Factorial experiment: sex × niche construction × epigenetics, at least 10 seeds per cell, scored against the shadow, with a shuffled-methylation control.

@@ -17,8 +17,9 @@ use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// Version 2 adds the separate environment random stream (`env_rng`).
-pub const CHECKPOINT_VERSION: u32 = 2;
+/// Version 2 added the separate environment random stream (`env_rng`).
+/// Version 3 replaced per-genome node counters with the shared `innovations` registry.
+pub const CHECKPOINT_VERSION: u32 = 3;
 pub const CORE_BUILD_ID: &str = env!("TERRARIUM_CORE_BUILD");
 pub const CORE_TARGET: &str = env!("TERRARIUM_CORE_TARGET");
 const FORMAT: &str = "terrarium-checkpoint";
@@ -312,18 +313,15 @@ fn validate(sim: &Simulation) -> Result<(), CheckpointError> {
         if b.connections.len() != o.genome.connections.iter().filter(|c| c.enabled).count() {
             return Err(invalid("brain enabled-edge count differs from genome"));
         }
-        let mut allowed = [false; MAX_NODES];
-        for node in allowed.iter_mut().skip(b.inputs + 1).take(b.outputs) {
-            *node = true;
-        }
-        for node in &o.genome.hidden_nodes {
-            allowed[node.id as usize] = true;
-        }
+        // Brains address nodes by local slot: fixed nodes keep their ids, hidden
+        // nodes follow in genome order (see Genome::slot_of).
+        let first_hidden_slot = b.inputs + b.outputs + 1;
+        let slots = first_hidden_slot + b.hidden;
         let mut seen = [false; MAX_NODES];
         let mut order = [usize::MAX; MAX_NODES];
         for (idx, &node) in b.eval_order.iter().enumerate() {
             let node = node as usize;
-            if node >= MAX_NODES || node <= b.inputs || !allowed[node] || seen[node] {
+            if node >= slots || node <= b.inputs || seen[node] {
                 return Err(invalid("invalid brain evaluation node"));
             }
             seen[node] = true;
@@ -333,8 +331,8 @@ fn validate(sim: &Simulation) -> Result<(), CheckpointError> {
         let mut used_genes = vec![false; o.genome.connections.len()];
         for (idx, &(from, to, weight)) in b.connections.iter().enumerate() {
             let (from, to) = (from as usize, to as usize);
-            if from >= MAX_NODES
-                || to >= MAX_NODES
+            if from >= slots
+                || to >= slots
                 || !seen[to]
                 || !weight.is_finite()
                 || (from > b.inputs && (!seen[from] || order[from] >= order[to]))
@@ -352,48 +350,64 @@ fn validate(sim: &Simulation) -> Result<(), CheckpointError> {
                 return Err(invalid("duplicate brain gene mapping"));
             }
             used_genes[b.gene_index[idx] as usize] = true;
-            if !gene.enabled || gene.from as usize != from || gene.to as usize != to {
+            if !gene.enabled
+                || o.genome.slot_of(gene.from) != Some(from)
+                || o.genome.slot_of(gene.to) != Some(to)
+            {
                 return Err(invalid("brain gene mapping mismatch"));
             }
+        }
+        if o.genome
+            .hidden_nodes
+            .iter()
+            .any(|n| n.id >= sim.innovations.next_node_id())
+        {
+            return Err(invalid(
+                "hidden node id was never issued by the innovation registry",
+            ));
         }
     }
     Ok(())
 }
 
 pub(crate) fn validate_genome(g: &Genome) -> Result<(), CheckpointError> {
+    let fixed = g.num_inputs + g.num_outputs; // highest fixed node id
     if g.num_inputs == 0
-        || g.num_inputs > MAX_NODES
         || g.num_outputs != crate::config::NUM_BRAIN_OUTPUTS
-        || g.num_inputs + g.num_outputs + 1 > MAX_NODES
-        || g.next_node_id as usize > MAX_NODES
+        || fixed + 1 > MAX_NODES
+        || g.hidden_nodes.len() > g.max_hidden_nodes()
         || g.connections.len() > MAX_NODES * MAX_NODES
-        || (g.next_node_id as usize) < g.num_inputs + g.num_outputs + 1
     {
         return Err(invalid("genome dimensions exceed capacity"));
     }
-    let mut known = [false; MAX_NODES];
-    for present in known.iter_mut().take(g.num_inputs + g.num_outputs + 1) {
-        *present = true;
-    }
+    // Hidden node ids are population-wide, so they are checked for range and
+    // uniqueness, not used as array indices.
+    let mut hidden_ids: Vec<u32> = Vec::with_capacity(g.hidden_nodes.len());
     for n in &g.hidden_nodes {
-        let id = n.id as usize;
-        if id >= MAX_NODES
-            || known[id]
-            || !n.depth.is_finite()
-            || n.depth <= 0.0
-            || n.depth >= 1.0
-            || n.id >= g.next_node_id
-        {
+        if n.id as usize <= fixed || !n.depth.is_finite() || n.depth <= 0.0 || n.depth >= 1.0 {
             return Err(invalid("invalid hidden node"));
         }
-        known[id] = true;
+        hidden_ids.push(n.id);
     }
+    hidden_ids.sort_unstable();
+    if hidden_ids.windows(2).any(|w| w[0] == w[1]) {
+        return Err(invalid("duplicate hidden node id"));
+    }
+    let depth = |id: u32| -> Option<f64> {
+        if id as usize <= g.num_inputs {
+            Some(0.0)
+        } else if id as usize <= fixed {
+            Some(1.0)
+        } else {
+            g.hidden_nodes.iter().find(|n| n.id == id).map(|n| n.depth)
+        }
+    };
     let mut previous = None;
     for c in &g.connections {
-        if c.from as usize >= MAX_NODES
-            || c.to as usize >= MAX_NODES
-            || !known[c.from as usize]
-            || !known[c.to as usize]
+        let (Some(from_depth), Some(to_depth)) = (depth(c.from), depth(c.to)) else {
+            return Err(invalid("genome edge refers to a node the genome lacks"));
+        };
+        if from_depth >= to_depth
             || !c.weight.is_finite()
             || !c.methylation.is_finite()
             || !(0.0..=1.0).contains(&c.methylation)
