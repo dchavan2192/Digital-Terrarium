@@ -452,7 +452,7 @@ impl ElevationMap {
         let mut h = 0.0f64;
         let mut amplitude = 1.0f64;
         for &(fx, fy, px, py) in self.params.iter().take(self.octaves) {
-            h += amplitude * (fx * x + px).sin() * (fy * y + py).sin();
+            h += amplitude * crate::math::sin(fx * x + px) * crate::math::sin(fy * y + py);
             amplitude *= 0.5;
         }
         h
@@ -601,7 +601,7 @@ pub fn seasonal_multiplier(tick: u64, seasons: &SeasonsConfig) -> f64 {
         return 1.0;
     }
     let phase = std::f64::consts::TAU * tick as f64 / seasons.period;
-    (1.0 + seasons.amplitude * phase.sin()).max(0.0)
+    (1.0 + seasons.amplitude * crate::math::sin(phase)).max(0.0)
 }
 
 /// Wraparound distance between two points on a toroidal world.
@@ -710,7 +710,15 @@ impl ConstructionGrid {
 #[inline(always)]
 pub fn wrap_coord(v: f64, size: f64) -> f64 {
     let v = v % size;
-    if v < 0.0 { v + size } else { v }
+    if v < 0.0 {
+        // A tiny negative remainder plus `size` rounds to exactly `size`, which is
+        // outside [0, size): it would index past the last grid cell and fail
+        // checkpoint validation. Such a point is at the seam, so it maps to 0.
+        let wrapped = v + size;
+        if wrapped >= size { 0.0 } else { wrapped }
+    } else {
+        v
+    }
 }
 
 // Checkpoint integrity checks live with the private grid storage. They inspect

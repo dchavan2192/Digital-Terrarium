@@ -228,3 +228,118 @@ fn invalid_resume_or_snapshot_interval_cannot_start_an_experiment() {
     assert!(!result.status.success());
     assert!(!out.exists());
 }
+
+/// `fingerprint` prints the same value for the same request and a different one
+/// for a different seed or override, and writes no experiment artifacts.
+#[test]
+fn fingerprint_is_repeatable_and_sensitive_to_seed_and_overrides() {
+    let print = |extra: &[&str]| -> String {
+        let mut args = vec!["fingerprint", "--ticks", "5,40"];
+        args.extend_from_slice(extra);
+        let result = Command::new(env!("CARGO_BIN_EXE_sim-runner"))
+            .current_dir(root())
+            .args(&args)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        String::from_utf8(result.stdout)
+            .unwrap()
+            .lines()
+            .filter(|l| l.starts_with("tick="))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+    let base = print(&["--seed", "5"]);
+    assert_eq!(
+        base.lines().count(),
+        2,
+        "one line per requested tick: {base}"
+    );
+    assert!(base.contains("tick=5 fingerprint=") && base.contains("tick=40 fingerprint="));
+    assert_eq!(
+        base,
+        print(&["--seed", "5"]),
+        "same request, same fingerprints"
+    );
+    assert_ne!(
+        base,
+        print(&["--seed", "6"]),
+        "seed must change the trajectory"
+    );
+    assert_ne!(
+        base,
+        print(&["--seed", "5", "--set", "food.regrowth_rate=0.004"]),
+        "an override must change the state"
+    );
+
+    let descending = Command::new(env!("CARGO_BIN_EXE_sim-runner"))
+        .current_dir(root())
+        .args(["fingerprint", "--ticks", "40,5"])
+        .output()
+        .unwrap();
+    assert!(
+        !descending.status.success(),
+        "descending ticks are rejected"
+    );
+}
+
+/// A single run accepts `--seed` and `--set`, records them in its stored
+/// configuration, and refuses them when resuming.
+#[test]
+fn single_run_seed_and_overrides_are_recorded_and_guarded() {
+    let out = output("single-overrides");
+    let result = run(
+        &[
+            "--seed",
+            "77",
+            "--set",
+            "food.regrowth_rate=0.004",
+            "--set",
+            "creature.hard_cap=900",
+            "--ticks",
+            "30",
+            "--checkpoint-every",
+            "30",
+        ],
+        &out,
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let session = only_session(&out);
+    let config = std::fs::read_to_string(session.join("config_seed77.toml")).unwrap();
+    assert!(config.contains("seed = 77"), "seed override must be stored");
+    assert!(config.contains("regrowth_rate = 0.004"));
+    assert!(config.contains("hard_cap = 900"));
+    assert!(session.join("stats_seed77.csv").exists());
+
+    let checkpoint = session.join("checkpoint_seed77_tick30.json");
+    assert!(checkpoint.exists());
+    let resumed = run(
+        &[
+            "--resume",
+            checkpoint.to_str().unwrap(),
+            "--seed",
+            "78",
+            "--ticks",
+            "60",
+        ],
+        &output("single-overrides-resume"),
+    );
+    assert!(
+        !resumed.status.success(),
+        "a resumed run must not accept a new seed"
+    );
+
+    let bad = run(
+        &["--set", "food.regrowth_rate=-1", "--ticks", "5"],
+        &output("single-overrides-invalid"),
+    );
+    assert!(!bad.status.success(), "invalid overrides are rejected");
+}

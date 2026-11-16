@@ -35,6 +35,21 @@ The source plots and narrative remain available in [EXPERIMENT_FINDINGS.md](EXPE
 
 [Phase 9a pilot report](results/PHASE9A_PILOT_2026-11-15.md): all six seed/rate runs survived 20k ticks with zero cap-blocked births. Mean late populations across two seeds were 567.58, 737.60, and 914.93 for regrowth 0.004, 0.006, and 0.008. Source `2f49287`, dirty-build flag explicitly retained; full config, machine-readable per-run measurements, checksums and reproducible analysis command are linked in the report. Status: calibration, not an established scientific result; held-out long-duration validation remains pending. No defaults changed.
 
+## Registered implementation check: CHK-2026-11-15-PORTABILITY
+
+Not a scientific result. Question: do different platforms follow the same trajectory from the same seed?
+
+- **Before the fix** (source `ae181cf`): macOS native and WASM had identical state at tick 0 and different state at tick 1.
+- **After the fix** (portable maths and fixed-width random indices; see `crates/sim-core/src/math.rs`): complete-state fingerprints were identical at ticks 0, 1, 100, 2,000 and 20,000 on three targets.
+
+| Target | Build | Tick 20,000 fingerprint |
+|---|---|---|
+| macOS, aarch64, rayon parallel | release, rustc 1.99.1 | `11ea33d408844888` |
+| Raspberry Pi 5 Linux, aarch64 | release, rustc 1.99.1 | `11ea33d408844888` |
+| WASM, wasm32, single thread, node 22 | release | `11ea33d408844888` |
+
+Configuration: `configs/default.toml`, seed 42. Commands are in [the runner README](../crates/sim-runner/README.md). The Pi was built from a copy of the working tree before the commit that contains this entry. Limits: one configuration and seed; x86-64 Linux is checked by CI, not recorded here; equality is measured, not proven for all inputs. Checkpoint files remain same-build only.
+
 ## Calibration observations awaiting registration
 
 The progress log describes post-sharing-fix Pi pilots and a separate demo tuning pass. They are useful leads for choosing calibration ranges, but are not promoted here until exact run metadata, configurations, raw outputs, and analysis are reconciled. Presentation tuning and experimental calibration must remain separate.

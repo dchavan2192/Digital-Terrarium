@@ -222,7 +222,7 @@ impl Genome {
 
         // 4. Toggle connection (default 1%)
         if rng.r#gen::<f64>() < mcfg.toggle_probability && !child.connections.is_empty() {
-            let idx = rng.gen_range(0..child.connections.len());
+            let idx = crate::math::random_index(rng, child.connections.len());
             child.connections[idx].enabled = !child.connections[idx].enabled;
         }
 
@@ -232,7 +232,7 @@ impl Genome {
         // Combined with per-connection brain cost (Attwell & Laughlin 2001),
         // this creates genuine selection pressure for efficient brain topology.
         if rng.r#gen::<f64>() < mcfg.prune_probability && child.connections.len() > 1 {
-            let idx = rng.gen_range(0..child.connections.len());
+            let idx = crate::math::random_index(rng, child.connections.len());
             child.connections.remove(idx);
         }
 
@@ -303,8 +303,8 @@ impl Genome {
         let all_nodes = self.all_nodes_with_depth();
 
         for _ in 0..20 {
-            let from_idx = rng.gen_range(0..all_nodes.len());
-            let to_idx = rng.gen_range(0..all_nodes.len());
+            let from_idx = crate::math::random_index(rng, all_nodes.len());
+            let to_idx = crate::math::random_index(rng, all_nodes.len());
             let (from_id, from_depth) = all_nodes[from_idx];
             let (to_id, to_depth) = all_nodes[to_idx];
 
@@ -358,7 +358,7 @@ impl Genome {
             return;
         }
 
-        let idx = enabled_indices[rng.gen_range(0..enabled_indices.len())];
+        let idx = enabled_indices[crate::math::random_index(rng, enabled_indices.len())];
         let old = self.connections[idx];
 
         // Disable the old connection

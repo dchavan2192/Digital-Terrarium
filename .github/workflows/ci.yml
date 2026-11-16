@@ -64,3 +64,16 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo build -p sim-viewer --target wasm32-unknown-unknown --release --no-default-features
       - run: cargo build -p sim-wasm --target wasm32-unknown-unknown --release
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # "Same seed = same run" must hold across platforms, not only on one machine.
+      # Compare the complete simulation state of this x86-64 Linux build with the
+      # WASM build at several ticks; any difference fails the job.
+      - name: Native and WASM follow the same trajectory
+        run: |
+          cargo build -p sim-runner --release
+          ./target/release/sim-runner fingerprint --seed 42 --ticks 0,1,100,2000 | grep '^tick=' > native.txt
+          node web/demo/tests/conformance.mjs target/wasm32-unknown-unknown/release/sim_wasm.wasm configs/default.toml 42 0,1,100,2000 > wasm.txt
+          cat native.txt
+          diff native.txt wasm.txt

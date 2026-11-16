@@ -36,12 +36,22 @@ pub struct RunOptions {
     pub resume: Option<PathBuf>,
     pub checkpoint_every: Option<u64>,
     pub export_genomes_every: Option<u64>,
+    /// Seed override for a fresh single run (not valid with `resume`).
+    pub seed: Option<u64>,
+    /// `KEY=NUMBER` overrides for a fresh single run (not valid with `resume`).
+    pub overrides: Vec<String>,
 }
 
 impl RunOptions {
     fn validate(&self) -> RunResult<()> {
         if self.checkpoint_every == Some(0) || self.export_genomes_every == Some(0) {
             return Err("checkpoint/export intervals must be positive".into());
+        }
+        if self.resume.is_some() && (self.seed.is_some() || !self.overrides.is_empty()) {
+            return Err(
+                "--seed/--set cannot change a resumed run: it continues the checkpoint's own configuration"
+                    .into(),
+            );
         }
         Ok(())
     }
@@ -107,7 +117,18 @@ pub fn run_single(
     }
     let config = match &resumed {
         Some(sim) => sim.config.clone(),
-        None => Config::from_file(config_path).map_err(|e| e.to_string())?,
+        None => {
+            let mut config = Config::from_file(config_path).map_err(|e| e.to_string())?;
+            crate::sweep::apply_overrides(&mut config, &options.overrides)?;
+            if let Some(seed) = options.seed {
+                config.world.seed = seed;
+            }
+            // Validate before any artifact exists, as sweeps do for generated jobs.
+            config
+                .validate()
+                .map_err(|e| format!("invalid configuration after overrides: {e}"))?;
+            config
+        }
     };
     let session = create_session(output)?;
     execute(

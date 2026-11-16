@@ -21,8 +21,22 @@ Completed this session:
 - [x] UI tour placement/focus and KPI width improvements; real WASM/energy smoke and presentation tests added to deployment gate.
 - [x] Short six-run Pi ecology pilot completed: 6/6 survived 20k ticks; zero cap-blocked births. [Report](results/PHASE9A_PILOT_2026-11-15.md), CAL-2026-11-15-FOOD.
 - [ ] 0.1 Long-duration holdout validation still required; no new defaults chosen.
-- [ ] 0.5 Cross-platform state equivalence untested. Checkpoints explicitly require compatible build/target.
+- [x] 0.5 Cross-platform state equivalence measured and fixed (2026-11-15, later session; see "Cross-platform determinism" below). Checkpoint files still require the build that wrote them.
 - [ ] Independent environment RNG/replayed drought schedules, node-history/crossover fixes, broader UI visual QA.
+
+### Cross-platform determinism (2026-11-15, session after the Codex handoff)
+
+Reviewed the handoff's code (energy ledger, checkpoints, runner provenance, mechanism fixtures): all 94 tests passed on re-run, CI and Pages were green, and the Pi was idle. Then did handoff item 2.
+
+- **Measured:** with identical initial state, the macOS build and the WASM build diverged after ONE tick. "Same seed = same run" held only on a single platform.
+- **Cause 1:** `f64::sin`/`cos`/`exp`/`ln`/`powf` call the platform maths library; one creature's position differed in its last bit, which changed mate choice and every later random draw.
+- **Cause 2:** five `gen_range(0..len)` draws over `usize` consumed 32 bits of randomness on WASM and 64 bits natively.
+- **Fix:** `sim_core::math` wraps the pure-Rust `libm` crate and provides `random_index` (always a `u32` draw). `tests/portability.rs` scans sim-core for either pattern.
+- **Result:** fingerprints of the complete state are identical at ticks 0, 1, 100, 2,000 and 20,000 on macOS (aarch64, rayon), Raspberry Pi 5 Linux (aarch64) and WASM (wasm32, single thread), default config, seed 42. CI now compares x86-64 Linux with WASM on every push.
+- **Tools:** `sim-runner fingerprint` and `web/demo/tests/conformance.mjs`; `--dump-dir` writes full states for diffing. Single runs gained `--seed` and `--set` (needed for checkpointed validation batches).
+- **Also fixed:** `wrap_coord` could return exactly the world width for a tiny negative remainder (out of range for grids and checkpoint validation).
+- **Consequence:** trajectories changed on native builds, so earlier runs (including CAL-2026-11-15-FOOD) cannot be reproduced bit-for-bit by current code. They remain calibration observations. The WASM trajectory for a given seed did not change.
+- **Limits:** one config and one seed were compared on three targets; x86-64 is covered by CI only. Equality is measured, not proven for every input.
 
 No recurrence, plasticity, large factorial study or multi-day experiment started. Chrome access host remained unavailable despite connection attempts; no claim of visual browser verification. Existing historical stage lists below remain historical where this section supersedes them.
 

@@ -3,7 +3,9 @@
 //! Checkpoints preserve live neural weights, the full PRNG state, activity archive,
 //! species continuity and environmental state. They promise exact continuation
 //! only for the same core source, toolchain, feature set, target and build profile.
-//! Cross-platform floating-point equivalence has not been established.
+//! Trajectories have been measured bit-identical across macOS, Raspberry Pi Linux
+//! and WASM (see `sim_core::math`), but a checkpoint is still accepted only by the
+//! build that wrote it: the build guard protects against source changes.
 use crate::brain::MAX_NODES;
 use crate::genome::Genome;
 use crate::sim::{Simulation, SpeciesInfo, TickStats};
@@ -108,7 +110,7 @@ fn canonicalize(value: &mut serde_json::Value) {
 
 impl Simulation {
     /// Canonical complete state without build/target metadata, for explicit
-    /// cross-platform comparisons. This API makes no portability guarantee.
+    /// cross-platform comparisons (see [`Simulation::state_fingerprint`]).
     pub fn state_json(&self) -> Result<Vec<u8>, CheckpointError> {
         validate(self)?;
         let mut state = serde_json::to_value(self)?;
@@ -117,6 +119,13 @@ impl Simulation {
             serde_json::json!(self.config.epigenetics.stress_threshold);
         canonicalize(&mut state);
         Ok(serde_json::to_vec(&state)?)
+    }
+
+    /// 64-bit FNV-1a fingerprint of [`Simulation::state_json`], as 16 hex digits.
+    /// Two runs with equal fingerprints hold bit-identical state. Used to measure
+    /// (not assume) whether different platforms follow the same trajectory.
+    pub fn state_fingerprint(&self) -> Result<String, CheckpointError> {
+        Ok(checksum(&self.state_json()?))
     }
 
     /// Serialize complete state without rebuilding brains or consuming randomness.

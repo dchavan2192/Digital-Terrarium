@@ -64,7 +64,7 @@ terrarium/
 ## Key Design Principles
 
 1. **sim-core has ZERO rendering code.** It runs identically headless or with the viewer.
-2. **Same seed = same run.** Deterministic via `ChaCha8Rng`. Never break this invariant.
+2. **Same seed = same run, on every platform.** Deterministic via `ChaCha8Rng`. Verified bit-identical across macOS, Raspberry Pi Linux and WASM (CI compares x86-64 Linux with WASM on every push). Never break this invariant: in sim-core, use `sim_core::math` for `sin`/`cos`/`exp`/`ln`/`powf` and `math::random_index` for random list positions. Platform maths functions and `usize` random draws differ between targets; `tests/portability.rs` rejects them.
 3. **Every number in config, not code.** All tunable parameters live in `configs/default.toml`. Never hard-code simulation constants.
 4. **Energy is the universal currency.** Moving, thinking, reproducing — everything costs energy. Food is the only source; no transfer (sharing, combat, reproduction) may create energy.
 5. **Intelligence has a price.** Brain cost per neuron per tick is the key evolutionary tension.
@@ -74,7 +74,7 @@ terrarium/
 - **Rust 2024 edition.** The keyword `gen` is reserved — use `r#gen` when calling `rand::Rng::gen`.
 - **`cargo fmt --all`** before every commit. CI enforces this.
 - **`cargo clippy -- -D warnings`** must pass. CI treats warnings as errors.
-- **`cargo test --workspace`** must pass. Currently 54 integration tests + 4 activity.rs unit tests + 1 doc test.
+- **`cargo test --workspace`** must pass. Run `cargo test --workspace` for the current count (integration, energy ledger, mechanism effects, checkpoint, portability and runner suites).
 - **Brain I/O is fixed by the sensor layout**: `brain.inputs = 2 × ray_count + 10` (20 with 5 rays) and `brain.outputs = 7`. `Config::validate` rejects anything else.
 - Keep `#[inline]` on hot-path functions in world.rs and brain.rs.
 - Stack-allocate in the tick loop. No `Vec` allocations per organism per tick — use fixed-size arrays with `MAX_*` constants.

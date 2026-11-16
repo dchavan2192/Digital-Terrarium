@@ -166,6 +166,7 @@ pub const EVENT_CAPACITY: usize = 1024;
 thread_local! {
     static STATE: RefCell<Option<WasmSim>> = const { RefCell::new(None) };
     static LAST_ERROR: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
+    static STATE_JSON: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
 }
 
 fn with_sim<R>(default: R, f: impl FnOnce(&mut WasmSim) -> R) -> R {
@@ -307,6 +308,39 @@ pub extern "C" fn tr_step(n: u32) {
 #[unsafe(no_mangle)]
 pub extern "C" fn tr_tick() -> u64 {
     with_sim(0, |s| s.sim.tick)
+}
+
+/// FNV-1a fingerprint of the complete canonical simulation state (JS BigInt), or
+/// 0 if no simulation is running or the state fails validation. Matches the
+/// 16-hex-digit value printed by `sim-runner fingerprint`, so the browser build
+/// can be compared tick for tick with native builds.
+#[unsafe(no_mangle)]
+pub extern "C" fn tr_state_fingerprint() -> u64 {
+    with_sim(0, |s| {
+        s.sim
+            .state_fingerprint()
+            .ok()
+            .and_then(|hex| u64::from_str_radix(&hex, 16).ok())
+            .unwrap_or(0)
+    })
+}
+
+/// Serialize the complete canonical state (the bytes behind
+/// `tr_state_fingerprint`) into a reused buffer; returns its length, or 0 on
+/// failure. For diagnosing where two platforms first differ, not for the UI.
+#[unsafe(no_mangle)]
+pub extern "C" fn tr_state_json() -> u32 {
+    let bytes = with_sim(Vec::new(), |s| s.sim.state_json().unwrap_or_default());
+    STATE_JSON.with(|b| {
+        let len = bytes.len() as u32;
+        *b.borrow_mut() = bytes;
+        len
+    })
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn tr_state_json_ptr() -> *const u8 {
+    STATE_JSON.with(|b| b.borrow().as_ptr())
 }
 
 /// Current tick as a plain JS number (exact below 2^53).

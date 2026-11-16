@@ -20,6 +20,7 @@ pub mod brain;
 pub mod checkpoint;
 pub mod config;
 pub mod genome;
+pub mod math;
 pub mod organism;
 pub mod sim;
 pub mod view;

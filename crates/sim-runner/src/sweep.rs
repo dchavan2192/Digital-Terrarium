@@ -6,6 +6,28 @@ use std::path::Path;
 
 use crate::run;
 
+/// Apply `KEY=NUMBER` overrides to a config. Shared by sweeps, single runs and
+/// the fingerprint tool so one experiment never needs a hand-edited config copy.
+pub fn apply_overrides(config: &mut Config, overrides: &[String]) -> run::RunResult<()> {
+    for ov in overrides {
+        let parsed = ov
+            .split_once('=')
+            .and_then(|(k, v)| v.trim().parse::<f64>().ok().map(|v| (k.trim(), v)));
+        match parsed {
+            Some((key, value)) if apply_param(config, key, value) => {
+                println!("override: {key} = {value}");
+            }
+            _ => {
+                print_supported_params();
+                return Err(format!(
+                    "bad --set '{ov}': expected KEY=NUMBER with a supported KEY (listed above)"
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Run a parameter sweep: for each value, run `seeds` simulations in parallel.
 #[allow(clippy::too_many_arguments)]
 pub fn run_sweep(
@@ -28,21 +50,7 @@ pub fn run_sweep(
     });
     // Fixed overrides applied to every run (e.g. `--set creature.hard_cap=2000`), so
     // experiments don't need full copies of default.toml that drift out of date.
-    for ov in overrides {
-        let parsed = ov
-            .split_once('=')
-            .and_then(|(k, v)| v.trim().parse::<f64>().ok().map(|v| (k.trim(), v)));
-        match parsed {
-            Some((key, value)) if apply_param(&mut base_config, key, value) => {
-                println!("override: {key} = {value}");
-            }
-            _ => {
-                eprintln!("Bad --set '{ov}': expected KEY=NUMBER with a supported KEY:");
-                print_supported_params();
-                std::process::exit(1);
-            }
-        }
-    }
+    apply_overrides(&mut base_config, overrides)?;
 
     let total_runs = values.len() as u64 * seeds;
     println!(

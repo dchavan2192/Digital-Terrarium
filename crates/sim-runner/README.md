@@ -32,4 +32,24 @@ cargo run -p sim-runner --release -- \
 
 `--ticks` means the **absolute target tick**, not additional steps. A target at or behind the checkpoint tick is rejected before output creation. Resume uses the checkpoint's embedded configuration; explicit `--config` and `--resume` conflict. Extinct populations cannot be resumed. Genome export is an analysis artifact, not a substitute for a complete checkpoint.
 
-Checkpoints are compatible only with the same core source/build fingerprint, target, compiler, features, and build settings. Keep the release binary with the experiment; updating/rebuilding the engine can intentionally invalidate an older checkpoint. This is exact same-build continuation, **not** a claim of cross-platform numerical determinism. Manifests record the core build ID, checkpoint version, resume path, starting tick, absolute completed tick, and number of steps executed during this invocation.
+Checkpoints are compatible only with the same core source/build fingerprint, target, compiler, features, and build settings. Keep the release binary with the experiment; updating/rebuilding the engine can intentionally invalidate an older checkpoint. Checkpoint files stay same-build only, even though trajectories themselves are now identical across platforms (see below). Manifests record the core build ID, checkpoint version, resume path, starting tick, absolute completed tick, and number of steps executed during this invocation.
+
+## Single-run overrides
+
+A fresh single run accepts `--seed N` and repeatable `--set KEY=NUMBER` (the same keys as sweeps), so one job never needs a hand-edited copy of the config. The effective configuration is validated before any artifact is created and is stored in the session as usual. Both options are rejected with `--resume`: a resumed run continues the checkpoint's own configuration.
+
+```bash
+cargo run -p sim-runner --release -- --seed 101 --set food.regrowth_rate=0.008 \
+  --set creature.hard_cap=2000 --ticks 200000 --checkpoint-every 50000 --output output/validation
+```
+
+## Cross-platform fingerprints
+
+`sim-runner fingerprint` prints a 64-bit fingerprint of the complete canonical state at chosen ticks and writes no experiment artifacts. Equal fingerprints mean bit-identical state. `--dump-dir DIR` also writes the full state as JSON, to find which values first differ.
+
+```bash
+cargo run -p sim-runner --release -- fingerprint --seed 42 --ticks 0,1,100,2000
+node web/demo/tests/conformance.mjs target/wasm32-unknown-unknown/release/sim_wasm.wasm configs/default.toml 42 0,1,100,2000
+```
+
+The two commands print the same lines when the native and WASM builds follow the same trajectory; CI fails if they differ. Measured identical on 2026-11-15 through tick 20,000 for macOS (aarch64, parallel), Raspberry Pi 5 Linux (aarch64) and WASM (wasm32, single-threaded). Before that date they differed after one tick, because of platform maths functions and pointer-width random draws; see `crates/sim-core/src/math.rs`.

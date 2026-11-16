@@ -72,11 +72,11 @@ pub fn shannon_entropy(bins: &[f64; NUM_ENTROPY_BINS]) -> f64 {
     for &count in bins {
         if count > 0.0 {
             let p = count / total;
-            h -= p * p.ln();
+            h -= p * crate::math::ln(p);
         }
     }
     // Normalize by max entropy (ln(NUM_BINS)) to get [0, 1]
-    h / (NUM_ENTROPY_BINS as f64).ln()
+    h / crate::math::ln(NUM_ENTROPY_BINS as f64)
 }
 
 /// Map a value in [-1, 1] to a histogram bin index.

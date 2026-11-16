@@ -477,7 +477,7 @@ impl Simulation {
         let daynight_enabled = self.config.daynight.enabled;
         let light_level = if daynight_enabled && self.config.daynight.period > 0.0 {
             let phase = std::f64::consts::TAU * self.tick as f64 / self.config.daynight.period;
-            (1.0 + phase.sin()) * 0.5
+            (1.0 + crate::math::sin(phase)) * 0.5
         } else {
             1.0
         };
@@ -505,10 +505,10 @@ impl Simulation {
         let half_fov = fov / 2.0;
         for (r, slot) in ray_local.iter_mut().enumerate().take(ray_count) {
             let local_angle = -half_fov + r as f64 * angle_step;
-            *slot = (local_angle.cos(), local_angle.sin());
+            *slot = (crate::math::cos(local_angle), crate::math::sin(local_angle));
         }
         // Precompute acceptance threshold as cosine for dot-product comparison
-        let cos_acceptance = acceptance.cos();
+        let cos_acceptance = crate::math::cos(acceptance);
 
         // Capture effective vision range so the closure uses the day/night-adjusted value
         let vision_range = effective_range;
@@ -538,8 +538,8 @@ impl Simulation {
                 let heading = organisms[i].heading;
                 let ox = organisms[i].pos_x;
                 let oy = organisms[i].pos_y;
-                let cos_h = heading.cos();
-                let sin_h = heading.sin();
+                let cos_h = crate::math::cos(heading);
+                let sin_h = crate::math::sin(heading);
 
                 // Stack-allocated ray results
                 let mut ray_types = [-1.0f64; MAX_RAYS];
@@ -822,8 +822,8 @@ impl Simulation {
                 1.0
             };
             let base_speed = action.speed * max_speed / body_size * feeding_factor;
-            let cos_h = org.heading.cos();
-            let sin_h = org.heading.sin();
+            let cos_h = crate::math::cos(org.heading);
+            let sin_h = crate::math::sin(org.heading);
             let next_x = wrap_coord(org.pos_x + cos_h * base_speed, world_w);
             let next_y = wrap_coord(org.pos_y + sin_h * base_speed, world_h);
             let actual_speed = if elevation_enabled {
@@ -881,7 +881,7 @@ impl Simulation {
             let brain_cost = brain_cost_per_neuron * org.brain.neuron_count() as f64
                 + brain_cost_per_connection * org.brain.connection_count() as f64
                 + activity_weight_cost * action.brain_activity;
-            let size_metabolism = base_metabolism * body_size.powf(0.75);
+            let size_metabolism = base_metabolism * crate::math::powf(body_size, 0.75);
             let crowding_cost = density_cost_per_neighbor * action.neighbor_count as f64;
             let temp_cost = if temp_enabled {
                 // Temperature = y/height: 0=north/cold, 1=south/warm
@@ -1253,7 +1253,8 @@ impl Simulation {
                         // u1 ∈ (0, 1] so ln(u1) is finite.
                         let u1 = 1.0 - self.rng.r#gen::<f64>();
                         let u2 = self.rng.r#gen::<f64>();
-                        let z = (-2.0 * u1.ln()).sqrt() * (std::f64::consts::TAU * u2).cos();
+                        let z = (-2.0 * crate::math::ln(u1)).sqrt()
+                            * crate::math::cos(std::f64::consts::TAU * u2);
                         conn.methylation = (conn.methylation + noise_sigma * z).clamp(0.0, 1.0);
                     }
                 }
@@ -1265,8 +1266,14 @@ impl Simulation {
             let org = &self.organisms[parent_idx]; // reborrow after rng usage
             let child = Organism {
                 id: self.next_id,
-                pos_x: wrap_coord(org.pos_x + offset_angle.cos() * offset_dist, world_w),
-                pos_y: wrap_coord(org.pos_y + offset_angle.sin() * offset_dist, world_h),
+                pos_x: wrap_coord(
+                    org.pos_x + crate::math::cos(offset_angle) * offset_dist,
+                    world_w,
+                ),
+                pos_y: wrap_coord(
+                    org.pos_y + crate::math::sin(offset_angle) * offset_dist,
+                    world_h,
+                ),
                 heading: self.rng.gen_range(0.0..std::f64::consts::TAU),
                 energy: child_energy,
                 age: 0,
@@ -1323,7 +1330,7 @@ impl Simulation {
             } else {
                 // Gompertz-Makeham: per-tick death probability increases exponentially with age
                 let beta = org.genome.aging_rate;
-                let hazard = lambda + alpha * (beta * org.age as f64).exp();
+                let hazard = lambda + alpha * crate::math::exp(beta * org.age as f64);
                 // Clamp to [0, 1] — at very old ages exp() can overflow
                 let death_prob = hazard.min(1.0);
                 if self.rng.r#gen::<f64>() < death_prob {

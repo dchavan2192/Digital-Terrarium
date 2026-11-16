@@ -18,7 +18,7 @@ impl Simulation {
         let dn = &self.config.daynight;
         if dn.enabled && dn.period > 0.0 {
             let phase = std::f64::consts::TAU * self.tick as f64 / dn.period;
-            (1.0 + phase.sin()) * 0.5
+            (1.0 + crate::math::sin(phase)) * 0.5
         } else {
             1.0
         }

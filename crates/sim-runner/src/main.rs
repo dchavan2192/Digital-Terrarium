@@ -44,6 +44,15 @@ struct Cli {
     #[arg(long)]
     export_genomes_every: Option<u64>,
 
+    /// Seed for a fresh single run, overriding `world.seed` in the config.
+    #[arg(long, conflicts_with = "resume")]
+    seed: Option<u64>,
+
+    /// Override for a fresh single run, KEY=NUMBER (repeatable),
+    /// e.g. `--set food.regrowth_rate=0.008`.
+    #[arg(long = "set", value_name = "KEY=NUMBER", conflicts_with = "resume")]
+    set: Vec<String>,
+
     /// Absolute target tick (a resumed run executes only the remaining ticks).
     #[arg(short, long, default_value_t = 100_000)]
     ticks: u64,
@@ -94,6 +103,73 @@ enum Commands {
         #[arg(short, long, default_value = "output")]
         output: PathBuf,
     },
+
+    /// Print a fingerprint of the complete simulation state at chosen ticks.
+    /// Equal fingerprints mean bit-identical state, so this measures whether two
+    /// machines or builds follow the same trajectory. Writes no artifacts.
+    Fingerprint {
+        /// Path to the TOML config file.
+        #[arg(short, long, default_value = "configs/default.toml")]
+        config: PathBuf,
+
+        /// Seed, overriding `world.seed` in the config.
+        #[arg(long)]
+        seed: Option<u64>,
+
+        /// Fixed override, KEY=NUMBER (repeatable).
+        #[arg(long = "set", value_name = "KEY=NUMBER")]
+        set: Vec<String>,
+
+        /// Comma-separated ascending ticks at which to print the fingerprint.
+        #[arg(
+            short,
+            long,
+            value_delimiter = ',',
+            default_value = "1,10,100,1000,5000"
+        )]
+        ticks: Vec<u64>,
+
+        /// Also write the full canonical state as `state_tick<N>.json` here, to
+        /// find which values first differ between two platforms.
+        #[arg(long)]
+        dump_dir: Option<PathBuf>,
+    },
+}
+
+fn fingerprint(
+    config_path: &std::path::Path,
+    seed: Option<u64>,
+    overrides: &[String],
+    ticks: &[u64],
+    dump_dir: Option<&std::path::Path>,
+) -> run::RunResult<()> {
+    if ticks.is_empty() || ticks.windows(2).any(|w| w[0] >= w[1]) {
+        return Err("--ticks must be a non-empty, strictly ascending list".into());
+    }
+    let mut config = sim_core::Config::from_file(config_path).map_err(|e| e.to_string())?;
+    sweep::apply_overrides(&mut config, overrides)?;
+    if let Some(seed) = seed {
+        config.world.seed = seed;
+    }
+    config.validate().map_err(|e| e.to_string())?;
+    let mut sim = sim_core::Simulation::new(config);
+    for &target in ticks {
+        while sim.tick < target && !sim.is_extinct() {
+            sim.step();
+        }
+        let print = sim.state_fingerprint().map_err(|e| e.to_string())?;
+        println!("tick={} fingerprint={print}", sim.tick);
+        if let Some(dir) = dump_dir {
+            std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+            let path = dir.join(format!("state_tick{}.json", sim.tick));
+            std::fs::write(&path, sim.state_json().map_err(|e| e.to_string())?)
+                .map_err(|e| format!("cannot write {}: {e}", path.display()))?;
+        }
+        if sim.is_extinct() {
+            break;
+        }
+    }
+    Ok(())
 }
 
 fn main() {
@@ -101,10 +177,12 @@ fn main() {
     if cli.command.is_some()
         && (cli.resume.is_some()
             || cli.checkpoint_every.is_some()
-            || cli.export_genomes_every.is_some())
+            || cli.export_genomes_every.is_some()
+            || cli.seed.is_some()
+            || !cli.set.is_empty())
     {
         eprintln!(
-            "Error: resume/checkpoint/genome-export options currently apply to single runs only"
+            "Error: top-level resume/checkpoint/genome-export/--seed/--set options apply to single runs only; give a subcommand its own options after its name"
         );
         std::process::exit(1);
     }
@@ -129,6 +207,13 @@ fn main() {
             log_interval,
             &output,
         ),
+        Some(Commands::Fingerprint {
+            config,
+            seed,
+            set,
+            ticks,
+            dump_dir,
+        }) => fingerprint(&config, seed, &set, &ticks, dump_dir.as_deref()),
         None => run::run_single(
             &cli.config,
             cli.ticks,
@@ -138,6 +223,8 @@ fn main() {
                 resume: cli.resume,
                 checkpoint_every: cli.checkpoint_every,
                 export_genomes_every: cli.export_genomes_every,
+                seed: cli.seed,
+                overrides: cli.set,
             },
         )
         .map(|_| ()),
