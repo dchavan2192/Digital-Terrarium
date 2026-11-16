@@ -1,5 +1,13 @@
 # Session handoff — 2026-11-15
 
+## Latest continuation — 2026-11-16 (supersedes earlier pending items)
+
+- Calibration batch `validation_20261116T021704Z_23586` COMPLETED: 30/30 survived, no cap blocking; rate 0.008 selected by the fixed rule. Report, uncertainty, exploratory drift and raw archive links are in RESULTS.md and PROGRESS.md. Owner approved default food 0.008/cap2,000; demo keeps food0.002/cap500.
+- Current-engine baseline ACTIVE on Pi: `output/phase9a/validation_20261116T171843Z_28985`, source0da954f, ten seeds100–109 ×200k ticks, one worker/thread. Never replace its pinned executable. Its own thermal guard pauses at75°C/resumes65°C; check `thermal_guard/status.json` and guard.log. Its pinned finalizer waits to write `finalization/summary.json`; never summarize partial data as success.
+- Source d35dd2c added batch-specific PID-safe thermal control and the synthetic delayed-cue instrument. Pi instrument output is `output/delayed_cue_20261116T175013Z`, with committed JSON/report. Manufactured controls passed; no evolved-cognition claim. Full Rust129 tests and thermal10 tests pass. Next research task: exported-genotype behavioural evaluation before a memory ecology comparison; no other evolutionary campaign queued.
+- GitHub issue1 tracks results/recheck; raw dataset prerelease `calibration-food-2026-11-16`. Owner explicitly authorizes multiple agents, routine development, commits and pushes; preserve old runs and avoid destructive cleanup.
+- Owner also requests project-only personal filesystem access plus internet/GitHub without prompts. `docs/CODEX_PROJECT_PERMISSIONS.toml` is a prepared template, NOT installed/active. Current managed host policy cannot be changed from inside the chat. Do not claim this boundary is enforced. No global settings were read/changed for that task.
+
 ## Stop here
 
 User requested a stopping point and conservation of remaining session budget. No new features or experiment campaigns should start in this session. Resume by reading PROGRESS.md, this file, then the scientific council and results register. Do not repeat the stale-checkout audit.

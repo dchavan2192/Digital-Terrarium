@@ -54,6 +54,10 @@ Configuration: `configs/default.toml`, seed 42. Commands are in [the runner READ
 
 [Held-out validation report](results/PHASE9A_VALIDATION_2026-11-16.md): 30/30 runs survived 200,000 ticks, with zero cap-blocked births. Rates 0.008, 0.010 and 0.012 all passed the predefined criteria; mean late populations across ten seeds were 913.92, 1067.22 and 1207.46 respectively (see JSON for full precision). The smallest acceptable rate, **0.008**, was approved by the owner together with cap 2,000 and applied to the defaults; current-engine revalidation is pending. Source `2b1c837`, pinned build `fab6214c28cf0b6d`, seeds 100–109, cap 2,000. This predates independent drought RNG, node identity fixes and memory; current-engine validation remains necessary. Full provenance, limitations, artifact checksums and reproduction command are in the report and linked JSON.
 
+## Registered implementation check: CHK-2026-11-16-DELAYED-CUE
+
+[Delayed-cue instrument report](results/DELAYED_CUE_INSTRUMENT_2026-11-16.md): a manufactured recurrent sign-persistence reference scored 2/2 balanced cues after 0, 1, 5, 20 and 100 blank ticks on the Pi. Feed-forward and same-network state-cleared controls scored 1/2 at each delay. Source `d35dd2c`; actual probe responses, build provenance and pre-execution protocol are linked. This validates a synthetic instrument, not evolved memory, learning, intelligence or ecological fitness. Exported-genome evaluation remains unimplemented.
+
 ## Calibration observations awaiting registration
 
 The progress log describes post-sharing-fix Pi pilots and a separate demo tuning pass. They are useful leads for choosing calibration ranges, but are not promoted here until exact run metadata, configurations, raw outputs, and analysis are reconciled. Presentation tuning and experimental calibration must remain separate.

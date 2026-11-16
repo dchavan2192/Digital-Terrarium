@@ -20,6 +20,10 @@
 - Current-engine recheck ACTIVE: `output/phase9a/validation_20261116T171843Z_28985` on Pi, pinned source `0da954f`, ten seeds 100–109 × 200k ticks at 0.008/cap 2,000. One worker/thread. Do not replace its executable or resume with another build. Separate batch-specific thermal guard added (pause 75°C/resume 65°C, 5s polling); live identity/pause/recovery checks passed. The strict completion summarizer is pinned separately under `finalization/`.
 - Independent reviewers recommend completing this baseline and the delayed-cue behavioural instrument before any sustained memory/inheritance experiment. No additional evolutionary campaign is queued. User authorizes agents and commits/pushes after completed work; preserve all artifacts.
 
+- Delayed-cue instrument now implemented: `sim-runner delayed-cue --blank-delay N`. Pi source `d35dd2c` passed all controls at delays 0,1,5,20,100. [Report](results/DELAYED_CUE_INSTRUMENT_2026-11-16.md) and actual responses registered as an implementation check; exported-genome behavioural evaluation remains next. Full Rust suite 129 tests, 10 thermal tests and all-target Clippy pass.
+- At 19:07 UTC the current recheck had completed seeds100 and101, with seed102 running. The guard was monitoring near73°C and had performed real 75°C/65°C cooling cycles. No active hardware throttling at the follow-up check. Finalizer status remains waiting; no partial acceptance claim. Pi and local native instrument JSON match at all five delays. Source d35dd2c CI and Pages passed.
+- Owner requested project-only files plus internet/GitHub without prompts. Prepared [permission template](CODEX_PROJECT_PERMISSIONS.md); it is NOT active and cannot replace this session's managed policy. Host-side activation and boundary verification are still required. No global configuration was changed.
+
 ## Active development session — 2026-11-15 (stopping-point handoff)
 
 Read [SESSION_HANDOFF_2026-11-15.md](SESSION_HANDOFF_2026-11-15.md) first to resume. The local checkout was reconciled with 14 incoming commits before development; earlier local sharing/negative-damage findings were already fixed upstream.

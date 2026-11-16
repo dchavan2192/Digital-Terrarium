@@ -1,0 +1,441 @@
+{
+  "source_revision": "d35dd2cf73261da5258e2978d94bd86798cec2e3",
+  "target": "aarch64-unknown-linux-gnu",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "binary_sha256": "e9fbf73b97a53320d8671212ec650c028b97e4154f3fcb3344e25e1fb0efc169",
+  "interpretation": "synthetic instrument check; not evolved cognition",
+  "delays": [
+    {
+      "schema_version": 1,
+      "assay": "delayed_cue",
+      "interpretation": "synthetic instrument validation; not evolved cognition, learning or ecological fitness",
+      "blank_delay_ticks": 0,
+      "cue_ticks": 1,
+      "probe_ticks": 1,
+      "probe_inputs": [
+        0
+      ],
+      "input_count": 1,
+      "output_count": 7,
+      "readout": "turn",
+      "zero_tie_prediction": 1,
+      "state_reset_each_trial": true,
+      "statistical_replicates": false,
+      "instrument_validated": true,
+      "controls": [
+        {
+          "name": "recurrent_reference",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": false,
+          "accuracy": 1,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": -0.9822472806260024,
+              "predicted_cue": -1,
+              "correct": true
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0.9822472806260024,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "feed_forward_control",
+          "recurrent_edges": 0,
+          "clear_state_each_tick": false,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "same_network_state_cleared",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": true,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "assay": "delayed_cue",
+      "interpretation": "synthetic instrument validation; not evolved cognition, learning or ecological fitness",
+      "blank_delay_ticks": 1,
+      "cue_ticks": 1,
+      "probe_ticks": 1,
+      "probe_inputs": [
+        0
+      ],
+      "input_count": 1,
+      "output_count": 7,
+      "readout": "turn",
+      "zero_tie_prediction": 1,
+      "state_reset_each_trial": true,
+      "statistical_replicates": false,
+      "instrument_validated": true,
+      "controls": [
+        {
+          "name": "recurrent_reference",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": false,
+          "accuracy": 1,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": -0.9820138291100775,
+              "predicted_cue": -1,
+              "correct": true
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0.9820138291100775,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "feed_forward_control",
+          "recurrent_edges": 0,
+          "clear_state_each_tick": false,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "same_network_state_cleared",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": true,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "assay": "delayed_cue",
+      "interpretation": "synthetic instrument validation; not evolved cognition, learning or ecological fitness",
+      "blank_delay_ticks": 5,
+      "cue_ticks": 1,
+      "probe_ticks": 1,
+      "probe_inputs": [
+        0
+      ],
+      "input_count": 1,
+      "output_count": 7,
+      "readout": "turn",
+      "zero_tie_prediction": 1,
+      "state_reset_each_trial": true,
+      "statistical_replicates": false,
+      "instrument_validated": true,
+      "controls": [
+        {
+          "name": "recurrent_reference",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": false,
+          "accuracy": 1,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": -0.9819805141966476,
+              "predicted_cue": -1,
+              "correct": true
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0.9819805141966476,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "feed_forward_control",
+          "recurrent_edges": 0,
+          "clear_state_each_tick": false,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "same_network_state_cleared",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": true,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "assay": "delayed_cue",
+      "interpretation": "synthetic instrument validation; not evolved cognition, learning or ecological fitness",
+      "blank_delay_ticks": 20,
+      "cue_ticks": 1,
+      "probe_ticks": 1,
+      "probe_inputs": [
+        0
+      ],
+      "input_count": 1,
+      "output_count": 7,
+      "readout": "turn",
+      "zero_tie_prediction": 1,
+      "state_reset_each_trial": true,
+      "statistical_replicates": false,
+      "instrument_validated": true,
+      "controls": [
+        {
+          "name": "recurrent_reference",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": false,
+          "accuracy": 1,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": -0.9819805060619657,
+              "predicted_cue": -1,
+              "correct": true
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0.9819805060619657,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "feed_forward_control",
+          "recurrent_edges": 0,
+          "clear_state_each_tick": false,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "same_network_state_cleared",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": true,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "assay": "delayed_cue",
+      "interpretation": "synthetic instrument validation; not evolved cognition, learning or ecological fitness",
+      "blank_delay_ticks": 100,
+      "cue_ticks": 1,
+      "probe_ticks": 1,
+      "probe_inputs": [
+        0
+      ],
+      "input_count": 1,
+      "output_count": 7,
+      "readout": "turn",
+      "zero_tie_prediction": 1,
+      "state_reset_each_trial": true,
+      "statistical_replicates": false,
+      "instrument_validated": true,
+      "controls": [
+        {
+          "name": "recurrent_reference",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": false,
+          "accuracy": 1,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": -0.9819805060619657,
+              "predicted_cue": -1,
+              "correct": true
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0.9819805060619657,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "feed_forward_control",
+          "recurrent_edges": 0,
+          "clear_state_each_tick": false,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "name": "same_network_state_cleared",
+          "recurrent_edges": 1,
+          "clear_state_each_tick": true,
+          "accuracy": 0.5,
+          "trials": [
+            {
+              "cue": -1,
+              "cue_response": -0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": false
+            },
+            {
+              "cue": 1,
+              "cue_response": 0.9841269841269841,
+              "probe_response": 0,
+              "predicted_cue": 1,
+              "correct": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "temperature_after_c": 72.15,
+  "directory": "/home/pi/Digital-Terrarium/output/delayed_cue_20261116T175013Z"
+}

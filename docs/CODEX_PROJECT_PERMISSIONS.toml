@@ -1,0 +1,39 @@
+# TEMPLATE ONLY: does not change the running session's managed policy.
+# Select this profile in a compatible host after removing conflicting legacy
+# sandbox_mode/sandbox_workspace_write settings from higher config layers.
+# Work Cloud/local-access policy must be configured separately in the host.
+approval_policy = "never"
+default_permissions = "terrarium-only"
+
+[features]
+network_proxy = true
+
+[permissions.terrarium-only]
+description = "Terrarium files and public internet; deny other personal directories."
+extends = ":read-only"
+
+[permissions.terrarium-only.filesystem]
+":root" = "deny"
+# Required for the shell, system libraries and basic tools. This is an explicit
+# exception to a literal 'no directory outside the project' requirement.
+":minimal" = "read"
+":tmpdir" = "deny"
+":slash_tmp" = "deny"
+
+[permissions.terrarium-only.filesystem."/Users/dineshchavan/Desktop/Projects/PersonalProjects/Digital_Terrarium"]
+"." = "write"
+# Permit ordinary Git operations in this repository, keeping hooks protected.
+".git" = "write"
+".git/hooks" = "read"
+".codex" = "read"
+".agents" = "read"
+".aws" = "deny"
+
+[permissions.terrarium-only.network]
+enabled = true
+
+[permissions.terrarium-only.network.domains]
+# The owner requested internet access, not a GitHub-only destination allowlist.
+"*" = "allow"
+# Retain the explicitly authorized Pi endpoint; no general private-network grant.
+"100.127.61.93" = "allow"
