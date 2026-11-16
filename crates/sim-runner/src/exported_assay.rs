@@ -19,22 +19,22 @@ const MAX_FORWARD_PASSES: u64 = 1_000_000;
 const MAX_EDGE_STEPS: u64 = 100_000_000;
 
 #[derive(Deserialize)]
-struct Export {
-    format: String,
-    version: u32,
-    core_build: String,
-    target: String,
-    tick: u64,
-    config: Config,
-    genomes: Vec<Record>,
+pub(crate) struct Export {
+    pub(crate) format: String,
+    pub(crate) version: u32,
+    pub(crate) core_build: String,
+    pub(crate) target: String,
+    pub(crate) tick: u64,
+    pub(crate) config: Config,
+    pub(crate) genomes: Vec<Record>,
 }
 
 #[derive(Deserialize)]
-struct Record {
-    id: u64,
-    generation: u64,
-    root_ancestor_id: u64,
-    genome: Genome,
+pub(crate) struct Record {
+    pub(crate) id: u64,
+    pub(crate) generation: u64,
+    pub(crate) root_ancestor_id: u64,
+    pub(crate) genome: Genome,
 }
 
 #[derive(Serialize, Debug)]
@@ -114,12 +114,40 @@ fn read_bounded(path: &Path) -> RunResult<Vec<u8>> {
     Ok(bytes)
 }
 
-fn evaluate(bytes: &[u8], channel: usize, delay: u32) -> RunResult<Value> {
-    if bytes.len() as u64 > MAX_INPUT_BYTES || delay > MAX_DELAY {
-        return Err("require input <=64 MiB and --blank-delay <=10000".into());
+/// Validated genotype snapshot shared by the clamp and movement tasks.
+pub(crate) struct LoadedExport {
+    pub(crate) export: Export,
+    pub(crate) donor_config: Value,
+    input_bytes: usize,
+    input_fingerprint: String,
+}
+
+impl LoadedExport {
+    pub(crate) fn metadata(&self) -> Value {
+        json!({
+            "input_bytes":self.input_bytes,
+            "input_fnv1a64_noncryptographic":self.input_fingerprint,
+            "source_export":{"format":self.export.format,"version":self.export.version,
+                "core_build":self.export.core_build,"target":self.export.target,
+                "tick":self.export.tick,"config":self.donor_config},
+            "evaluator":{"source_revision":env!("TERRARIUM_SOURCE_REVISION"),
+                "source_dirty":env!("TERRARIUM_SOURCE_DIRTY"),
+                "core_build":sim_core::checkpoint::CORE_BUILD_ID,
+                "target":env!("TERRARIUM_TARGET"),
+                "compiler":env!("TERRARIUM_COMPILER"),
+                "build_profile":env!("TERRARIUM_BUILD_PROFILE")}
+        })
     }
-    // Inspect collection sizes before deserializing typed genomes or building brains.
-    // The bounded JSON input also limits allocation in this first parsing stage.
+}
+
+pub(crate) fn load_validated(path: &Path) -> RunResult<LoadedExport> {
+    parse_validated(&read_bounded(path)?)
+}
+
+fn parse_validated(bytes: &[u8]) -> RunResult<LoadedExport> {
+    if bytes.len() as u64 > MAX_INPUT_BYTES {
+        return Err("require input <=64 MiB".into());
+    }
     let raw: Value =
         serde_json::from_slice(bytes).map_err(|e| format!("invalid export JSON: {e}"))?;
     let array = raw
@@ -159,21 +187,10 @@ fn evaluate(bytes: &[u8], channel: usize, delay: u32) -> RunResult<Value> {
         .config
         .validate()
         .map_err(|e| format!("invalid donor config: {e}"))?;
-    if channel >= export.config.brain.inputs {
-        return Err("--cue-channel must be a zero-based configured input index".into());
-    }
     if export.genomes.len() > export.config.creature.hard_cap {
         return Err("export population exceeds its configured hard cap".into());
     }
     let mut ids = HashSet::new();
-    let mut edge_steps = 0_u64;
-    let passes_per_genome = 4 * (u64::from(delay) + 2);
-    if passes_per_genome * export.genomes.len() as u64 > MAX_FORWARD_PASSES {
-        return Err(
-            "assay exceeds 1000000 forward-pass budget; reduce delay, not population".into(),
-        );
-    }
-    // Validate the complete donor population before evaluating any record.
     for record in &export.genomes {
         if !ids.insert(record.id) {
             return Err(format!("duplicate organism id {}", record.id));
@@ -190,39 +207,77 @@ fn evaluate(bytes: &[u8], channel: usize, delay: u32) -> RunResult<Value> {
                 record.id
             ));
         }
-        edge_steps += passes_per_genome * record.genome.connections.len() as u64;
+    }
+    let fingerprint = bytes.iter().fold(0xcbf29ce484222325_u64, |h, &b| {
+        (h ^ u64::from(b)).wrapping_mul(0x100000001b3)
+    });
+    Ok(LoadedExport {
+        export,
+        donor_config,
+        input_bytes: bytes.len(),
+        input_fingerprint: format!("{fingerprint:016x}"),
+    })
+}
+
+/// Reject excessive complete-population work rather than selecting a subset.
+pub(crate) fn validate_work(export: &Export, passes_per_genome: u64) -> RunResult<()> {
+    if passes_per_genome
+        .checked_mul(export.genomes.len() as u64)
+        .is_none_or(|n| n > MAX_FORWARD_PASSES)
+    {
+        return Err(
+            "assay exceeds 1000000 forward-pass budget; reduce task horizon, not population".into(),
+        );
+    }
+    let mut edge_steps = 0_u64;
+    for record in &export.genomes {
+        edge_steps = passes_per_genome
+            .checked_mul(record.genome.connections.len() as u64)
+            .and_then(|n| edge_steps.checked_add(n))
+            .ok_or("edge-step budget overflow")?;
     }
     if edge_steps > MAX_EDGE_STEPS {
         return Err(
-            "assay exceeds 100000000 edge-step budget; reduce delay, not population".into(),
+            "assay exceeds 100000000 edge-step budget; reduce task horizon, not population".into(),
         );
     }
-    let mut results = Vec::with_capacity(export.genomes.len());
-    for record in export.genomes {
+    Ok(())
+}
+
+fn evaluate(bytes: &[u8], channel: usize, delay: u32) -> RunResult<Value> {
+    if delay > MAX_DELAY {
+        return Err("require --blank-delay <=10000".into());
+    }
+    let loaded = parse_validated(bytes)?;
+    if channel >= loaded.export.config.brain.inputs {
+        return Err("--cue-channel must be a zero-based configured input index".into());
+    }
+    validate_work(&loaded.export, 4 * (u64::from(delay) + 2))?;
+    let mut results = Vec::with_capacity(loaded.export.genomes.len());
+    for record in &loaded.export.genomes {
         let brain = record.genome.build_brain();
         results.push(json!({
-            "id":record.id, "generation":record.generation,
-            "root_ancestor_id":record.root_ancestor_id,
+            "id":record.id,"generation":record.generation,"root_ancestor_id":record.root_ancestor_id,
             "enabled_recurrent_connections":brain.recurrent_count(),
             "intact":condition(&brain, channel, delay, false)?,
             "same_network_state_cleared":condition(&brain, channel, delay, true)?
         }));
     }
-    // An explicitly noncryptographic identity over exact input bytes. Archive a
-    // separate SHA-256 externally; this is never called a cryptographic checksum.
-    let fingerprint = bytes.iter().fold(0xcbf29ce484222325_u64, |h, &b| {
-        (h ^ u64::from(b)).wrapping_mul(0x100000001b3)
-    });
-    Ok(json!({
-        "schema_version":1, "assay":"exported_genome_delayed_cue",
-        "interpretation":"synthetic input clamp; not learned association, natural behaviour, fitness or evidence of evolved cognition",
-        "input_bytes":bytes.len(), "input_fnv1a64_noncryptographic":format!("{fingerprint:016x}"),
-        "source_export":{"format":export.format,"version":export.version,"core_build":export.core_build,"target":export.target,"tick":export.tick,"config":donor_config},
-        "evaluator":{"source_revision":env!("TERRARIUM_SOURCE_REVISION"),"source_dirty":env!("TERRARIUM_SOURCE_DIRTY"),"core_build":sim_core::checkpoint::CORE_BUILD_ID,"target":env!("TERRARIUM_TARGET")},
-        "protocol":{"cue_channel_zero_based":channel,"cue_ticks":1,"blank_delay_ticks":delay,"probe_ticks":1,"other_inputs":0.0,"probe_inputs":vec![0.0;export.config.brain.inputs],"readout":"turn","zero_tie_prediction":1,"state_reset_each_trial":true,"brain_source":"exported genotype weights times (1-snapshot methylation); expressed_brain and live memory ignored","within_lifetime_updates":false},
-        "sampling":{"evaluated":results.len(),"policy":"all exported genomes, in original order; no score-based selection","independent_replicates":false,"unit_warning":"genomes within one donor population are not independent evolutionary replicates; two balanced deterministic cues are not trial replicates"},
-        "results":results
-    }))
+    let mut output = loaded.metadata();
+    output["schema_version"] = json!(1);
+    output["assay"] = json!("exported_genome_delayed_cue");
+    output["interpretation"] = json!(
+        "synthetic input clamp; not learned association, natural behaviour, fitness or evidence of evolved cognition"
+    );
+    output["protocol"] = json!({"cue_channel_zero_based":channel,"cue_ticks":1,"blank_delay_ticks":delay,
+        "probe_ticks":1,"other_inputs":0.0,"probe_inputs":vec![0.0;loaded.export.config.brain.inputs],
+        "readout":"turn","zero_tie_prediction":1,"state_reset_each_trial":true,
+        "brain_source":"exported genotype weights times (1-snapshot methylation); expressed_brain and live memory ignored",
+        "within_lifetime_updates":false});
+    output["sampling"] = json!({"evaluated":results.len(),"policy":"all exported genomes, in original order; no score-based selection",
+        "independent_replicates":false,"unit_warning":"genomes within one donor population are not independent evolutionary replicates; two balanced deterministic cues are not trial replicates"});
+    output["results"] = json!(results);
+    Ok(output)
 }
 
 pub fn run(path: &Path, channel: usize, delay: u32) -> RunResult<()> {

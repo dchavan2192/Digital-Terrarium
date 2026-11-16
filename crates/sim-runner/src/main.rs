@@ -9,7 +9,9 @@
 //!   cargo run -p sim-runner --release -- sweep --config configs/default.toml --param food.regrowth_rate --values 0.001,0.002,0.005,0.01 --seeds 30 --ticks 100000
 
 mod assay;
+mod delayed_choice;
 mod exported_assay;
+mod movement_assay;
 mod run;
 mod sweep;
 
@@ -70,6 +72,18 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Validate controlled delayed-choice movement using fixed neural controls.
+    DelayedChoice {
+        #[arg(long, default_value = "configs/delayed_choice.toml")]
+        arena: PathBuf,
+    },
+    /// Evaluate every exported genotype in a controlled delayed-choice arena.
+    EvaluateDelayedChoice {
+        #[arg(long)]
+        input: PathBuf,
+        #[arg(long, default_value = "configs/delayed_choice.toml")]
+        arena: PathBuf,
+    },
     /// Clamp synthetic delayed cues into every inherited genome of one export.
     /// Prints JSON; scores do not establish learning or ecological usefulness.
     EvaluateDelayedCue {
@@ -211,6 +225,10 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::DelayedChoice { arena }) => movement_assay::controls(&arena),
+        Some(Commands::EvaluateDelayedChoice { input, arena }) => {
+            movement_assay::evaluate(&input, &arena)
+        }
         Some(Commands::EvaluateDelayedCue {
             input,
             cue_channel,

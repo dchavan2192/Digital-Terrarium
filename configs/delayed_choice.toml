@@ -1,0 +1,39 @@
+# Isolated delayed-choice movement task, not a simulation ecology configuration.
+# Cue +1 rewards the left goal; cue -1 rewards the right goal.
+# Both markers have identical appearance. Reward is revealed only on first contact.
+ray_count = 5
+ray_fov = 2.094
+ray_range = 12.0
+
+start_x = 0.0
+start_y = 0.0
+start_heading = 1.5707963267948966 # pi/2, facing between the goals
+
+goal_left_x = -4.0
+goal_left_y = 4.0
+goal_right_x = 4.0
+goal_right_y = 4.0
+goal_radius = 1.5
+
+max_turn = 0.19634954084936207 # pi/16 radians per movement tick
+max_speed = 1.0             # task distance units per movement tick
+cue_ticks = 1
+blank_delay = 5
+horizon = 20
+
+# Nonvisual scalar inputs, held constant throughout the task.
+# Heading is computed from pose; heard signal carries the cue only in cue phase.
+energy = 0.5
+body = 0.0
+kin = 0.0
+temperature = 0.5
+pheromone = 0.0
+light = 1.0
+niche = 0.0
+food = 0.0
+
+# Manufactured reference weights; no training or evolutionary selection occurs.
+cue_weight = 5.0
+turn_bias = 2.0
+recurrent_weight = 5.0
+speed_bias = 2.0

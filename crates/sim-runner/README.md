@@ -131,3 +131,52 @@ cognition. Genomes from one donor population and the two cue trials are not
 independent evolutionary replicates; no best-performing genome is selected.
 A low score on this fixed input channel and turn readout does not rule out
 memory encoded through other inputs, outputs or natural behaviour.
+
+## Delayed-choice movement arena
+
+```bash
+# Validate the manufactured recurrent, feed-forward and state-cleared controls.
+sim-runner delayed-choice --arena configs/delayed_choice.toml > controls.json
+
+# Evaluate every genotype from one export in the same controlled movement task.
+sim-runner evaluate-delayed-choice --input genomes_seed100_tick200001.json \
+  --arena configs/delayed_choice.toml > choices.json
+```
+
+This task adds movement and terminal reward to delayed-cue evaluation. Position
+and heading are held fixed through cue and blank phases; all actions are
+ignored until release. The controller then uses its turn/speed outputs to reach
+one of two identical visible goal markers. Their appearance and geometry do
+not reveal which goal is correct. The earlier signed cue determines reward,
+which is scored only after first contact. A wrong first contact ends the trial;
+a timeout is reported separately, with zero reward. No energy, reproduction,
+body scaling, learning or mark updates are simulated in the task.
+
+Arena geometry, motion bounds, fixed scalar inputs, delays, horizon and
+manufactured reference weights live in the separate arena TOML. Ray sensors
+report goal proximity and identical goal types; these are task conventions,
+not a claim of identical natural-world vision. Full sensor conventions and
+pose/action traces are included in JSON. Every trial starts with fresh task
+and neural state. The controller's first decision inputs and pose are the
+same for both cues. Heading feedback after release is allowed; cue retention
+through the immobile delay is what the task tests.
+
+The manufactured recurrent reference reaches the correct goal for both cues;
+the otherwise identical feed-forward and state-cleared controls choose the
+same goal for both cues. Their full post-release trajectories must match,
+not merely their scores. None of these controls use timeouts to score chance.
+`delayed-choice` exits unsuccessfully if the instrument checks fail.
+
+The export command shares the validated all-record loader with the input-clamp
+assay, freezes snapshot methylation and ignores expressed live brains/memory.
+All records remain in source order. Its worst-case work is limited to one
+million forward passes, 100 million stored-gene steps and 100,000 trace samples
+across all trials/phases. Work is rejected before evaluation rather than
+subsampling. A separately planned shorter task may be necessary for a large
+population; do not choose a shorter horizon after inspecting favorable scores.
+
+These are deterministic task scores, not independent evolutionary replicates.
+A hand-built successful controller demonstrates task feasibility, not learning
+or adaptive evolved memory. A poor evolved-controller score can also reflect
+sensory/motor mismatch; visible-cue motor controls and recurrent-donor studies
+are needed before making a memory-selection claim.

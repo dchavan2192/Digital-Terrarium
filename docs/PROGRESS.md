@@ -6,6 +6,14 @@
 
 ---
 
+## Development continuation — delayed-choice movement arena (2026-11-16)
+
+- Added runner-only `delayed-choice` controls and `evaluate-delayed-choice` for all-record exports, configured in `configs/delayed_choice.toml`. Pose is held through cue/delay, all actions discarded, then turn/speed drives movement toward visually identical goals. Hidden correct-goal labels enter terminal scoring only. Wrong first contact ends the trial; timeout is explicit.
+- Manufactured recurrent control chooses correctly for both cues (reward 1); feed-forward and same-network state-cleared controls choose the same goal for both (reward 1/2), all in five movement ticks. Tests check identical response inputs/poses and full no-memory trajectories, fixed hold pose, swept contact and rejection guards. This is a controlled memory-dependent task, not evolved cognition or ecological fitness.
+- The clamp and arena evaluators share one validated export loader and bounded work. Arena traces are also bounded to 100,000 samples before evaluation. New CLI tests evaluate a genuine export and reject bad geometry/layouts without partial output.
+- Independent review passed; serialized full workspace 151 Rust tests, all-target Clippy/format, 10 JS and 10 thermal tests pass. An earlier overlapping targeted build changed shared binary feature identity during one test; that artifact mismatch was resolved by serializing the final suite. No simulation fix or ecological change was required.
+- [Arena protocol](results/DELAYED_CHOICE_ARENA_PLAN_2026-11-16.md) precedes the actual 898-genome negative-control evaluation. A plotter uses actual recorded movement traces. Pi remains on its pinned baseline; six of ten runs completed, seed 106 running at 22:26 UTC, guard monitoring at 65°C, no active throttling.
+
 ## Development continuation — exported-genome behavioural evaluation (2026-11-16)
 
 - Added `sim-runner evaluate-delayed-cue --input FILE --cue-channel INDEX --blank-delay N`: evaluates every exported genome against the same network with state cleared each tick, using fresh trial state and identical probe inputs. Genetic weights and frozen snapshot methylation are rebuilt; expressed brains and live memory are ignored. Results carry donor/evaluator provenance and all individual responses. This is a synthetic clamp, not a fitness or learned-cognition assay.
