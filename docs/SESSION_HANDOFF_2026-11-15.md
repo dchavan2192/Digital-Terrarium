@@ -15,7 +15,9 @@ User requested a stopping point and conservation of remaining session budget. No
 - Research council challenged design using primary papers and corrected claims. See research/SCIENCE_COUNCIL_2026-11-15.md, PREREG.md (draft/unregistered/unlaunched), RESULTS.md and corrected ALIFE_2027_OUTLINE.md. No established scientific current-model results.
 - Portfolio repository /Users/dineshchavan/projects/portfolio-dhruv: baseline preserved and pushed; local agent settings left on disk but untracked. ds.html card now describes actual capabilities and research limits, links demo/source/progress. Latest portfolio commit 1f4e73d.
 
-## Pi inventory and active pilot
+## Pi inventory and completed pilot
+
+Completion update: all six runs completed successfully; no simulation remained at inspection. Read [the calibration report](results/PHASE9A_PILOT_2026-11-15.md) for per-seed measurements, source-dirty caveat and next steps. Earlier in-flight observations below are historical.
 
 SSH: pi@dchavan. Main repository: /home/pi/Digital-Terrarium. Existing /home/pi/Digital-Terrarium-wip is a non-Git copy containing earlier rule-comparison outputs; preserve it. Main repo has untracked nohup.out and run_overnight.sh; preserve them too. Output folders are organized by experiment; never overwrite old runs.
 

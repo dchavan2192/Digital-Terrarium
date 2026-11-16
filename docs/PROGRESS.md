@@ -19,7 +19,8 @@ Completed this session:
 - [x] 0.6 Public claim corrections, results registry, primary-source council review and draft (not registered) study protocol.
 - [x] Pages ALSA prerequisite fixed; portfolio card updated to capabilities and limitations; Energy-tab deployment verified green.
 - [x] UI tour placement/focus and KPI width improvements; real WASM/energy smoke and presentation tests added to deployment gate.
-- [ ] 0.1 Short six-run Pi ecology pilot active; no new defaults chosen. Completion and validation seeds still required.
+- [x] Short six-run Pi ecology pilot completed: 6/6 survived 20k ticks; zero cap-blocked births. [Report](results/PHASE9A_PILOT_2026-11-15.md), CAL-2026-11-15-FOOD.
+- [ ] 0.1 Long-duration holdout validation still required; no new defaults chosen.
 - [ ] 0.5 Cross-platform state equivalence untested. Checkpoints explicitly require compatible build/target.
 - [ ] Independent environment RNG/replayed drought schedules, node-history/crossover fixes, broader UI visual QA.
 

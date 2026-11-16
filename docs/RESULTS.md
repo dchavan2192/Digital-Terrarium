@@ -31,6 +31,10 @@ A claim may enter README or the portfolio only after its entry is accepted here.
 
 The source plots and narrative remain available in [EXPERIMENT_FINDINGS.md](EXPERIMENT_FINDINGS.md), [PROGRESS.md](PROGRESS.md), and Git history. Read the historical warning before reusing them.
 
+## Registered calibration: CAL-2026-11-15-FOOD
+
+[Phase 9a pilot report](results/PHASE9A_PILOT_2026-11-15.md): all six seed/rate runs survived 20k ticks with zero cap-blocked births. Mean late populations across two seeds were 567.58, 737.60, and 914.93 for regrowth 0.004, 0.006, and 0.008. Source `2f49287`, dirty-build flag explicitly retained; full config, machine-readable per-run measurements, checksums and reproducible analysis command are linked in the report. Status: calibration, not an established scientific result; held-out long-duration validation remains pending. No defaults changed.
+
 ## Calibration observations awaiting registration
 
 The progress log describes post-sharing-fix Pi pilots and a separate demo tuning pass. They are useful leads for choosing calibration ranges, but are not promoted here until exact run metadata, configurations, raw outputs, and analysis are reconciled. Presentation tuning and experimental calibration must remain separate.
