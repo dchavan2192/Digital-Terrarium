@@ -47,6 +47,20 @@
       </div>
     </section>
 
+    <section class="trend" id="trend" aria-label="Trend over time" hidden>
+      <header class="trend-head">
+        <div class="trend-titles">
+          <h2 id="trendTitle"></h2>
+          <p class="trend-now tnum" id="trendNow"></p>
+        </div>
+        <div class="segs" id="trendRanges" role="group" aria-label="Time window"></div>
+        <button class="icon-btn" id="trendClose" type="button" aria-label="Close the chart (Esc)" data-icon="x"></button>
+      </header>
+      <canvas class="trend-canvas" id="trendCanvas" role="img"></canvas>
+      <p class="trend-read tnum" id="trendRead" aria-live="off"></p>
+      <p class="trend-note" id="trendNote"></p>
+    </section>
+
     <main class="viewport" id="viewport" aria-label="Simulation view">
       <div class="labels" id="labels" aria-hidden="true"></div>
 

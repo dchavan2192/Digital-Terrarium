@@ -9,7 +9,7 @@ export const SPARK_POINTS = 100;
 export const SAMPLE_EVERY_TICKS = 20;
 const DELTA_BACK = 500 / SAMPLE_EVERY_TICKS; // 25 samples
 
-export function createKpis(root, tooltip) {
+export function createKpis(root, tooltip, { onSelect } = {}) {
   const hist = {};
   let n = 0;
   let head = 0;
@@ -21,6 +21,8 @@ export function createKpis(root, tooltip) {
     el.className = 'kpi';
     el.dataset.key = def.key;
     el.setAttribute('aria-describedby', 'kpiTip');
+    el.setAttribute('aria-expanded', 'false');
+    el.setAttribute('aria-controls', 'trend');
     el.innerHTML = `
       <span class="kpi-label">${def.label}</span>
       <span class="kpi-row">
@@ -46,7 +48,11 @@ export function createKpis(root, tooltip) {
     const show = () => tooltip.show(el, tipHtml(tile));
     el.addEventListener('mouseenter', show);
     el.addEventListener('focus', show);
-    el.addEventListener('click', show);
+    // Hover or focus explains the number; a click expands it into a chart.
+    el.addEventListener('click', () => {
+      tooltip.hide();
+      if (onSelect) onSelect(def.key);
+    });
     el.addEventListener('mouseleave', () => tooltip.hide());
     el.addEventListener('blur', () => tooltip.hide());
     return tile;
@@ -114,6 +120,10 @@ export function createKpis(root, tooltip) {
         chip.dataset.html = html;
         chip.innerHTML = html;
       }
+    },
+    /** Mark which tile's chart is open (`null` for none). */
+    setExpanded(key) {
+      for (const t of tiles) t.el.setAttribute('aria-expanded', String(t.def.key === key));
     },
     reset() {
       n = 0;

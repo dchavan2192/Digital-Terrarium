@@ -24,15 +24,18 @@ a { color: var(--accent-2); }
   height: 100dvh;
   display: grid;
   grid-template-columns: 1fr 360px;
-  grid-template-rows: 48px 88px 1fr 48px;
+  grid-template-rows: 48px 88px auto 1fr 48px;
   grid-template-areas:
-    "hdr  hdr"
-    "kpis kpis"
-    "vp   side"
-    "time time";
+    "hdr   hdr"
+    "kpis  kpis"
+    "trend side"
+    "vp    side"
+    "time  time";
 }
 .hdr { grid-area: hdr; }
 .kpis { grid-area: kpis; }
+/* Expanded trend chart. Hidden, its row has no height and the view fills the space. */
+.trend { grid-area: trend; min-width: 0; }
 .viewport { grid-area: vp; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
 .side { grid-area: side; position: relative; min-height: 0; display: flex; flex-direction: column; border-left: 1px solid var(--line); background: var(--bg-2); }
 .timebar { grid-area: time; }
@@ -63,8 +66,8 @@ a { color: var(--accent-2); }
 @media (max-width: 1099px) {
   .app {
     grid-template-columns: 1fr;
-    grid-template-rows: 48px 88px 1fr 48px;
-    grid-template-areas: "hdr" "kpis" "vp" "time";
+    grid-template-rows: 48px 88px auto 1fr 48px;
+    grid-template-areas: "hdr" "kpis" "trend" "vp" "time";
   }
   .side {
     position: fixed;
@@ -91,8 +94,8 @@ a { color: var(--accent-2); }
 /* ---------- phone (< 700 px): graceful degradation (§2.3) ---------- */
 @media (max-width: 699px) {
   .app {
-    grid-template-rows: 44px 56px 1fr auto 48px;
-    grid-template-areas: "hdr" "kpis" "vp" "latest" "time";
+    grid-template-rows: 44px 56px auto 1fr auto 48px;
+    grid-template-areas: "hdr" "kpis" "trend" "vp" "latest" "time";
   }
   .phone-only { display: inline-flex !important; }
   .phone-latest { display: flex; grid-area: latest; }

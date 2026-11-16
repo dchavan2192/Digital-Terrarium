@@ -115,6 +115,26 @@
   transition: border-color var(--t-ui) var(--ease);
 }
 .kpi:hover, .kpi:focus-visible { border-color: var(--ink-3); }
+.kpi { cursor: pointer; }
+.kpi[aria-expanded="true"] { border-color: var(--accent); background: var(--bg-3); }
+
+/* ---------- expanded trend chart ---------- */
+.trend { padding: 10px 16px 12px; border-bottom: 1px solid var(--line); background: var(--bg-2); }
+.trend[hidden] { display: none; }
+/* With the chart open the view is short: the legend card would cover the layer list. */
+.app:has(.trend:not([hidden])) .legend-card { display: none; }
+.trend-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.trend-titles { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin-right: auto; }
+.trend-titles h2 { margin: 0; font: 600 var(--fs-16, 16px)/1.2 var(--font-serif); white-space: nowrap; }
+.trend-now { margin: 0; font-size: var(--fs-12); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.segs { display: flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; flex: none; }
+.seg { padding: 4px 10px; border: 0; background: transparent; color: var(--ink-2); font-size: var(--fs-12); cursor: pointer; white-space: nowrap; }
+.seg + .seg { border-left: 1px solid var(--line); }
+.seg[aria-pressed="true"] { background: var(--bg-3); color: var(--accent); font-weight: 600; }
+.trend-canvas { display: block; width: 100%; height: 168px; cursor: crosshair; touch-action: none; }
+.trend-read { margin: 4px 0 0; font-size: var(--fs-12); color: var(--ink-2); min-height: 1.4em; }
+.trend-note { margin: 2px 0 0; font-size: var(--fs-12); color: var(--ink-3); }
+
 .kpi-label {
   grid-column: 1 / -1;
   font-size: 11px;
@@ -502,6 +522,11 @@
   .kpi-label { font-size: 10px; }
   .kpi-value { font-size: var(--fs-20); }
   .kpi-delta, .spark { display: none; }
+  .trend { padding: 8px 12px 10px; }
+  .trend-head { flex-wrap: wrap; gap: 6px 8px; }
+  .trend-canvas { height: 132px; }
+  .trend-note { display: none; }
+  .seg { padding: 4px 7px; }
   /* Compact chips: unit back beside the number. */
   .kpi-row { flex-wrap: nowrap; }
   .kpi-unit { order: 0; flex: 0 1 auto; }

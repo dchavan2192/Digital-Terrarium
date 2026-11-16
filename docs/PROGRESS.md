@@ -81,7 +81,13 @@ Presentation layer only (`crates/sim-wasm/src/species.rs`); sim-core's species s
 
 ### Requested for future development (owner, 2026-11-16)
 
-- [ ] **Expandable analysis tiles in the demo.** Clicking any headline tile at the top (creatures alive, species, brain size, cooperation, food chain) should expand it into a larger chart of that measure over time, so a viewer can see the pattern. The time window should change dynamically (follow the run as it advances, and let the viewer widen or narrow it). Fits the deferred "Charts tab" in `docs/research/DEMO_UX_DESIGN.md`; drought and season bands on the time axis would make the patterns readable. Needs a longer per-tile history buffer than the current sparkline keeps.
+- [x] **Expandable analysis tiles in the demo** (built 2026-11-16).
+  - Clicking any headline tile (creatures alive, species, brain size, cooperation, food chain) opens a chart of that measure over time between the tiles and the 3D view; the view resizes to fit. Clicking the tile again, the close button or Esc collapses it.
+  - Three time windows: last 2,000 ticks and last 10,000 ticks slide with the run at full resolution; "Whole run" grows with it.
+  - Droughts are shaded, darker where more overlap. Hovering reads out the tick, value and droughts active.
+  - Data: `web/demo/js/history.js` keeps a full-resolution ring for the sliding windows and the whole run in 1,024 points (neighbouring points are averaged and the stride doubles when it fills). History starts at the first measured tick.
+  - Chart: `web/demo/js/ui/trend.js` (canvas). Seven tests in `web/demo/tests/history.test.mjs`. Checked with real screenshots on desktop and phone.
+  - Not done: season bands on the time axis; comparing two measures on one chart; the same expansion for the Energy tab.
 
 ### Demo visual check (2026-11-16)
 

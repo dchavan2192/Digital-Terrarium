@@ -8,7 +8,7 @@
 import { loadSim, F, L, DTH, DL, DEATH_CAUSES } from './sim.js';
 import { createSpeciesColors, slotHex, cssGradient } from './palette.js';
 import { createEventEngine, createRateLimiter } from './events.js';
-import { fmtInt, dayOf, seasonName, speciesName, TIER_NAMES, trophicTier, fmtFixed } from './format.js';
+import { fmtInt, dayOf, seasonName, speciesName, TIER_NAMES, trophicTier, fmtFixed, KPI_DEFS } from './format.js';
 import { activityWord } from './describe.js';
 import { buildLayers } from './layers.js';
 import { createWorldMap } from './scene/world.js';
@@ -18,6 +18,8 @@ import { createCreatures, VIS } from './scene/creatures.js';
 import { createCameras } from './scene/cameras.js';
 import { createLabels } from './scene/labels.js';
 import { createKpis, createTooltip, SAMPLE_EVERY_TICKS } from './ui/kpis.js';
+import { createTrendPanel } from './ui/trend.js';
+import { createRunHistory } from './history.js';
 import { createFeed } from './ui/feed.js';
 import { createSpeciesTab } from './ui/species.js';
 import { createInspector } from './ui/inspector.js';
@@ -208,6 +210,8 @@ function startRun(seed, first = false) {
   S.creatures.reset();
   S.colors.reset();
   S.kpis.reset();
+  S.history.reset();
+  S.trend.update();
   S.feed.clear();
   S.feed.setDayPeriod(S.cfg.dayPeriod);
   S.limiter.clear();
@@ -240,7 +244,25 @@ function startRun(seed, first = false) {
 function setupUi() {
   const tip = createTooltip($('#kpiTip'));
   S.tip = tip;
-  S.kpis = createKpis($('#kpis'), tip);
+  // Clicking a headline tile expands it into a chart over time; clicking it again,
+  // the close button or Esc collapses it. The 3D view resizes to the space left.
+  S.history = createRunHistory(KPI_DEFS.length);
+  S.historySample = new Float64Array(KPI_DEFS.length);
+  const toggleTrend = (key) => {
+    if (!key || S.trend.openKey === key) S.trend.close();
+    else S.trend.open(key);
+    S.kpis.setExpanded(S.trend.openKey);
+  };
+  S.toggleTrend = toggleTrend;
+  S.kpis = createKpis($('#kpis'), tip, { onSelect: toggleTrend });
+  S.trend = createTrendPanel($('#trend'), {
+    defs: KPI_DEFS,
+    history: S.history,
+    sampleTicks: SAMPLE_EVERY_TICKS,
+    getStats: () => S.lastStats,
+    getCfg: () => S.cfg,
+    onClose: () => toggleTrend(null),
+  });
   S.feed = createFeed($('#feed'), $('#phoneLatest'), {
     colors: S.colors,
     onLocate: (x, y) => {
@@ -496,7 +518,8 @@ function onKey(e) {
       break;
     }
     case 'Escape':
-      if (S.inspector.open) $('#inspBack').click();
+      if (S.trend.openKey) S.toggleTrend(null);
+      else if (S.inspector.open) $('#inspBack').click();
       else if ($('#app').classList.contains('sheet-open')) openSheet(false);
       else if (S.creatures.highlighted > -2) toggleSpeciesHighlight(S.creatures.highlighted);
       S.tip.hide();
@@ -642,6 +665,13 @@ function sample(now) {
   S.lastSampleTick = s.tick;
   S.colors.update(s.species.filter((x) => x.established), now);
   S.kpis.push(s, S.cfg);
+  // Tick 0 has no measured statistics yet (they are all zero), so history starts
+  // with the first real tick.
+  if (s.tick > 0) {
+    for (let k = 0; k < KPI_DEFS.length; k++) S.historySample[k] = KPI_DEFS[k].get(s);
+    S.history.push(s.tick, S.historySample, s.active_droughts);
+    S.trend.update();
+  }
   S.kpis.setSwatches($('#chipSwatches'), s.species, S.colors);
   const dt = S.sim.droughts();
   const droughts = [];
