@@ -53,3 +53,32 @@ node web/demo/tests/conformance.mjs target/wasm32-unknown-unknown/release/sim_wa
 ```
 
 The two commands print the same lines when the native and WASM builds follow the same trajectory; CI fails if they differ. Measured identical on 2026-11-15 through tick 20,000 for macOS (aarch64, parallel), Raspberry Pi 5 Linux (aarch64) and WASM (wasm32, single-threaded). Before that date they differed after one tick, because of platform maths functions and pointer-width random draws; see `crates/sim-core/src/math.rs`.
+
+## Isolated delayed-cue instrument
+
+```bash
+cargo run -p sim-runner --release -- delayed-cue --blank-delay 5
+```
+
+This seconds-scale check prints one JSON result to stdout and returns nonzero
+if its fixed controls fail. It runs no ecosystem and does not load a config or
+exported genomes. It validates a synthetic cue-persistence instrument; it is
+not evidence of evolved cognition, learning, UAL, or a fitness advantage.
+
+The brain receives exactly one synthetic input. Each of two balanced trials
+presents a cue (-1 or +1) for one tick, then `--blank-delay` all-zero blank ticks
+(0–10,000), then one all-zero probe tick. The probe is identical in both
+conditions, including when the blank delay is zero; it carries no cue, clock or
+probe indicator. All state is reset before every trial. Turn is read only at
+the probe; a nonnegative response predicts +1, with this fixed tie rule making
+a constant-zero response score 50% on the balanced pair.
+
+The hand-built positive control has seven outputs, no hidden nodes, a weight-2
+edge from cue input node 1 to turn output node 2, and a weight-2 recurrent
+self-loop on turn. It should score 100%. Removing the self-loop gives the
+feed-forward control. Clearing state before every tick of the intact network
+gives the second control, preserving its wiring; both should score 50%.
+The JSON records individual cue/probe responses, predictions, scores and
+protocol fields. These deterministic trials are not statistical replicates.
+There is no time-dependent decision or learned association: the reference
+simply retains either cue's sign through the blank interval.

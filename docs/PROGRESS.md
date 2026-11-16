@@ -16,6 +16,10 @@
 - Exploratory ecology: selected-rate population rose 870.16→913.92 between early and late windows while connections fell 228.02→216.53; no equilibrium or adaptive-intelligence claim. Demo overlay explicitly retains cap 500 and food 0.002.
 - Pi cooled to 57.1 °C and had no active throttle at the final check. Improve cooling before another long campaign. Next implementation priority remains the delayed-response behavioural test; memory stays off by default.
 
+- Published calibration source `0da954f`, README/report/plot/data, [GitHub issue #1](https://github.com/dchavan2192/Digital-Terrarium/issues/1), and a [raw-data prerelease](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/calibration-food-2026-11-16). Its CI and Pages passed.
+- Current-engine recheck ACTIVE: `output/phase9a/validation_20261116T171843Z_28985` on Pi, pinned source `0da954f`, ten seeds 100–109 × 200k ticks at 0.008/cap 2,000. One worker/thread. Do not replace its executable or resume with another build. Separate batch-specific thermal guard added (pause 75°C/resume 65°C, 5s polling); live identity/pause/recovery checks passed. The strict completion summarizer is pinned separately under `finalization/`.
+- Independent reviewers recommend completing this baseline and the delayed-cue behavioural instrument before any sustained memory/inheritance experiment. No additional evolutionary campaign is queued. User authorizes agents and commits/pushes after completed work; preserve all artifacts.
+
 ## Active development session — 2026-11-15 (stopping-point handoff)
 
 Read [SESSION_HANDOFF_2026-11-15.md](SESSION_HANDOFF_2026-11-15.md) first to resume. The local checkout was reconciled with 14 incoming commits before development; earlier local sharing/negative-damage findings were already fixed upstream.

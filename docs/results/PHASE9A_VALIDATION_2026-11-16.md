@@ -76,6 +76,16 @@ can be reproduced with:
 python3 analysis/analyze_validation_ecology.py output/pi-validation/validation_20261116T021704Z_23586 docs/results/phase9a_validation_ecology_2026-11-16.json
 ```
 
+## Public raw-data archive
+
+[GitHub calibration dataset prerelease](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/calibration-food-2026-11-16)
+contains the mirrored CSVs, configurations, manifests and operational logs.
+The archive SHA-256 is
+`9ef870756080d379b321a68c55ba4a08f9001f1b4b1f1d0bea18c8c9c5f51cb0`.
+All 90 recorded artifact hashes were checked against its contents before upload.
+Checkpoints and the pinned executable remain on the Pi. This is a calibration
+data release; it does not change scientific-evidence status.
+
 ## Provenance and reproduction
 
 - Remote batch: `/home/pi/Digital-Terrarium/output/phase9a/validation_20261116T021704Z_23586`.

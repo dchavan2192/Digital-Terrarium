@@ -8,6 +8,7 @@
 //!   cargo run -p sim-runner --release -- --config configs/default.toml --ticks 100000
 //!   cargo run -p sim-runner --release -- sweep --config configs/default.toml --param food.regrowth_rate --values 0.001,0.002,0.005,0.01 --seeds 30 --ticks 100000
 
+mod assay;
 mod run;
 mod sweep;
 
@@ -68,6 +69,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Validate a synthetic delayed-cue instrument using fixed neural controls.
+    /// Prints JSON; does not run an ecology or evaluate evolved cognition.
+    DelayedCue {
+        /// Number of all-zero blank ticks between one cue tick and one probe.
+        #[arg(long, default_value_t = 5)]
+        blank_delay: u32,
+    },
+
     /// Sweep one parameter across multiple values and seeds.
     Sweep {
         /// Path to the base TOML config file.
@@ -188,6 +197,7 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::DelayedCue { blank_delay }) => assay::delayed_cue(blank_delay),
         Some(Commands::Sweep {
             config,
             set,
