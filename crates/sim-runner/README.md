@@ -82,3 +82,52 @@ The JSON records individual cue/probe responses, predictions, scores and
 protocol fields. These deterministic trials are not statistical replicates.
 There is no time-dependent decision or learned association: the reference
 simply retains either cue's sign through the blank interval.
+
+## Synthetic cues on exported inherited genomes
+
+```bash
+sim-runner evaluate-delayed-cue --input genomes_seed100_tick200001.json \
+  --cue-channel 12 --blank-delay 5 > assay.json
+shasum -a 256 genomes_seed100_tick200001.json assay.json
+# On Linux, sha256sum accepts the same file arguments.
+```
+
+This evaluates **every record** in one `terrarium-genomes` version-1 export,
+in original order. `--cue-channel` is required and zero-based. With five vision
+rays, channel 12 is the signed heard-signal sensor (`2 * ray_count + 2`). Other
+channels are clamped to zero, including body/energy/light inputs. This is an
+artificial input intervention, not a naturally experienced environment.
+
+Each brain is freshly rebuilt from its exported genotype and snapshot methylation
+(`weight * (1 - methylation)`). Snapshot marks can include lifetime updates;
+this does not isolate inherited epigenetic state or reconstruct birth marks.
+Exported `expressed_brain` and live memory are ignored; there is no continuing
+world, learning, reproduction, energy accounting
+or within-life methylation update. Each brain receives one -1 and one +1 cue
+trial, with fresh zero state per trial, one cue tick, the chosen number of zero
+blank ticks, and one identical zero probe. Turn sign is scored with zero always
+predicting +1. The intact brain and **the same brain with state cleared before
+every tick** are evaluated separately. A feed-forward brain sees identical
+inputs at both probes and therefore scores exactly 50% on the balanced pair.
+
+JSON includes each donor ID, generation, root ancestor, recurrence count,
+individual responses and accuracies for both conditions; original donor config,
+tick/build/target; evaluator build/source metadata; exact input byte count and
+an explicitly noncryptographic FNV-1a fingerprint. Archive SHA-256 externally
+with the donor export and assay output. Cross-build genotype exports may be
+evaluated after validation; this does not relax same-build checkpoint loading.
+
+Malformed/empty exports, duplicate IDs, invalid config or genomes, mismatched
+I/O, excessive work, and non-finite responses are errors. The whole input is
+validated before evaluation, and stdout receives no partial report on failure.
+Limits: 64 MiB input, 1–2,000 records (also within the donor cap), at most 4,096
+genes per genome and 64 total brain slots, delay 0–10,000, at most 1,000,000
+forward passes and 100,000,000 gene-steps. Excessive work is rejected rather
+than silently selecting a subset. Reduce delay rather than selecting winners.
+
+These deterministic scores show a response to a specified synthetic clamp.
+They do not establish a learned association, ecological benefit, or evolved
+cognition. Genomes from one donor population and the two cue trials are not
+independent evolutionary replicates; no best-performing genome is selected.
+A low score on this fixed input channel and turn readout does not rule out
+memory encoded through other inputs, outputs or natural behaviour.

@@ -134,7 +134,8 @@ pub struct HiddenNode {
     pub depth: f64,
 }
 
-/// Maximum connections per genome (prevents unbounded growth).
+/// Threshold that stops add-edge mutations. Dense founders and node-splitting
+/// mutations may exceed it; it is not an absolute genome storage limit.
 pub const MAX_CONNECTIONS: usize = 512;
 
 /// The complete heritable state of a creature.
@@ -182,6 +183,18 @@ pub struct Genome {
 }
 
 impl Genome {
+    /// Check externally loaded heritable state before building its brain.
+    ///
+    /// This uses the same structural, numeric and trait checks as checkpoints.
+    /// Historical node ids may exceed the local activation-buffer capacity;
+    /// only the number of nodes held at once is constrained. The caller must
+    /// separately check that I/O counts match its intended sensor/action layout.
+    /// Validation is read-only and does not repair, sort or otherwise change a
+    /// genome. Untrusted genomes must pass this check before [`Self::build_brain`].
+    pub fn validate(&self) -> Result<(), crate::checkpoint::CheckpointError> {
+        crate::checkpoint::validate_genome(self)
+    }
+
     /// Create a random genome with fully-connected initial topology.
     ///
     /// Initial network: bias + all inputs → all hidden → all outputs, plus bias → outputs.

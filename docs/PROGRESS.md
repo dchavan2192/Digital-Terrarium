@@ -6,6 +6,14 @@
 
 ---
 
+## Development continuation — exported-genome behavioural evaluation (2026-11-16)
+
+- Added `sim-runner evaluate-delayed-cue --input FILE --cue-channel INDEX --blank-delay N`: evaluates every exported genome against the same network with state cleared each tick, using fresh trial state and identical probe inputs. Genetic weights and frozen snapshot methylation are rebuilt; expressed brains and live memory are ignored. Results carry donor/evaluator provenance and all individual responses. This is a synthetic clamp, not a fitness or learned-cognition assay.
+- `Genome::validate()` shares the checkpoint validator; crafted dimension overflows now return errors before brain construction. Existing valid topologies remain accepted; 512 is an add-edge threshold, not a universal storage limit. Bounds and finite-response checks prevent partial or oversized evaluation work.
+- Independent code review passed. Full workspace: 142 Rust tests; all-target Clippy/format, 10 JS tests and 10 thermal policy tests pass. Thermal tests are now in CI.
+- [Pre-execution negative-control plan](results/EXPORTED_GENOME_ASSAY_PLAN_2026-11-16.md) chooses all 898 living genomes from seed100 at tick200,001. The original 200k run is untouched; its pinned binary resumed one tick into `output/exported_assay_donor_20261116T212115Z`. Actual negative-control evaluation follows the saved implementation revision.
+- Latest Pi check: four recheck runs complete, seed104 active; thermal guard functioning, finalizer waiting, no active hardware throttling. No other sustained experiment was launched. The owner dropped the separate permissions-configuration task; its unused template remains inert.
+
 ## Continuation — 2026-11-16, validation completed
 
 - Claude Code's latest source is `89e0992`: recurrent memory implemented and off by default. Existing cloud/Pi validation used its preserved older build; no active executable was replaced.
@@ -22,7 +30,7 @@
 
 - Delayed-cue instrument now implemented: `sim-runner delayed-cue --blank-delay N`. Pi source `d35dd2c` passed all controls at delays 0,1,5,20,100. [Report](results/DELAYED_CUE_INSTRUMENT_2026-11-16.md) and actual responses registered as an implementation check; exported-genome behavioural evaluation remains next. Full Rust suite 129 tests, 10 thermal tests and all-target Clippy pass.
 - At 19:07 UTC the current recheck had completed seeds100 and101, with seed102 running. The guard was monitoring near73°C and had performed real 75°C/65°C cooling cycles. No active hardware throttling at the follow-up check. Finalizer status remains waiting; no partial acceptance claim. Pi and local native instrument JSON match at all five delays. Source d35dd2c CI and Pages passed.
-- Owner requested project-only files plus internet/GitHub without prompts. Prepared [permission template](CODEX_PROJECT_PERMISSIONS.md); it is NOT active and cannot replace this session's managed policy. Host-side activation and boundary verification are still required. No global configuration was changed.
+- Owner previously requested project-only files plus internet/GitHub without prompts; on returning, explicitly dropped that configuration task and requested normal development. Prepared [permission template](CODEX_PROJECT_PERMISSIONS.md); it is NOT active and cannot replace this session's managed policy. Host-side activation and boundary verification are still required. No global configuration was changed.
 
 ## Active development session — 2026-11-15 (stopping-point handoff)
 

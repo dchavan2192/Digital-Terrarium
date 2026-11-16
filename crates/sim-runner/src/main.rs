@@ -9,6 +9,7 @@
 //!   cargo run -p sim-runner --release -- sweep --config configs/default.toml --param food.regrowth_rate --values 0.001,0.002,0.005,0.01 --seeds 30 --ticks 100000
 
 mod assay;
+mod exported_assay;
 mod run;
 mod sweep;
 
@@ -69,6 +70,19 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Clamp synthetic delayed cues into every inherited genome of one export.
+    /// Prints JSON; scores do not establish learning or ecological usefulness.
+    EvaluateDelayedCue {
+        /// A terrarium-genomes version 1 JSON export, evaluated in full.
+        #[arg(long)]
+        input: PathBuf,
+        /// Zero-based input channel receiving the signed synthetic cue.
+        #[arg(long)]
+        cue_channel: usize,
+        /// Number of all-zero blank ticks before one identical all-zero probe.
+        #[arg(long, default_value_t = 5)]
+        blank_delay: u32,
+    },
     /// Validate a synthetic delayed-cue instrument using fixed neural controls.
     /// Prints JSON; does not run an ecology or evaluate evolved cognition.
     DelayedCue {
@@ -197,6 +211,11 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::EvaluateDelayedCue {
+            input,
+            cue_channel,
+            blank_delay,
+        }) => exported_assay::run(&input, cue_channel, blank_delay),
         Some(Commands::DelayedCue { blank_delay }) => assay::delayed_cue(blank_delay),
         Some(Commands::Sweep {
             config,

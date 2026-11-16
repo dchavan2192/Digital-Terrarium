@@ -421,11 +421,20 @@ fn validate(sim: &Simulation) -> Result<(), CheckpointError> {
 }
 
 pub(crate) fn validate_genome(g: &Genome) -> Result<(), CheckpointError> {
-    let fixed = g.num_inputs + g.num_outputs; // highest fixed node id
+    // Deserialized counts are untrusted usize values. Check all fixed dimensions
+    // before arithmetic or helpers such as max_hidden_nodes/slot_of can overflow.
+    let fixed = g
+        .num_inputs
+        .checked_add(g.num_outputs)
+        .filter(|n| *n < MAX_NODES)
+        .ok_or_else(|| invalid("genome dimensions exceed capacity"))?;
     if g.num_inputs == 0
+        || g.num_inputs > crate::brain::MAX_INPUTS
         || g.num_outputs != crate::config::NUM_BRAIN_OUTPUTS
-        || fixed + 1 > MAX_NODES
-        || g.hidden_nodes.len() > g.max_hidden_nodes()
+        || g.num_outputs > crate::brain::MAX_OUTPUTS
+        || g.hidden_nodes.len() > MAX_NODES - fixed - 1
+        // MAX_CONNECTIONS gates add-edge mutation, but founders and node splits
+        // may legally exceed it. Retain the checkpoint's safe storage bound.
         || g.connections.len() > MAX_NODES * MAX_NODES
     {
         return Err(invalid("genome dimensions exceed capacity"));
