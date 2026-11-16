@@ -2,9 +2,19 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-15
+**Last updated**: 2026-11-16
 
 ---
+
+## Continuation — 2026-11-16, validation completed
+
+- Claude Code's latest source is `89e0992`: recurrent memory implemented and off by default. Existing cloud/Pi validation used its preserved older build; no active executable was replaced.
+- At 17:06 UTC the Pi batch `validation_20261116T021704Z_23586` was confirmed completed. All 30 runs survived to 200k ticks; zero cap-blocked births and no technical failures. Logs/configurations mirrored into `output/pi-validation/`.
+- Strict summary and provenance: [validation report](results/PHASE9A_VALIDATION_2026-11-16.md), [JSON with checksums](results/phase9a_validation_2026-11-16.json), result CAL-2026-11-16-FOOD-VALIDATION in RESULTS.md.
+- All rates pass; the written rule proposes 0.008. The owner subsequently approved rate 0.008 and cap 2,000; both defaults are now applied for the current-engine recheck. Calibration used cap 2,000 and predates drought RNG/node identity/memory changes; recheck the latest engine before treating it as validated for the current engine.
+- Independent review verified all 90 artifact checksums and all 30 complete 400-snapshot logs. Exploratory 95% CI for the selected rate: 884.02–943.81. README and results report publish this as calibration, not a memory or OEE result. [Current-engine recheck plan](results/CURRENT_BASELINE_RECHECK_2026-11-16.md) fixes one worker, the selected rate, seeds 100–109 and 200k ticks before launch.
+- Exploratory ecology: selected-rate population rose 870.16→913.92 between early and late windows while connections fell 228.02→216.53; no equilibrium or adaptive-intelligence claim. Demo overlay explicitly retains cap 500 and food 0.002.
+- Pi cooled to 57.1 °C and had no active throttle at the final check. Improve cooling before another long campaign. Next implementation priority remains the delayed-response behavioural test; memory stays off by default.
 
 ## Active development session — 2026-11-15 (stopping-point handoff)
 

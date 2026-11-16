@@ -14,7 +14,7 @@ A continuous 2D toroidal world contains algae, fruit, biomes, seasons, droughts,
 
 - **Energy economics:** food supplies energy; movement, neural processing, maintenance, and construction spend it. Feeding reduces movement speed by a configurable factor.
 - **Predation and sharing:** attacks transfer a fraction of prey energy. Sharing transfers energy with configurable efficiency at most 1; it cannot amplify energy.
-- **Evolution:** weights, connections, hidden nodes, and body traits mutate. Sexual reproduction combines matching genes, with asexual fallback. Historical node identity remains an open crossover issue.
+- **Evolution:** weights, connections, hidden nodes, and body traits mutate. Sexual reproduction combines matching genes using population-wide historical node identity, with asexual fallback. Recurrent connections are implemented and off by default.
 - **Environmental modification:** construction changes local food regrowth and decays over time.
 - **Epigenetic state:** low reserves increase connection methylation, suppressing effective weights; marks can be inherited and later decay. Whether this is adaptive is an experimental question.
 - **Observation:** the web viewer provides an inspector, neural graph, data layers, and event feed. The headless runner records statistics across seeds and parameter settings.
@@ -29,6 +29,8 @@ In particular, the earlier “87% cooperation” and logarithmic activity-growth
 
 The [results register](docs/RESULTS.md) defines the evidence required before a numerical claim enters this README. Historical material remains in [experiment findings](docs/EXPERIMENT_FINDINGS.md), [progress history](docs/PROGRESS.md), and Git history. The browser demo uses a presentation configuration; it is not an experimental control.
 
+**Held-out engineering calibration:** all 30 runs across three food-regrowth rates survived 200,000 ticks with zero cap-blocked births. The predefined rule selected regrowth **0.008**, with mean late population **914** across ten runs (exploratory 95% CI: 884–944). The owner approved 0.008 and a population cap of 2,000 as the baseline for a current-engine recheck. These results characterize pinned source `2b1c837`, before recent engine changes; they do not establish memory benefits or current-engine equilibrium. [Report, plot and reproducible data](docs/results/PHASE9A_VALIDATION_2026-11-16.md).
+
 ## Architecture
 
 ```text
@@ -40,7 +42,7 @@ web/demo    Three.js visualization and HTML/CSS interface
 analysis    Python plotting and experiment analysis
 ```
 
-Seeded randomness supports repeatability for the same code, configuration, build environment, and execution mode. Bitwise agreement across Mac, Pi, and browser has not been established. The same seed across feature ablations also does not guarantee identical drought schedules while environment and organism events share a random stream.
+Complete-state agreement has been measured across macOS, Pi and WASM for selected configurations and seeds, with Linux/WASM comparisons in CI. See [the portability check](docs/RESULTS.md#registered-implementation-check-chk-2026-11-15-portability) for its scope. Droughts now use an independent random stream; `food.droughts.schedule_seed` can replay an environment across world seeds. Checkpoint continuation requires the build that wrote it.
 
 ## Quickstart
 
@@ -82,7 +84,7 @@ Plotting requires a Python environment with matplotlib, pandas, and scipy. Gener
 
 Start with [default.toml](configs/default.toml), or the separate [demo.toml](configs/demo.toml). Important controls include food regrowth, neural structure/activity costs, reproduction investment, transfer efficiency, construction cost, and environmental variability. The defaults are modeling choices undergoing calibration, not measured biological constants.
 
-The staged plan is to validate energy accounting and mechanism effects, establish a food-limited baseline, add persistence and evaluation, and then test mechanisms individually before studying interactions. Memory and lifetime learning are future work. Informative null results count as progress.
+The staged plan is to validate energy accounting and mechanism effects, establish a food-limited baseline, add persistence and evaluation, and then test mechanisms individually before studying interactions. Memory is implemented and off by default; behavioural evaluation and lifetime learning remain future work. Informative null results count as progress.
 
 Primary methods and prior art include [NEAT](https://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf), [Polyworld's selection-versus-drift comparison](https://arxiv.org/html/1112.4906), [MODES metric definitions](https://doi.org/10.1162/artl_a_00280), and the [ODD model-description protocol](https://www.jasss.org/23/2/7.html). See the [prior-art review](docs/research/PRIOR_ART.md) for boundaries on novelty claims and the [scientific council](docs/research/SCIENCE_COUNCIL_2026-11-15.md) for design decisions and unresolved alternatives.
 

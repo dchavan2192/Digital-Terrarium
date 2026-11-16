@@ -14,8 +14,10 @@
 # sim-runner with default.toml and these values changed.
 
 [food]
-regrowth_rate = 0.002   # default 0.0005: the default world holds only a few dozen creatures; this one
-                        # holds a few hundred, so there is something to watch (checked 2026-11-15)
+regrowth_rate = 0.002   # Separate watchability tuning (checked 2026-11-15); experimental baseline is 0.008
+
+[creature]
+hard_cap = 500         # Preserve the browser population ceiling while experimental defaults are rechecked
 
 [food.seasons]
 period = 3600.0         # default 10000: one season cycle ~1 min at 60 ticks/s

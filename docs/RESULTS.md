@@ -1,6 +1,6 @@
 # Results register
 
-Updated: 2026-11-15. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
+Updated: 2026-11-16. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
 
 ## Established scientific results for the corrected current model
 
@@ -49,6 +49,10 @@ Not a scientific result. Question: do different platforms follow the same trajec
 | WASM, wasm32, single thread, node 22 | release | `11ea33d408844888` |
 
 Configuration: `configs/default.toml`, seed 42. Commands are in [the runner README](../crates/sim-runner/README.md). The Pi was built from a copy of the working tree before the commit that contains this entry. Limits: one configuration and seed; x86-64 Linux is checked by CI, not recorded here; equality is measured, not proven for all inputs. Checkpoint files remain same-build only.
+
+## Registered calibration: CAL-2026-11-16-FOOD-VALIDATION
+
+[Held-out validation report](results/PHASE9A_VALIDATION_2026-11-16.md): 30/30 runs survived 200,000 ticks, with zero cap-blocked births. Rates 0.008, 0.010 and 0.012 all passed the predefined criteria; mean late populations across ten seeds were 913.92, 1067.22 and 1207.46 respectively (see JSON for full precision). The smallest acceptable rate, **0.008**, was approved by the owner together with cap 2,000 and applied to the defaults; current-engine revalidation is pending. Source `2b1c837`, pinned build `fab6214c28cf0b6d`, seeds 100–109, cap 2,000. This predates independent drought RNG, node identity fixes and memory; current-engine validation remains necessary. Full provenance, limitations, artifact checksums and reproduction command are in the report and linked JSON.
 
 ## Calibration observations awaiting registration
 

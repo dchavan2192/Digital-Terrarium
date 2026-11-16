@@ -150,7 +150,7 @@ All in `configs/default.toml`. Key ones:
 
 | Path | Default | Purpose |
 |------|---------|---------|
-| `food.regrowth_rate` | 0.0005 | Food scarcity — the main experimental lever |
+| `food.regrowth_rate` | 0.008 | Owner-approved food baseline; current-engine recheck pending |
 | `food.energy_per_food` | 15.0 | Energy per food cell (halved from 30 to enable predation) |
 | `food.droughts.spawn_rate` | 0.0002 | ~1 drought per 5000 ticks |
 | `food.droughts.severity` | 0.05 | Regrowth drops to 5% in drought zones |
@@ -163,7 +163,7 @@ All in `configs/default.toml`. Key ones:
 | `reproduction.threshold` | 60 | Energy needed to reproduce |
 | `reproduction.sexual` | true | NEAT crossover with a nearby mate |
 | `reproduction.mate_cost` | 30 (= parent_cost) | Mate's cost per sexual birth — twofold cost of sex |
-| `creature.hard_cap` | 500 | Max living creatures |
+| `creature.hard_cap` | 2000 | Ceiling for the calibrated food-limited baseline; current-engine recheck pending |
 | `creature.feeding_speed_factor` | 0.5 | Speed multiplier in feeding mode (handling vs searching, Holling 1959) |
 | `combat.idle_attack_cost` | 0.0 | Cost of attacking with no target in range (5 = old rule) |
 | `mutation.prune_probability` | 0.02 | Balanced against add rates (0.04 = old shrink bias) |
