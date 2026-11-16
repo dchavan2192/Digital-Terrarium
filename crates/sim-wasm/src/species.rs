@@ -6,17 +6,25 @@
 //! per-organism assignment. A front end needs ids that persist so a species keeps
 //! its colour. This tracker re-clusters with the *same distance function and the
 //! same threshold sim-core used this tick* (`TickStats::speciation_threshold`),
-//! but with persistent representatives and membership hysteresis:
+//! but as a record of lineages splitting, not a fresh partition every update:
 //!
-//! 1. Each organism first tries the species it (or, for newborns, its parent)
-//!    belonged to last update. Most organisms need exactly one distance call.
-//! 2. Otherwise it joins the oldest species whose representative is within the
-//!    threshold, or founds a new species whose parent is its parent's species.
-//! 3. A representative is kept until the organism it was copied from dies; it is
-//!    then replaced by the oldest (lowest-id) member, so it drifts with the clade.
+//! 1. A creature's species is decided once, at birth, and kept for life. Genomes
+//!    do not change during a lifetime, so there is nothing to re-test.
+//! 2. A newborn joins its parent's species if its genome is within the threshold
+//!    of that species' founding genome. Otherwise it joins the nearest other
+//!    species within the threshold, or founds a new species descended from its
+//!    parent's.
+//! 3. A species' reference is the genome of its founder and never changes. A
+//!    lineage that drifts far enough from it therefore founds a successor species.
 //!
-//! Counts can differ slightly from `TickStats::species_count` (different
-//! representatives). Observation only: no RNG, no mutation of the simulation.
+//! The first version re-tested every creature on every update against a threshold
+//! that moves each tick, and replaced the reference whenever the reference
+//! creature died. Creatures near a boundary kept flipping, which produced about
+//! one "new species"/"extinct" announcement every 120 ticks (measured 2026-11-16).
+//!
+//! Counts can differ from `TickStats::species_count`, which is a fresh partition
+//! of the current population. Observation only: no RNG, no mutation of the
+//! simulation.
 
 use serde::Serialize;
 use sim_core::genome::Genome;
@@ -24,8 +32,13 @@ use sim_core::organism::{Organism, OrganismId};
 
 /// Time constant (ticks) of the population EMA used for `trend`. Presentation only.
 pub const TREND_TAU_TICKS: f64 = 500.0;
-/// Default population at which a species is "established" and announced.
+/// Smallest population at which a species can be "established" and announced.
 pub const DEFAULT_MIN_ANNOUNCE: usize = 5;
+/// A species is announced only once it also holds this share of all living
+/// creatures. Five members is under 2% of a 300-creature world: announcing every
+/// such twig filled the event feed with births and extinctions of lineages that
+/// never mattered. Presentation only; sim-core's species statistics are unaffected.
+pub const DEFAULT_ANNOUNCE_SHARE: f64 = 0.05;
 
 /// One tracked species. Serialized into the species list JSON.
 #[derive(Debug, Clone, Serialize)]
@@ -47,14 +60,9 @@ pub struct TrackedSpecies {
     pub predator_fraction: f64,
     /// (population - EMA) / EMA, EMA time constant [`TREND_TAU_TICKS`].
     pub trend: f64,
+    /// Genome of the founder; fixed for the life of the species.
     #[serde(skip)]
     rep: Genome,
-    #[serde(skip)]
-    rep_org: OrganismId,
-    #[serde(skip)]
-    rep_alive: bool,
-    #[serde(skip)]
-    oldest_member: Option<usize>,
     #[serde(skip)]
     ema: f64,
     #[serde(skip)]
@@ -86,6 +94,8 @@ pub struct SpeciesTracker {
     /// Stable species id per organism index (aligned with `sim.organisms`).
     pub assignment: Vec<u32>,
     pub min_announce: usize,
+    /// Share of the living population a species must reach to be announced.
+    pub announce_share: f64,
     last_tick: Option<u64>,
 }
 
@@ -103,14 +113,16 @@ impl SpeciesTracker {
             prev: Vec::new(),
             assignment: Vec::new(),
             min_announce: DEFAULT_MIN_ANNOUNCE,
+            announce_share: DEFAULT_ANNOUNCE_SHARE,
             last_tick: None,
         }
     }
 
     pub fn clear(&mut self) {
-        let min = self.min_announce;
+        let (min, share) = (self.min_announce, self.announce_share);
         *self = Self::new();
         self.min_announce = min;
+        self.announce_share = share;
     }
 
     /// Previous-update species of an organism id (works for organisms that have
@@ -146,8 +158,6 @@ impl SpeciesTracker {
 
         for s in &mut self.species {
             s.population = 0;
-            s.rep_alive = false;
-            s.oldest_member = None;
             s.mean_energy = 0.0;
             s.mean_body_size = 0.0;
             s.mean_connections = 0.0;
@@ -165,18 +175,27 @@ impl SpeciesTracker {
             let k = k as usize;
             let o = &orgs[k];
             let g = &o.genome;
-            let hint = self
-                .species_of_id(o.id)
-                .or_else(|| o.parent_id.and_then(|p| self.species_of_id(p)));
-
-            let mut slot = hint
-                .and_then(|sid| self.slot_of(sid))
-                .filter(|&si| g.genome_distance(&self.species[si].rep) < threshold);
+            // Known creature: its species was decided at birth.
+            let mut slot = self.species_of_id(o.id).and_then(|sid| self.slot_of(sid));
             if slot.is_none() {
-                slot = self
-                    .species
-                    .iter()
-                    .position(|s| g.genome_distance(&s.rep) < threshold);
+                // Newborn (or the very first update): the parent's species, if the
+                // child is still within the threshold of its founding genome.
+                slot = o
+                    .parent_id
+                    .and_then(|p| self.species_of_id(p))
+                    .and_then(|sid| self.slot_of(sid))
+                    .filter(|&si| g.genome_distance(&self.species[si].rep) < threshold);
+            }
+            if slot.is_none() {
+                // Otherwise the nearest species within the threshold, if any.
+                let mut best: Option<(usize, f64)> = None;
+                for (si, sp) in self.species.iter().enumerate() {
+                    let d = g.genome_distance(&sp.rep);
+                    if d < threshold && best.is_none_or(|(_, bd)| d < bd) {
+                        best = Some((si, d));
+                    }
+                }
+                slot = best.map(|(si, _)| si);
             }
             let si = match slot {
                 Some(si) => si,
@@ -201,9 +220,6 @@ impl SpeciesTracker {
                         predator_fraction: 0.0,
                         trend: 0.0,
                         rep: g.clone(),
-                        rep_org: o.id,
-                        rep_alive: false,
-                        oldest_member: None,
                         ema: 0.0,
                         hue_x: 0.0,
                         hue_y: 0.0,
@@ -215,12 +231,6 @@ impl SpeciesTracker {
             let s = &mut self.species[si];
             self.assignment[k] = s.stable_id;
             s.population += 1;
-            if s.oldest_member.is_none() {
-                s.oldest_member = Some(k);
-            }
-            if s.rep_org == o.id {
-                s.rep_alive = true;
-            }
             let total = o.energy_from_food + o.energy_from_attacks;
             let pred = if total > 0.0 {
                 o.energy_from_attacks / total
@@ -248,6 +258,9 @@ impl SpeciesTracker {
         } else {
             1.0
         };
+        let announce_at = self
+            .min_announce
+            .max((self.announce_share * orgs.len() as f64).ceil() as usize);
         for s in &mut self.species {
             if s.population == 0 {
                 continue;
@@ -272,13 +285,7 @@ impl SpeciesTracker {
             } else {
                 0.0
             };
-            if !s.rep_alive
-                && let Some(k) = s.oldest_member
-            {
-                s.rep = orgs[k].genome.clone();
-                s.rep_org = orgs[k].id;
-            }
-            if !s.established && s.population >= self.min_announce {
+            if !s.established && s.population >= announce_at {
                 s.established = true;
                 emit(SpeciesChange::Born {
                     species: s.stable_id,
@@ -311,5 +318,83 @@ impl SpeciesTracker {
     /// Number of species that have reached `min_announce` members and are alive.
     pub fn established_count(&self) -> usize {
         self.species.iter().filter(|s| s.established).count()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sim_core::{Config, Simulation};
+
+    fn population() -> Simulation {
+        let config = Config::parse(include_str!("../../../configs/default.toml")).unwrap();
+        Simulation::new(config)
+    }
+
+    fn order(sim: &Simulation) -> Vec<u32> {
+        // Founders are created in ascending id order.
+        (0..sim.organisms.len() as u32).collect()
+    }
+
+    fn update(
+        t: &mut SpeciesTracker,
+        sim: &Simulation,
+        threshold: f64,
+        tick: u64,
+    ) -> (usize, usize) {
+        let (mut born, mut extinct) = (0, 0);
+        t.update(&sim.organisms, &order(sim), threshold, tick, |c| match c {
+            SpeciesChange::Born { .. } => born += 1,
+            SpeciesChange::Extinct { .. } => extinct += 1,
+        });
+        (born, extinct)
+    }
+
+    #[test]
+    fn a_creature_keeps_its_species_for_life() {
+        let sim = population();
+        let mut t = SpeciesTracker::new();
+        // A huge threshold puts every founder in one species.
+        assert_eq!(update(&mut t, &sim, 1e9, 0), (1, 0));
+        assert_eq!(t.species.len(), 1);
+        let first = t.assignment.clone();
+        // A threshold of zero would split everyone apart if creatures were
+        // re-tested. They are not: nothing is born, nothing goes extinct.
+        assert_eq!(update(&mut t, &sim, 0.0, 1), (0, 0));
+        assert_eq!(t.assignment, first);
+        assert_eq!(t.species.len(), 1);
+    }
+
+    #[test]
+    fn small_lineages_are_tracked_but_not_announced() {
+        let sim = population();
+        let n = sim.organisms.len();
+        let mut t = SpeciesTracker::new();
+        // Threshold zero: every founder is its own one-member species.
+        let (born, extinct) = update(&mut t, &sim, 0.0, 0);
+        assert_eq!(
+            (born, extinct),
+            (0, 0),
+            "single-member species are not news"
+        );
+        assert_eq!(t.species.len(), n);
+        assert_eq!(t.established_count(), 0);
+        assert!(t.assignment.iter().all(|&s| s != u32::MAX));
+    }
+
+    #[test]
+    fn announcement_needs_a_share_of_the_population() {
+        let sim = population();
+        let n = sim.organisms.len();
+        let mut t = SpeciesTracker::new();
+        t.announce_share = 2.0; // more than everyone: can never be reached
+        assert_eq!(update(&mut t, &sim, 1e9, 0), (0, 0));
+        assert_eq!(t.established_count(), 0);
+        // Lower the bar to 5% and the one big species is announced exactly once.
+        t.announce_share = DEFAULT_ANNOUNCE_SHARE;
+        assert!(n >= 20, "5% of the population must exceed one creature");
+        assert_eq!(update(&mut t, &sim, 1e9, 1), (1, 0));
+        assert_eq!(update(&mut t, &sim, 1e9, 2), (0, 0));
+        assert_eq!(t.established_count(), 1);
     }
 }

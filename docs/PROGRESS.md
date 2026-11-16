@@ -68,6 +68,17 @@ Reviewed the handoff's code (energy ledger, checkpoints, runner provenance, mech
 - **Checkpoint format is version 3.** Mac and WASM still match through tick 12,000.
 - **Not done:** the equal-fitness rule, a cross-check against a reference NEAT library, and raising `MAX_NODES` (roadmap 2.2).
 
+### Species tracking in the demo (2026-11-16)
+
+Presentation layer only (`crates/sim-wasm/src/species.rs`); sim-core's species statistics are unchanged.
+
+- **Measured before:** 30 species announced as born and 20 as extinct in the first 6,000 ticks of the demo world (seed 42), about one every 120 ticks.
+- **First hypothesis, mostly wrong:** that creatures were flipping between species because every creature was re-tested each update against a threshold that moves each tick, and because a species' reference genome was replaced whenever the reference creature died. Fixing that (species decided once at birth, fixed founding genome) only reduced the count to 25 and 18. Most of the turnover is real under the current definition: the threshold is 0.75 × the mean genome distance, so lineages keep drifting past it.
+- **Second cause, the larger one:** a species was announced at 5 members, under 2% of the population. It is now announced only when it also holds 5% of the living population.
+- **Measured after both:** 12 born and 6 extinct in the first 6,000 ticks (seed 42); over 16,000 ticks, 23 and 16 for seed 42, 38 and 34 for seed 7. At steady state that is one species event every 250–500 ticks.
+- The lifetime-membership change is kept because it is the cleaner meaning (a creature never changes species or colour mid-life), not because it fixed the churn.
+- Three unit tests cover lifetime membership, unannounced small lineages and the share rule.
+
 ### Requested for future development (owner, 2026-11-16)
 
 - [ ] **Expandable analysis tiles in the demo.** Clicking any headline tile at the top (creatures alive, species, brain size, cooperation, food chain) should expand it into a larger chart of that measure over time, so a viewer can see the pattern. The time window should change dynamically (follow the run as it advances, and let the viewer widen or narrow it). Fits the deferred "Charts tab" in `docs/research/DEMO_UX_DESIGN.md`; drought and season bands on the time axis would make the patterns readable. Needs a longer per-tile history buffer than the current sparkline keeps.
@@ -195,7 +206,7 @@ Checked with real screenshots (desktop first view, after 5k ticks, map view, pho
 - [x] Deploy workflow runs the test suite before building, and stamps `version.json`; the demo header shows the commit it was built from.
 - [ ] The tour card overlaps the Food legend on first view.
 - [ ] The "Colour = species" chip is clipped at the right edge at 1440 px.
-- [ ] The feed is dominated by species churn ("Sp. 54" by day 6). The species tracker in `sim-wasm` splits too eagerly.
+- [x] The feed was dominated by species churn ("Sp. 54" by day 6). Reduced on 2026-11-16; see "Species tracking in the demo".
 - [ ] Not yet checked by eye: inspector drawer, Follow camera, the other data layers, tablet width.
 
 ### The consciousness goal

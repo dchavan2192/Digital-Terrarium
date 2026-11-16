@@ -231,7 +231,7 @@ The JSON is an array ordered by `stable_id`; sort it client-side. Each entry:
  "trend": 0.12 /* (pop − EMA)/EMA, EMA τ = 500 ticks */}
 ```
 
-`established` turns true once the species reaches `min_announce` members, which is also when `species_born` fires. Set the threshold with `tr_species_set_min_announce(n: u32)` (default 5). This suppresses one-off mutant flicker. Colour slot suggestion: `stable_id % palette.length`, or `mean_hue`.
+`established` turns true once the species reaches both `min_announce` members (default 5, set with `tr_species_set_min_announce(n: u32)`) and 5% of the living population, which is also when `species_born` fires. Since 2026-11-16 a creature's species is decided once, at birth, against the species' fixed founding genome; creatures are no longer re-tested on every update. This suppresses one-off mutant flicker. Colour slot suggestion: `stable_id % palette.length`, or `mean_hue`.
 
 ## 7. Events (`tr_events_json() -> len` drains the queue, `tr_events_ptr()`)
 
