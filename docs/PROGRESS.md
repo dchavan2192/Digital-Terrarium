@@ -79,6 +79,13 @@ Presentation layer only (`crates/sim-wasm/src/species.rs`); sim-core's species s
 - The lifetime-membership change is kept because it is the cleaner meaning (a creature never changes species or colour mid-life), not because it fixed the churn.
 - Three unit tests cover lifetime membership, unannounced small lineages and the share rule.
 
+### Where things stand at the end of the 2026-11-16 session
+
+- Read `docs/SESSION_HANDOFF_2026-11-15.md`, last section, to resume.
+- Pi validation batch at last check: `2026-11-16T14:53Z status=running done=25 failed=0 procs=2`. The summariser and the steps to take when it finishes are in the handoff.
+- Memory (recurrent connections) was requested and is designed but not implemented: `docs/research/MEMORY_DESIGN.md`.
+- All 116 Rust tests and 10 demo tests passed at commit `389368f`.
+
 ### Requested for future development (owner, 2026-11-16)
 
 - [x] **Expandable analysis tiles in the demo** (built 2026-11-16).

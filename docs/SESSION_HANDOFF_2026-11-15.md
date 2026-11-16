@@ -66,3 +66,26 @@ Read the two newest sections of PROGRESS.md ("Cross-platform determinism" and "H
 - Local `main` is ahead of `origin/main`; the owner must push.
 - Item 4 done on 2026-11-16: population-wide node identity (`genome::Innovations`), no lifetime neuron cap. Recurrence can now be built on it.
 - Items 5–6 unchanged.
+
+## Update — 2026-11-16, end of session (read this first)
+
+The session stopped because the usage limit was near. Everything below is committed; the last commit may still need pushing by the owner (`git push origin main`; the agent's own push is blocked).
+
+**Pi, at last check:** `2026-11-16T14:53Z status=running done=25 failed=0 procs=2`. Batch `output/phase9a/validation_20261116T021704Z_23586`. Do not pull, rebuild or launch anything else on the Pi until its `status` file reads `completed`. It has been at its temperature limit (about 83–85 °C) for most of the run.
+
+**When the batch finishes, in this order:**
+1. Mirror the logs (CSV, manifests, settings; not the checkpoints) into `output/pi-validation/`, as the rsync command in PROGRESS history shows.
+2. `python3 analysis/summarize_validation.py output/pi-validation/validation_20261116T021704Z_23586 docs/results/phase9a_validation_2026-11-16.json`. It refuses an unfinished batch and applies the criteria fixed in `docs/results/PHASE9A_VALIDATION_PLAN.md`.
+3. Write `docs/results/PHASE9A_VALIDATION_2026-11-16.md`, register the outcome in `docs/RESULTS.md`, and ask the owner before changing `food.regrowth_rate` in `configs/default.toml`.
+4. Note in the report that the batch ran on commit `2b1c837`, before droughts got their own random stream and before node identity changed. That is acceptable for a calibration of average behaviour.
+
+**Done this session, all committed:**
+- Cross-platform determinism measured and fixed (`sim_core::math`); CI compares Linux with WASM.
+- Checkpointed Pi batches with a pinned executable; validation plan and summariser.
+- Droughts on their own random stream (`env_rng`, `food.droughts.schedule_seed`).
+- Population-wide node identity (`genome::Innovations`); no lifetime neuron cap. Checkpoint version 3.
+- Demo: KPI unit text fixed, species announcements at 5% of the population, expandable trend charts on the headline tiles.
+
+**In progress, NOT started in code:** memory (recurrent connections). The full design, the decisions already made and the tests to write are in `docs/research/MEMORY_DESIGN.md`. Reference states for the "off means identical" check are in `output/conformance/ref-pre-memory*/` (local, ignored by git; the design says how to regenerate them).
+
+**Open after that:** behavioural test battery before switching memory on (roadmap 2.4); the neutral shadow model; freezing the study plan in `docs/PREREG.md`; inspector and Follow-camera visual check; better Pi cooling before any longer run.
