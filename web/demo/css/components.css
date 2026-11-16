@@ -123,10 +123,12 @@
   letter-spacing: 0.06em;
   color: var(--ink-3);
 }
-.kpi-row { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
-.kpi-value { font-size: var(--fs-28); font-weight: 600; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.kpi-unit { font-size: var(--fs-12); color: var(--ink-3); white-space: nowrap; }
-.kpi-delta { font-size: var(--fs-12); color: var(--ink-3); }
+/* Number and trend arrow on one line, the unit on its own line beneath. Inline, the
+   unit ran under the sparkline at common desktop widths. */
+.kpi-row { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; min-width: 0; overflow: hidden; }
+.kpi-value { flex: none; font-size: var(--fs-28); font-weight: 600; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kpi-delta { flex: none; order: 2; font-size: var(--fs-12); color: var(--ink-3); }
+.kpi-unit { order: 3; flex: 1 0 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-12); color: var(--ink-3); white-space: nowrap; }
 .kpi-delta[data-dir="1"] { color: var(--accent-2); }
 .kpi-delta[data-dir="-1"] { color: var(--warn); }
 .spark { width: clamp(40px, 5.5vw, 100px); height: 28px; grid-row: 2; grid-column: 2; }
@@ -500,6 +502,9 @@
   .kpi-label { font-size: 10px; }
   .kpi-value { font-size: var(--fs-20); }
   .kpi-delta, .spark { display: none; }
+  /* Compact chips: unit back beside the number. */
+  .kpi-row { flex-wrap: nowrap; }
+  .kpi-unit { order: 0; flex: 0 1 auto; }
   .layers { top: auto; left: auto; right: 12px; bottom: 64px; padding: 4px; }
   .layers .vp-fab { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--ink-1); }
   .layers .vp-panel-body { display: none; }

@@ -38,6 +38,20 @@ Reviewed the handoff's code (energy ledger, checkpoints, runner provenance, mech
 - **Consequence:** trajectories changed on native builds, so earlier runs (including CAL-2026-11-15-FOOD) cannot be reproduced bit-for-bit by current code. They remain calibration observations. The WASM trajectory for a given seed did not change.
 - **Limits:** one config and one seed were compared on three targets; x86-64 is covered by CI only. Equality is measured, not proven for every input.
 
+### Held-out validation batch (launched 2026-11-16 02:17 UTC, in progress)
+
+- **Plan, fixed before data:** [PHASE9A_VALIDATION_PLAN.md](results/PHASE9A_VALIDATION_PLAN.md). Rates 0.008, 0.010, 0.012 × seeds 100–109 × 200,000 ticks, cap 2,000. Four acceptance criteria; the smallest acceptable rate becomes the proposed default, applied only with the owner's agreement.
+- **Batch on the Pi:** `~/Digital-Terrarium/output/phase9a/validation_20261116T021704Z_23586`, source `2b1c837`, pinned executable `sim-runner` and `base.toml` inside the batch. `source_dirty` is true only because of the untracked `nohup.out` and `run_overnight.sh`; the batch's `source_status` file records exactly that.
+- **How it runs:** `analysis/launch_pi_validation.sh` + `analysis/pi_validation_jobs.sh`. Two single runs at a time, one thread each, checkpoint every 50,000 ticks. Re-running the launcher with `RESUME=<batch>` skips finished jobs and resumes the rest from their latest checkpoint. Tested locally: a resumed job ends byte-identical to an uninterrupted one.
+- **Progress at 06:51 UTC:** 8 of 30 runs complete, none failed. Runs take 45–72 minutes each, so the batch needs roughly 12 more hours.
+- **Thermal:** the batch logs temperature every minute (`thermal.log`). In 275 minutes the Pi was at its soft temperature limit for 217 and actively throttled for 38, peaking at 85.6 °C, even at two threads. Results are unaffected (trajectories do not depend on clock speed), but the Pi needs better cooling before anything longer.
+- **Commits reached the Pi by git bundle**, because pushing to GitHub from the agent session was blocked. Local `main` is ahead of `origin/main` until the owner pushes. A copy of the binary that was in `target/release` before the update is kept as `output/phase9a/launch_20261115T230545Z_22098/sim-runner-2f49287`; its file time is later than the pilot launch, so it is not verified to be the pilot's executable.
+- **Next:** when the batch finishes, write the summary script (join sessions on tick), apply the plan's criteria, register the outcome in RESULTS.md.
+
+### Demo visual check (2026-11-16)
+
+Real screenshots (desktop first view, tick ~5,400, Energy tab, map view, phone) of the current build confirmed the handoff's UI changes: the tour card no longer covers the legend, the species chip is fully visible, and the Energy tab shows measured values. Fixed one remaining flaw: KPI unit text ran under the sparkline; the unit now sits on its own line and the strip is 16 px taller. Still open: species churn dominates the feed; inspector and Follow camera not yet checked by eye.
+
 No recurrence, plasticity, large factorial study or multi-day experiment started. Chrome access host remained unavailable despite connection attempts; no claim of visual browser verification. Existing historical stage lists below remain historical where this section supersedes them.
 
 ## Audit and Roadmap (Fable 5.2, 2026-11-15): read this first

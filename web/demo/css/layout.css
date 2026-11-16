@@ -24,7 +24,7 @@ a { color: var(--accent-2); }
   height: 100dvh;
   display: grid;
   grid-template-columns: 1fr 360px;
-  grid-template-rows: 48px 72px 1fr 48px;
+  grid-template-rows: 48px 88px 1fr 48px;
   grid-template-areas:
     "hdr  hdr"
     "kpis kpis"
@@ -63,7 +63,7 @@ a { color: var(--accent-2); }
 @media (max-width: 1099px) {
   .app {
     grid-template-columns: 1fr;
-    grid-template-rows: 48px 72px 1fr 48px;
+    grid-template-rows: 48px 88px 1fr 48px;
     grid-template-areas: "hdr" "kpis" "vp" "time";
   }
   .side {

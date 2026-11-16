@@ -55,3 +55,13 @@ Energy-tab source 2f49287 CI and Pages deployment succeeded. Follow later deploy
 ## Working agreements
 
 User authorizes commits/pushes per completed task, portfolio/demo updates, primary-paper research, peer council debate and parallel agents. No destructive cleanup or force pushes. Long simulations on Pi. Preserve ignored local artifacts. Existing GitHub Pages is the hosting path; no new Sites hosting was registered. Skill guidance used: Sites local implementation/preview workflow. Research and testable novelty take priority over feature count; do not claim open-ended evolution or consciousness from current evidence.
+
+## Update — 2026-11-16 (session after this handoff)
+
+Read the two newest sections of PROGRESS.md ("Cross-platform determinism" and "Held-out validation batch") first.
+
+- Item 2 done: platforms diverged after one tick; fixed with `sim_core::math`; macOS, Pi and WASM now match through tick 20,000; CI compares x86-64 Linux with WASM. Registered as CHK-2026-11-15-PORTABILITY.
+- Item 3 partly done: checkpointed, pinned-executable Pi batches exist and the held-out validation is running (`validation_20261116T021704Z_23586`). Independent environmental RNG is still open.
+- A validation batch is ACTIVE on the Pi. Do not pull, rebuild or launch anything else there until `status` reads `completed`. To continue after an interruption: `RESUME=output/phase9a/validation_20261116T021704Z_23586 bash analysis/launch_pi_validation.sh`.
+- Local `main` is ahead of `origin/main`; the owner must push.
+- Items 4–6 unchanged.
