@@ -61,7 +61,7 @@ User authorizes commits/pushes per completed task, portfolio/demo updates, prima
 Read the two newest sections of PROGRESS.md ("Cross-platform determinism" and "Held-out validation batch") first.
 
 - Item 2 done: platforms diverged after one tick; fixed with `sim_core::math`; macOS, Pi and WASM now match through tick 20,000; CI compares x86-64 Linux with WASM. Registered as CHK-2026-11-15-PORTABILITY.
-- Item 3 partly done: checkpointed, pinned-executable Pi batches exist and the held-out validation is running (`validation_20261116T021704Z_23586`). Independent environmental RNG is still open.
+- Item 3 partly done: checkpointed, pinned-executable Pi batches exist and the held-out validation is running (`validation_20261116T021704Z_23586`). Independent environmental RNG was added on 2026-11-16 (`env_rng`, `food.droughts.schedule_seed`).
 - A validation batch is ACTIVE on the Pi. Do not pull, rebuild or launch anything else there until `status` reads `completed`. To continue after an interruption: `RESUME=output/phase9a/validation_20261116T021704Z_23586 bash analysis/launch_pi_validation.sh`.
 - Local `main` is ahead of `origin/main`; the owner must push.
 - Items 4–6 unchanged.

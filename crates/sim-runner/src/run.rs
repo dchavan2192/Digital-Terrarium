@@ -207,7 +207,7 @@ fn execute(
         export_genomes_every: options.export_genomes_every,
         stats_schema_version: 2,
         topology_hash_version: config.activity_tracking.hash_version,
-        environmental_rng: "shared_with_evolution; same seed does not synchronize droughts across feature arms",
+        environmental_rng: "independent_stream; drought schedule depends only on its seed and drought settings",
         seed,
         requested_ticks: ticks,
         completed_ticks: starting_tick,

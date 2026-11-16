@@ -160,8 +160,13 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
             | "creature.hard_cap"
             | "creature.max_age"
             | "creature.vision.ray_count"
+            | "food.droughts.schedule_seed"
     );
     if integer && (value < 0.0 || value.fract() != 0.0 || value >= usize::MAX as f64) {
+        return false;
+    }
+    // A seed passed as a number must be exactly representable.
+    if param == "food.droughts.schedule_seed" && value > 9_007_199_254_740_992.0 {
         return false;
     }
     if param == "creature.vision.ray_count" && value > sim_core::config::MAX_RAYS as f64 {
@@ -176,6 +181,8 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
     }
     match param {
         // World
+        // Drought schedule seed: integers only (see integer validation below).
+        "food.droughts.schedule_seed" => config.food.droughts.schedule_seed = Some(value as u64),
         "world.width" => config.world.width = value,
         "world.height" => config.world.height = value,
 
@@ -258,6 +265,7 @@ fn print_supported_params() {
     let params = [
         "world.width",
         "world.height",
+        "food.droughts.schedule_seed",
         "food.cell_size",
         "food.max_per_cell",
         "food.regrowth_rate",

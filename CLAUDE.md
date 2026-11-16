@@ -121,7 +121,7 @@ cargo test --workspace
 6. Sharing: donate energy to nearest neighbor (recipient gets `transfer_efficiency` ≤ 1 of it — energy is conserved; kin benefit must come from energy being worth more to the recipient)
 7. Reproduce: energy > threshold → asexual clone or sexual NEAT crossover. In sexual births the mate pays `mate_cost` too (twofold cost of sex), and each organism mates at most once per tick. Child inherits methylation + Gaussian epimutation noise
 8. Die: energy <= 0, max age, or Gompertz-Makeham probabilistic mortality
-9. Spawn/expire drought zones (stochastic localized food crashes)
+9. Spawn/expire drought zones (stochastic localized food crashes). Droughts draw from `env_rng`, a separate random stream, so organism events never shift the schedule; never draw environment randomness from `rng`
 10. Regrow food (per-cell rate × biome × season × drought suppression × niche-construction multiplier)
 11. Stats: species clustering, trophic levels, entropy, OEE activity (every `window_size` ticks), windowed lineage diversity (every `lineage_window` ticks)
 

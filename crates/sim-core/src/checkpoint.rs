@@ -17,7 +17,8 @@ use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub const CHECKPOINT_VERSION: u32 = 1;
+/// Version 2 adds the separate environment random stream (`env_rng`).
+pub const CHECKPOINT_VERSION: u32 = 2;
 pub const CORE_BUILD_ID: &str = env!("TERRARIUM_CORE_BUILD");
 pub const CORE_TARGET: &str = env!("TERRARIUM_CORE_TARGET");
 const FORMAT: &str = "terrarium-checkpoint";

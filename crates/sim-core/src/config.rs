@@ -153,6 +153,12 @@ pub struct DroughtConfig {
     pub severity: f64,
     /// Maximum number of simultaneous droughts.
     pub max_active: usize,
+    /// Seed of the drought schedule. Droughts draw from their own random stream,
+    /// so when and where they fall depends only on this seed and the settings
+    /// above, never on what the organisms do. Omit it to derive the schedule from
+    /// `world.seed`. Set it to replay one schedule across different world seeds,
+    /// or to vary the schedule while keeping the founding population fixed.
+    pub schedule_seed: Option<u64>,
 }
 
 impl Default for DroughtConfig {
@@ -163,6 +169,7 @@ impl Default for DroughtConfig {
             radius: 150.0,
             severity: 0.05,
             max_active: 3,
+            schedule_seed: None,
         }
     }
 }

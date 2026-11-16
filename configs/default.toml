@@ -35,6 +35,8 @@ duration = 3000         # Each drought lasts 3000 ticks
 radius = 150.0          # Affected area radius in world units
 severity = 0.05         # Regrowth drops to 5% inside drought zone
 max_active = 3          # At most 3 simultaneous droughts
+# schedule_seed = 7     # Optional. Droughts use their own random stream; omit to derive it from
+                        # world.seed, or set it to replay one drought schedule across runs.
 
 [[food.biomes]]
 x = 250.0               # Lush oasis — northwest quadrant

@@ -52,6 +52,11 @@ pub struct Simulation {
     pub construction_grid: ConstructionGrid,
     pub spatial_grid: SpatialGrid,
     pub rng: ChaCha8Rng,
+    /// Random stream for the environment (drought timing and placement), kept
+    /// apart from `rng` so that organism events cannot shift the schedule. Two
+    /// runs with the same drought seed and settings see the same droughts even if
+    /// a feature is switched off in one of them (Glasserman & Yao 1992).
+    pub env_rng: ChaCha8Rng,
     next_id: OrganismId,
 
     // Per-tick stats (updated at end of each tick)
@@ -334,10 +339,24 @@ impl Default for Action {
     }
 }
 
+/// ChaCha stream id used by the environment's random draws.
+const ENVIRONMENT_STREAM: u64 = 1;
+
 impl Simulation {
     /// Create a new simulation from config. Spawns the initial population.
     pub fn new(config: Config) -> Self {
         let mut rng = ChaCha8Rng::seed_from_u64(config.world.seed);
+        // The environment gets ChaCha stream 1 of its own seed. With no explicit
+        // schedule seed it shares the world seed but still a different stream, so
+        // it never overlaps the organisms' draws (stream 0).
+        let mut env_rng = ChaCha8Rng::seed_from_u64(
+            config
+                .food
+                .droughts
+                .schedule_seed
+                .unwrap_or(config.world.seed),
+        );
+        env_rng.set_stream(ENVIRONMENT_STREAM);
         let food_grid = FoodGrid::new(&config.world, &config.food, &config.food.fruit);
 
         // Pheromone grid uses the same cell size as the food grid for cache coherence.
@@ -411,6 +430,7 @@ impl Simulation {
             elevation_map,
             spatial_grid,
             rng,
+            env_rng,
             next_id,
             stats: TickStats::default(),
             positions: Vec::with_capacity(cap),
@@ -1354,7 +1374,7 @@ impl Simulation {
         // Citation: Holling (1973) "Resilience and Stability of Ecological Systems"
         // Citation: Connell (1978) intermediate disturbance hypothesis
         self.food_grid
-            .maybe_spawn_drought(&self.config.food.droughts, &mut self.rng);
+            .maybe_spawn_drought(&self.config.food.droughts, &mut self.env_rng);
 
         // 8. Regrow food (with seasonal modulation + drought suppression).
         // Niche construction multiplies each cell's *actual* algae regrowth by

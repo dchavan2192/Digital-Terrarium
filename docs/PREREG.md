@@ -18,7 +18,7 @@ Primary motivation comes from [Colicchio & Herman (2020)](https://pmc.ncbi.nlm.n
 - [ ] Source/build/config/seed/metric provenance is recorded and outputs cannot be overwritten.
 - [ ] Genome and state export plus same-build checkpoint continuation are verified. Long Pi experiments require tested recovery.
 - [ ] An assay can initialize genetically identical newborn copies, transform marks before brain construction, and control subsequent stress responses without changing other physiology.
-- [ ] Evaluation uses independent environmental RNG or an explicit replay schedule. Same initial seed is not sufficient while organism/environment events share one RNG.
+- [x] (2026-11-16: droughts have their own random stream and an optional `food.droughts.schedule_seed`; tested in `environment_stream.rs`.) Evaluation uses independent environmental RNG or an explicit replay schedule. Same initial seed is not sufficient while organism/environment events share one RNG.
 - [ ] Calibration and validation seed sets, environment schedules, and lineage-sampling rules are disjoint and committed.
 - [ ] Primary endpoint, horizon, smallest effect of interest, sample-size rationale, analysis, and exclusions are fixed before validation.
 

@@ -22,7 +22,8 @@ Completed this session:
 - [x] Short six-run Pi ecology pilot completed: 6/6 survived 20k ticks; zero cap-blocked births. [Report](results/PHASE9A_PILOT_2026-11-15.md), CAL-2026-11-15-FOOD.
 - [ ] 0.1 Long-duration holdout validation still required; no new defaults chosen.
 - [x] 0.5 Cross-platform state equivalence measured and fixed (2026-11-15, later session; see "Cross-platform determinism" below). Checkpoint files still require the build that wrote them.
-- [ ] Independent environment RNG/replayed drought schedules, node-history/crossover fixes, broader UI visual QA.
+- [x] Independent environment RNG/replayable drought schedules (2026-11-16, see below).
+- [ ] Node-history/crossover fixes, broader UI visual QA.
 
 ### Cross-platform determinism (2026-11-15, session after the Codex handoff)
 
@@ -47,6 +48,18 @@ Reviewed the handoff's code (energy ledger, checkpoints, runner provenance, mech
 - **Thermal:** the batch logs temperature every minute (`thermal.log`). In 275 minutes the Pi was at its soft temperature limit for 217 and actively throttled for 38, peaking at 85.6 °C, even at two threads. Results are unaffected (trajectories do not depend on clock speed), but the Pi needs better cooling before anything longer.
 - **Commits reached the Pi by git bundle**, because pushing to GitHub from the agent session was blocked. Local `main` is ahead of `origin/main` until the owner pushes. A copy of the binary that was in `target/release` before the update is kept as `output/phase9a/launch_20261115T230545Z_22098/sim-runner-2f49287`; its file time is later than the pilot launch, so it is not verified to be the pilot's executable.
 - **Next:** when the batch finishes, write the summary script (join sessions on tick), apply the plan's criteria, register the outcome in RESULTS.md.
+
+### Environment random stream (2026-11-16)
+
+- **Problem:** droughts drew from the same random stream as evolution. Switching a feature off changed how many draws the organisms made, which moved every later drought. Two arms of an experiment therefore lived through different environments.
+- **Fix:** `Simulation::env_rng`, ChaCha stream 1, used only for drought timing and placement. Optional `food.droughts.schedule_seed` replays one schedule across world seeds, or varies the schedule with the founders fixed. Checkpoint format version is now 2.
+- **Tested** (`crates/sim-core/tests/environment_stream.rs`): the schedule is identical with sex, epigenetics or niche construction off and with a quarter of the food, while the organisms in those arms do diverge; the schedule seed replays across world seeds and does not change the founding population.
+- **Still shared:** nothing else in the environment is random (seasons and terrain are deterministic). Mutation, mating and mortality share the main stream by design.
+- **Consequence:** trajectories with droughts enabled changed again. The validation batch running on the Pi uses the build from before this change (`environmental_rng = "shared_with_evolution"` in its manifests); that is fine for a calibration of average behaviour, and its pinned executable is unaffected. Mac and WASM still match (re-checked through tick 12,000).
+
+### Requested for future development (owner, 2026-11-16)
+
+- [ ] **Expandable analysis tiles in the demo.** Clicking any headline tile at the top (creatures alive, species, brain size, cooperation, food chain) should expand it into a larger chart of that measure over time, so a viewer can see the pattern. The time window should change dynamically (follow the run as it advances, and let the viewer widen or narrow it). Fits the deferred "Charts tab" in `docs/research/DEMO_UX_DESIGN.md`; drought and season bands on the time axis would make the patterns readable. Needs a longer per-tile history buffer than the current sparkline keeps.
 
 ### Demo visual check (2026-11-16)
 
