@@ -1,0 +1,52 @@
+{
+  "check_id": "CHK-2026-11-16-DELAYED-CHOICE-ARENA",
+  "status": "controls_and_evolved_feed_forward_negative_control_passed",
+  "interpretation": "controlled movement instrument check; not evolved memory benefits, learning or ecological fitness",
+  "evaluator": {
+    "build_profile": "release",
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "core_build": "83292ca5eb55ebf5",
+    "source_dirty": "false",
+    "source_revision": "0bc1be2fe742368c6675c6bf3dafde97929673f8",
+    "target": "aarch64-apple-darwin"
+  },
+  "arena_sha256": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+  "source_export_sha256": "0bcab908515cbbb6da5fbc216a52c432f0ddb3dc1f2098e012bc872ff4cf1077",
+  "source_export": {
+    "core_build": "abad322241615ca2",
+    "target": "aarch64-unknown-linux-gnu",
+    "tick": 200001,
+    "world_seed": 100,
+    "source_revision": "0da954fa2911e5a0f075375b41196f8dafa6e4c8",
+    "source_dirty": "true",
+    "checkpoint_sha256": "9716b5a69642ba3055eef9993de8f837acace79631afdee26c137b2d93363070"
+  },
+  "control_output_sha256": "b20e4d51e36b11d126b0807fe1d820c0b67bc5158ee4fb6d8dc0ee2b05186867",
+  "control_rewards": {
+    "recurrent_reference": 1.0,
+    "feed_forward_control": 0.5,
+    "same_network_state_cleared": 0.5
+  },
+  "records_evaluated": 898,
+  "all_recurrence_zero": true,
+  "all_intact_cleared_trial_records_equal": true,
+  "all_opposite_cue_movement_trajectories_equal": true,
+  "all_mean_rewards_at_most_half": true,
+  "genotype_choices": {
+    "left": 7,
+    "right": 0,
+    "timeout": 891
+  },
+  "full_output": {
+    "path": "output/delayed-choice-development/evolved_movement_default.json",
+    "bytes": 48726252,
+    "sha256": "ccacaa12a5a6a352d984c6049b07c8cb9333c5d8a2773e7d5031cae3ed3d8ff4"
+  },
+  "elapsed_seconds": 0.7339011250296608,
+  "independent_audit": {
+    "hashes_verified": true,
+    "records_verified": 898,
+    "response_frames_verified": 71776,
+    "scope": "parse-only independent audit; no rerun or build"
+  }
+}

@@ -6,6 +6,16 @@
 
 ---
 
+## Stopping point — 2026-11-16, 22:43 UTC
+
+User requested saving work before the usage limit. Stop new features/experiments here.
+
+- Movement arena implementation saved at `0bc1be2`; manufactured controls and actual 898-genome negative control independently audited. [Final report](results/DELAYED_CHOICE_ARENA_2026-11-16.md), control JSON/plot and summary are committed with this stopping-point update; [public raw-data archive](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/delayed-choice-instrument-2026-11-16) preserves the full donor and outputs.
+- Controls reward 1 / 0.5 / 0.5. Actual donors: 7 left for both cues, 891 timeouts; no recurrence, identical intact/reset/opposite-cue paths. This is not a memory-deficit result. All 151 Rust, 10 JS and 10 thermal tests pass; final workspace run serialized; Clippy/format pass.
+- Pi ACTIVE: six of ten baseline runs complete, seed 106 running. Batch `output/phase9a/validation_20261116T171843Z_28985`, pinned source `0da954f`. Guard at 73.8°C, no active throttling; finalizer waiting. Leave running; do not replace its executable. Cooling pauses remain 75°C/65°C, every 5 seconds.
+- Resume by checking batch `status`, `thermal_guard/status.json`, and `finalization/status`. If completed, mirror logs/summary and apply the already fixed acceptance rule; do not treat partial data as success. No additional evolutionary campaign is queued.
+- Next coding task: fixed visible-cue competence control before interpreting evolved-controller memory performance. Same arena/donors/order/horizon/reward; no tuning based on favorable scores. Then recurrent-genotype/state-reset comparisons, after baseline readiness. Defaults and browser demo are unchanged by this arena work.
+
 ## Development continuation — delayed-choice movement arena (2026-11-16)
 
 - Added runner-only `delayed-choice` controls and `evaluate-delayed-choice` for all-record exports, configured in `configs/delayed_choice.toml`. Pose is held through cue/delay, all actions discarded, then turn/speed drives movement toward visually identical goals. Hidden correct-goal labels enter terminal scoring only. Wrong first contact ends the trial; timeout is explicit.

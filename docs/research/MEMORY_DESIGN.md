@@ -62,3 +62,14 @@ fitness yet, and a fixed clamp/readout cannot exclude memory used elsewhere.
 Next: evaluate recurrent genotypes with matched state-reset controls and build
 a controlled memory-requiring task before interpreting an ecological ON/OFF
 comparison. Keep the current baseline gate and memory-off default in place.
+
+## Controlled movement update and stopping point — 2026-11-16
+
+A held-pose delayed-choice movement task now exists in sim-runner, source
+`0bc1be2`. Manufactured reference/reset/feed-forward controls pass; see the
+[arena report](../results/DELAYED_CHOICE_ARENA_2026-11-16.md) and public data.
+All 898 feed-forward donor genotypes have matching intact/reset paths, but
+891 time out. Do not interpret this as memory failure. Next is a visible-cue
+competence control with the same fixed task and donor population, before
+recurrent-genotype comparisons. The active Pi baseline gate remains pending.
+The user requested a usage-limit stopping point; no additional campaign started.

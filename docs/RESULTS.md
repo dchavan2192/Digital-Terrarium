@@ -62,6 +62,10 @@ Configuration: `configs/default.toml`, seed 42. Commands are in [the runner READ
 
 [Exported-genome negative-control report](results/EXPORTED_GENOME_ASSAY_2026-11-16.md): all 898 genomes from the prespecified seed-100 donor snapshot had no recurrent connections, scored 1/2 balanced cues, and produced identical intact/state-cleared responses. Evaluator source `aa6e844`, clean native release; donor source `0da954f`, tick 200,001 via a separate one-tick export bridge from the completed run. Full provenance, checksum summary and protocol are linked. This validates evaluation of evolved feed-forward exports; it is not evidence about memory benefits or cognition.
 
+## Registered implementation check: CHK-2026-11-16-DELAYED-CHOICE-ARENA
+
+[Controlled movement arena report](results/DELAYED_CHOICE_ARENA_2026-11-16.md): manufactured recurrent controller reward 1.0; feed-forward and same-network state-cleared controls 0.5, all choosing after five movement ticks. All 898 evolved feed-forward donors had identical opposite-cue and intact/reset paths: 7 chose left, 891 timed out. The timeouts do not identify a memory deficit; visible-cue/motor controls remain necessary. Clean source `0bc1be2`; full traces, protocol, plot, hashes and public raw-data archive are linked. Instrument validation only; no new evolutionary result.
+
 ## Calibration observations awaiting registration
 
 The progress log describes post-sharing-fix Pi pilots and a separate demo tuning pass. They are useful leads for choosing calibration ranges, but are not promoted here until exact run metadata, configurations, raw outputs, and analysis are reconciled. Presentation tuning and experimental calibration must remain separate.

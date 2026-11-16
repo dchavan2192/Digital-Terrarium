@@ -1,5 +1,23 @@
 # Session handoff — 2026-11-15
 
+## Stop/resume record — 2026-11-16, 22:43 UTC (read first)
+
+User requested a stopping point before usage limit. All new feature work stops here.
+Movement arena source `0bc1be2` is saved/pushed. Final report, JSON/plot, audit and
+raw dataset are linked from RESULTS.md and PROGRESS.md. Controls reward 1/0.5/0.5;
+898 evolved feed-forward donors: 7 left for both cues, 891 timeouts. All paths
+match between intact/reset and opposite cues; timeouts are not a memory-deficit
+finding. Full serialized Rust suite: 151 pass; JS 10, thermal 10, Clippy/format pass.
+
+Pi is still running baseline `validation_20261116T171843Z_28985`, pinned source
+`0da954f`: six completed, seed 106 active. At last check 73.8°C, no active
+hardware throttling, thermal guard working, finalizer waiting. Leave its pinned
+executable and outputs intact. On resume inspect batch status, guard and
+finalization; completed results still need mirroring/registration. No extra
+campaign queued. Next coding priority is the visible-cue motor/competence
+control described in the new arena report, then controlled recurrent donors.
+Do not resume broad feature or experiment work without first reading this update.
+
 ## Development update — 2026-11-16, exported-genome assay
 
 Source `aa6e844` adds `evaluate-delayed-cue`, public safe genome validation and
