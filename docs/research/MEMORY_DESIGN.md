@@ -46,3 +46,19 @@ Brains are feed-forward: each tick a creature reacts only to what it senses now.
 - Checkpoint format version 4; stats schema version 3 (two columns appended).
 - **Not verified by eye:** the demo's brain diagram draws memory connections as dotted brass curves (a loop for a self-connection), but the demo runs with memory off, so no such edge has been seen on screen.
 - **Not done, deliberately:** memory is not switched on anywhere. Whether evolution uses it is an experiment, not an assumption. Next is the behavioural test (a delayed-response task a feed-forward brain cannot solve) and then an on/off comparison on the Pi at the validated food setting.
+
+## Evaluation tooling update — 2026-11-16
+
+The manufactured `delayed-cue` instrument and exported-genome
+`evaluate-delayed-cue` path are now implemented. The latter rebuilds genetic
+weights with frozen snapshot methylation, uses fresh neural state per trial,
+and compares the same controller intact versus state cleared on every tick.
+The all-record seed-100 feed-forward negative control passed for 898 genomes;
+see [the report](../results/EXPORTED_GENOME_ASSAY_2026-11-16.md).
+
+This does not finish the behavioural roadmap battery or establish learned or
+adaptive memory. No cue/probe environment is wired into natural ecological
+fitness yet, and a fixed clamp/readout cannot exclude memory used elsewhere.
+Next: evaluate recurrent genotypes with matched state-reset controls and build
+a controlled memory-requiring task before interpreting an ecological ON/OFF
+comparison. Keep the current baseline gate and memory-off default in place.

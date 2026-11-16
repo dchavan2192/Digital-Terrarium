@@ -12,7 +12,8 @@
 - `Genome::validate()` shares the checkpoint validator; crafted dimension overflows now return errors before brain construction. Existing valid topologies remain accepted; 512 is an add-edge threshold, not a universal storage limit. Bounds and finite-response checks prevent partial or oversized evaluation work.
 - Independent code review passed. Full workspace: 142 Rust tests; all-target Clippy/format, 10 JS tests and 10 thermal policy tests pass. Thermal tests are now in CI.
 - [Pre-execution negative-control plan](results/EXPORTED_GENOME_ASSAY_PLAN_2026-11-16.md) chooses all 898 living genomes from seed100 at tick200,001. The original 200k run is untouched; its pinned binary resumed one tick into `output/exported_assay_donor_20261116T212115Z`. Actual negative-control evaluation follows the saved implementation revision.
-- Latest Pi check: four recheck runs complete, seed104 active; thermal guard functioning, finalizer waiting, no active hardware throttling. No other sustained experiment was launched. The owner dropped the separate permissions-configuration task; its unused template remains inert.
+- Actual negative control now passed on saved source `aa6e844`: all 898 genomes had zero recurrence, scored 1/2 and had exactly matching intact/state-cleared trial responses. [Report](results/EXPORTED_GENOME_ASSAY_2026-11-16.md) and [checksums](results/exported_genome_assay_2026-11-16.json). Before/after complete-state fingerprints match at ticks 0,1,100 (default config, seed42). This is an instrument check, not a memory or fitness result.
+- Latest Pi check at 21:27 UTC: four recheck runs complete, seed104 active; thermal guard functioning, finalizer waiting, no active hardware throttling. No other sustained experiment was launched. The owner dropped the separate permissions-configuration task; its unused template remains inert.
 
 ## Continuation — 2026-11-16, validation completed
 

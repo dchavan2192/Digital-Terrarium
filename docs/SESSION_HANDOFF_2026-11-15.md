@@ -1,10 +1,23 @@
 # Session handoff — 2026-11-15
 
+## Development update — 2026-11-16, exported-genome assay
+
+Source `aa6e844` adds `evaluate-delayed-cue`, public safe genome validation and
+thermal policy tests in CI. Full workspace: 142 tests, JS: 10 and thermal: 10 pass.
+The actual negative control evaluated all 898 seed-100 genomes (tick 200,001;
+separate one-tick export bridge using pinned 0da954f). All lacked recurrence,
+scored 1/2 and had identical intact/cleared outputs. Reports/protocol/checksums
+are in RESULTS.md. No evolved-memory or fitness claim; next is controlled
+recurrent-genotype evaluation and a memory-requiring task. The Pi recheck is
+still active: four runs complete and seed 104 running at 21:27 UTC, guarded near
+72°C with no active throttling. Keep its pinned executable intact. User dropped
+the permissions-configuration task; continue under normal host permissions.
+
 ## Latest continuation — 2026-11-16 (supersedes earlier pending items)
 
 - Calibration batch `validation_20261116T021704Z_23586` COMPLETED: 30/30 survived, no cap blocking; rate 0.008 selected by the fixed rule. Report, uncertainty, exploratory drift and raw archive links are in RESULTS.md and PROGRESS.md. Owner approved default food 0.008/cap2,000; demo keeps food0.002/cap500.
 - Current-engine baseline ACTIVE on Pi: `output/phase9a/validation_20261116T171843Z_28985`, source0da954f, ten seeds100–109 ×200k ticks, one worker/thread. Never replace its pinned executable. Its own thermal guard pauses at75°C/resumes65°C; check `thermal_guard/status.json` and guard.log. Its pinned finalizer waits to write `finalization/summary.json`; never summarize partial data as success.
-- Source d35dd2c added batch-specific PID-safe thermal control and the synthetic delayed-cue instrument. Pi instrument output is `output/delayed_cue_20261116T175013Z`, with committed JSON/report. Manufactured controls passed; no evolved-cognition claim. Full Rust129 tests and thermal10 tests pass. Next research task: exported-genotype behavioural evaluation before a memory ecology comparison; no other evolutionary campaign queued.
+- Source d35dd2c added batch-specific PID-safe thermal control and the synthetic delayed-cue instrument. Pi instrument output is `output/delayed_cue_20261116T175013Z`, with committed JSON/report. Manufactured controls passed; no evolved-cognition claim. Full Rust129 tests and thermal: 10 tests pass. Next research task: exported-genotype behavioural evaluation before a memory ecology comparison; no other evolutionary campaign queued.
 - GitHub issue1 tracks results/recheck; raw dataset prerelease `calibration-food-2026-11-16`. Owner explicitly authorizes multiple agents, routine development, commits and pushes; preserve old runs and avoid destructive cleanup.
 - Owner also requests project-only personal filesystem access plus internet/GitHub without prompts. `docs/CODEX_PROJECT_PERMISSIONS.toml` is a prepared template, NOT installed/active. Current managed host policy cannot be changed from inside the chat. Do not claim this boundary is enforced. No global settings were read/changed for that task.
 

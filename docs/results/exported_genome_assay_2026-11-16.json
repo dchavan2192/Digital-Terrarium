@@ -1,0 +1,70 @@
+{
+  "check_id": "CHK-2026-11-16-EXPORTED-DELAYED-CUE",
+  "status": "negative_control_passed",
+  "interpretation": "one-donor instrument check; not an evolutionary result",
+  "source_export": {
+    "path": "output/exported_assay_donor_20261116T212115Z/session_1794864076739181191_30731_0/genomes_seed100_tick200001.json",
+    "sha256": "0bcab908515cbbb6da5fbc216a52c432f0ddb3dc1f2098e012bc872ff4cf1077",
+    "checkpoint_sha256": "9716b5a69642ba3055eef9993de8f837acace79631afdee26c137b2d93363070",
+    "core_build": "abad322241615ca2",
+    "target": "aarch64-unknown-linux-gnu",
+    "tick": 200001,
+    "world_seed": 100,
+    "source_revision": "0da954fa2911e5a0f075375b41196f8dafa6e4c8",
+    "source_dirty": "true",
+    "bridge_simulated_ticks": 1
+  },
+  "evaluator": {
+    "core_build": "83292ca5eb55ebf5",
+    "source_dirty": "false",
+    "source_revision": "aa6e844bb8234c111add54f01e18610f3581e333",
+    "target": "aarch64-apple-darwin",
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "build_profile": "release"
+  },
+  "output": {
+    "path": "output/exported_assay_donor_20261116T212115Z/assay_signal12_delay5.json",
+    "sha256": "ad6f9d9dcd1d105cff7ccc905660d8640f2f9e744669b496f747fd650b4460be"
+  },
+  "protocol": {
+    "blank_delay_ticks": 5,
+    "brain_source": "exported genotype weights times (1-snapshot methylation); expressed_brain and live memory ignored",
+    "cue_channel_zero_based": 12,
+    "cue_ticks": 1,
+    "other_inputs": 0.0,
+    "probe_inputs": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "probe_ticks": 1,
+    "readout": "turn",
+    "state_reset_each_trial": true,
+    "within_lifetime_updates": false,
+    "zero_tie_prediction": 1
+  },
+  "records_evaluated": 898,
+  "all_enabled_recurrent_connections_zero": true,
+  "all_intact_accuracy_half": true,
+  "all_cleared_accuracy_half": true,
+  "all_probe_trials_identical_between_conditions": true,
+  "export_order_preserved": true,
+  "elapsed_seconds": 0.17517429206054658
+}
