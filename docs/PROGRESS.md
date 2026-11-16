@@ -83,8 +83,17 @@ Presentation layer only (`crates/sim-wasm/src/species.rs`); sim-core's species s
 
 - Read `docs/SESSION_HANDOFF_2026-11-15.md`, last section, to resume.
 - Pi validation batch at last check: `2026-11-16T14:53Z status=running done=25 failed=0 procs=2`. The summariser and the steps to take when it finishes are in the handoff.
-- Memory (recurrent connections) was requested and is designed but not implemented: `docs/research/MEMORY_DESIGN.md`.
+- Memory (recurrent connections) is implemented and off by default (later the same day); see "Memory" below and `docs/research/MEMORY_DESIGN.md`.
 - All 116 Rust tests and 10 demo tests passed at commit `389368f`.
+
+### Memory (2026-11-16)
+
+- **What it is:** a recurrent connection gives its target the source's activation from the previous tick, so a brain can hold state. One setting, `mutation.add_recurrent_probability`, default 0 (off).
+- **Off is provably inert:** with the setting at 0 the engine reproduces saved pre-memory states exactly (two configurations), and no random number is drawn for the mechanism.
+- **On works:** 8 tests, including exact continuation from a mid-run checkpoint; the energy ledger stays balanced; macOS and WASM match through tick 8,000, and CI checks Linux against WASM with memory on and off.
+- **Not claimed:** that creatures use memory, or that it helps. Nothing in the current world requires remembering anything, so it may well not spread under selection (finding 4 of the audit).
+- **Next:** a delayed-response behavioural test (roadmap 2.4), then an on/off comparison on the Pi at the validated food setting with the drought schedule held fixed.
+- Details, decisions and limits: `docs/research/MEMORY_DESIGN.md`. 124 Rust tests and 10 demo tests pass.
 
 ### Requested for future development (owner, 2026-11-16)
 
@@ -271,7 +280,7 @@ Each stage ends in a gate. Do not start a stage until the previous gate is met.
 - **Gate:** a controlled, reproducible estimate (including an informative null), appropriate uncertainty and independent validation. Neutral-shadow comparisons are required for activity selection-versus-drift claims, not every ecological endpoint.
 
 **Stage 2: a brain that could support cognition** (about 3–4 weeks; can overlap Stage 1's Pi time)
-- [ ] 2.1 Recurrent connections (Phase 9b).
+- [x] 2.1 Recurrent connections (Phase 9b): implemented 2026-11-16, off by default. Not yet shown to be used by evolution.
 - [ ] 2.2 Raise `MAX_NODES` from 64 to 256, so capacity is limited by energy cost and not by the buffer.
 - [ ] 2.3 Evolved neuromodulated plasticity (Phase 9c; Soltoggio et al. 2008).
 - [ ] 2.4 Cognitive test battery in sim-runner, run on exported genomes in fixed arenas: detour, delayed response, trace conditioning, reversal learning, second-order conditioning, novel compound discrimination. Report it as a UAL checklist.

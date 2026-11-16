@@ -118,6 +118,23 @@ export function createBrainGraph(canvas, { compact = false } = {}) {
       ctx.lineWidth = 0.5 + 2.5 * Math.min(1, Math.abs(w));
       ctx.strokeStyle = w >= 0 ? `rgba(184,179,166,${alpha})` : `rgba(143,163,184,${alpha})`;
       ctx.setLineDash(w >= 0 ? [] : [3, 3]);
+      if (e.recurrent) {
+        // Memory connection: the target reads the source's value from the previous
+        // tick. Drawn in the accent colour, bowed away from the forward edges; a
+        // node that feeds itself gets a small loop above it.
+        ctx.strokeStyle = `rgba(201,166,91,${Math.min(1, alpha + 0.25)})`;
+        ctx.setLineDash([1, 3]);
+        ctx.beginPath();
+        if (e.from === e.to) {
+          ctx.arc(a.x, a.y - a.r - 5, 5, 0, Math.PI * 2);
+        } else {
+          const bow = 18 + Math.abs(a.y - b.y) * 0.15;
+          ctx.moveTo(a.x, a.y);
+          ctx.quadraticCurveTo((a.x + b.x) / 2, Math.min(a.y, b.y) - bow, b.x, b.y);
+        }
+        ctx.stroke();
+        continue;
+      }
       const mx = (a.x + b.x) / 2;
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);

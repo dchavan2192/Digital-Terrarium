@@ -196,6 +196,8 @@ struct EdgeOut {
     enabled: bool,
     methylation: f64,
     effective_weight: f64,
+    /// True for a memory connection: the target reads the source's previous-tick value.
+    recurrent: bool,
 }
 
 #[derive(Serialize)]
@@ -1200,6 +1202,7 @@ impl WasmSim {
                 enabled: c.enabled,
                 methylation: c.methylation,
                 effective_weight: c.weight * (1.0 - c.methylation),
+                recurrent: c.recurrent,
             })
             .collect();
         let output_histograms: Vec<OutputHistOut> = (0..NUM_OUTPUTS)

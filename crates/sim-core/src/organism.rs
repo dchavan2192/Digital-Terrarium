@@ -47,6 +47,12 @@ pub struct Organism {
     /// 7 outputs × 8 bins over [-1, 1], with exponential decay (τ ≈ 100 ticks).
     /// Citation: Shannon (1948) "A Mathematical Theory of Communication"
     pub output_bins: [[f64; NUM_ENTROPY_BINS]; NUM_OUTPUTS],
+
+    /// Brain activations of the previous tick, one per node slot: the state that
+    /// recurrent connections read. Empty for a brain without recurrent connections
+    /// and before a creature's first tick (both mean "all zeros"). Not inherited.
+    #[serde(default)]
+    pub memory: Vec<f64>,
 }
 
 /// Number of histogram bins for entropy computation.

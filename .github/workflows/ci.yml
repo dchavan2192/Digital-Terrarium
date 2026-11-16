@@ -77,3 +77,13 @@ jobs:
           node web/demo/tests/conformance.mjs target/wasm32-unknown-unknown/release/sim_wasm.wasm configs/default.toml 42 0,1,100,2000 > wasm.txt
           cat native.txt
           diff native.txt wasm.txt
+      # The same comparison with memory (recurrent connections) switched on, which
+      # the default configuration leaves off.
+      - name: Native and WASM follow the same trajectory with memory on
+        run: |
+          sed 's/^add_recurrent_probability = 0.0 /add_recurrent_probability = 0.3 /' configs/default.toml > memory-on.toml
+          grep -q '^add_recurrent_probability = 0.3 ' memory-on.toml
+          ./target/release/sim-runner fingerprint --config memory-on.toml --seed 42 --ticks 0,1,100,2000 | grep '^tick=' > native-memory.txt
+          node web/demo/tests/conformance.mjs target/wasm32-unknown-unknown/release/sim_wasm.wasm memory-on.toml 42 0,1,100,2000 > wasm-memory.txt
+          cat native-memory.txt
+          diff native-memory.txt wasm-memory.txt

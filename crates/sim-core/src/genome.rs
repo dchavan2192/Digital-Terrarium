@@ -108,6 +108,22 @@ pub struct ConnectionGene {
     /// Effective weight = weight * (1 - methylation).
     /// Citation: Jablonka & Lamb (2005) "Evolution in Four Dimensions"
     pub methylation: f64,
+    /// A recurrent connection feeds the target with the source's activation from
+    /// the PREVIOUS tick, which gives the brain state (memory). Recurrent genes are
+    /// exempt from the feed-forward depth rule: any non-bias source (including the
+    /// target itself) to any hidden or output target. Feed-forward and recurrent
+    /// genes on the same pair are distinct genes.
+    /// Citation: Stanley & Miikkulainen (2002) — NEAT evolves recurrent connections.
+    #[serde(default)]
+    pub recurrent: bool,
+}
+
+impl ConnectionGene {
+    /// Identity of a gene for sorting, crossover alignment and distance.
+    #[inline]
+    pub fn key(&self) -> (NodeId, NodeId, bool) {
+        (self.from, self.to, self.recurrent)
+    }
 }
 
 /// A hidden node with its depth value for feed-forward ordering.
@@ -204,6 +220,7 @@ impl Genome {
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
                 methylation: 0.0,
+                recurrent: false,
             });
         }
 
@@ -216,6 +233,7 @@ impl Genome {
                     weight: rng.gen_range(-scale..scale),
                     enabled: true,
                     methylation: 0.0,
+                    recurrent: false,
                 });
             }
         }
@@ -228,6 +246,7 @@ impl Genome {
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
                 methylation: 0.0,
+                recurrent: false,
             });
         }
 
@@ -240,12 +259,13 @@ impl Genome {
                     weight: rng.gen_range(-scale..scale),
                     enabled: true,
                     methylation: 0.0,
+                    recurrent: false,
                 });
             }
         }
 
         // Sort by (from, to) for efficient genome_distance merge-join
-        connections.sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
+        connections.sort_by_key(|c| c.key());
 
         Genome {
             connections,
@@ -291,6 +311,15 @@ impl Genome {
         // Citation: Dolson & Park (2012) — prune rate should be 1.5-2x add rate
         if rng.r#gen::<f64>() < mcfg.add_connection_probability {
             child.mutate_add_connection(rng);
+        }
+
+        // 2b. Add a recurrent connection (memory). Off by default. The `> 0.0` guard
+        // means no random number is drawn when it is off, so runs without memory
+        // follow exactly the trajectory they did before this mutation existed.
+        if mcfg.add_recurrent_probability > 0.0
+            && rng.r#gen::<f64>() < mcfg.add_recurrent_probability
+        {
+            child.mutate_add_recurrent(rng);
         }
 
         // 3. Add node (default 1%) — split existing connection
@@ -368,9 +397,7 @@ impl Genome {
         child.prune_orphan_nodes();
 
         // Re-sort connections for genome_distance efficiency
-        child
-            .connections
-            .sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
+        child.connections.sort_by_key(|c| c.key());
 
         child
     }
@@ -428,7 +455,7 @@ impl Genome {
             if self
                 .connections
                 .iter()
-                .any(|c| c.from == from_id && c.to == to_id)
+                .any(|c| c.from == from_id && c.to == to_id && !c.recurrent)
             {
                 continue;
             }
@@ -440,6 +467,55 @@ impl Genome {
                 weight: rng.gen_range(-scale..scale),
                 enabled: true,
                 methylation: 0.0,
+                recurrent: false,
+            });
+            return;
+        }
+    }
+
+    /// Add a recurrent connection: `to` receives `from`'s activation of the previous
+    /// tick. Source: any input, hidden or output node (the bias is constant, so it
+    /// is excluded). Target: any hidden or output node, including the source itself.
+    /// Tries up to 20 random pairs before giving up.
+    fn mutate_add_recurrent(&mut self, rng: &mut impl Rng) {
+        if self.connections.len() >= MAX_CONNECTIONS {
+            return;
+        }
+        let fixed = self.num_inputs + self.num_outputs;
+        // Sources: ids 1..=fixed, then hidden nodes. Targets: outputs, then hidden.
+        let sources = fixed + self.hidden_nodes.len();
+        let targets = self.num_outputs + self.hidden_nodes.len();
+        if targets == 0 {
+            return;
+        }
+        for _ in 0..20 {
+            let s = crate::math::random_index(rng, sources);
+            let t = crate::math::random_index(rng, targets);
+            let from = if s < fixed {
+                (1 + s) as NodeId
+            } else {
+                self.hidden_nodes[s - fixed].id
+            };
+            let to = if t < self.num_outputs {
+                (1 + self.num_inputs + t) as NodeId
+            } else {
+                self.hidden_nodes[t - self.num_outputs].id
+            };
+            if self
+                .connections
+                .iter()
+                .any(|c| c.from == from && c.to == to && c.recurrent)
+            {
+                continue;
+            }
+            let scale = 1.0 / (self.num_inputs as f64).sqrt();
+            self.connections.push(ConnectionGene {
+                from,
+                to,
+                weight: rng.gen_range(-scale..scale),
+                enabled: true,
+                methylation: 0.0,
+                recurrent: true,
             });
             return;
         }
@@ -454,7 +530,7 @@ impl Genome {
             .connections
             .iter()
             .enumerate()
-            .filter(|(_, c)| c.enabled)
+            .filter(|(_, c)| c.enabled && !c.recurrent)
             .map(|(i, _)| i)
             .collect();
         if enabled_indices.is_empty() {
@@ -481,6 +557,10 @@ impl Genome {
             return None;
         }
         let old = self.connections[idx];
+        if old.recurrent {
+            // A node placed on a recurrent edge has no well-defined depth.
+            return None;
+        }
         let (from_depth, to_depth) = (self.node_depth(old.from), self.node_depth(old.to));
         let new_depth = (from_depth + to_depth) / 2.0;
         if !(from_depth < new_depth && new_depth < to_depth) {
@@ -504,6 +584,7 @@ impl Genome {
             weight: 1.0,
             enabled: true,
             methylation: old.methylation,
+            recurrent: false,
         });
         // C→B with original weight (preserves output contribution)
         self.connections.push(ConnectionGene {
@@ -512,6 +593,7 @@ impl Genome {
             weight: old.weight,
             enabled: true,
             methylation: old.methylation,
+            recurrent: false,
         });
         Some(new_id)
     }
@@ -566,6 +648,8 @@ impl Genome {
         // A gene whose endpoint is missing would be a broken invariant (orphan
         // pruning only removes unreferenced nodes); it is kept in place, disabled,
         // so gene positions stay aligned with `gene_index`.
+        // Recurrent genes are passed separately; in the feed-forward list they stay
+        // in place but disabled, which keeps gene positions aligned with gene_index.
         let conns: Vec<(u16, u16, f64, bool)> = self
             .connections
             .iter()
@@ -574,7 +658,7 @@ impl Genome {
                     from as u16,
                     to as u16,
                     c.weight * (1.0 - c.methylation),
-                    c.enabled,
+                    c.enabled && !c.recurrent,
                 ),
                 _ => {
                     debug_assert!(false, "connection gene refers to a node the genome lacks");
@@ -582,7 +666,28 @@ impl Genome {
                 }
             })
             .collect();
-        Brain::from_neat(self.num_inputs, self.num_outputs, &hidden, &conns)
+        let recurrent: Vec<(u16, u16, f64, u16)> = self
+            .connections
+            .iter()
+            .enumerate()
+            .filter(|(_, c)| c.enabled && c.recurrent)
+            .filter_map(|(gi, c)| match (self.slot_of(c.from), self.slot_of(c.to)) {
+                (Some(from), Some(to)) => Some((
+                    from as u16,
+                    to as u16,
+                    c.weight * (1.0 - c.methylation),
+                    gi as u16,
+                )),
+                _ => None,
+            })
+            .collect();
+        Brain::from_neat_with_memory(
+            self.num_inputs,
+            self.num_outputs,
+            &hidden,
+            &conns,
+            &recurrent,
+        )
     }
 
     /// Effective (methylation-suppressed) weight of connection gene `idx`.
@@ -627,8 +732,8 @@ impl Genome {
         let mut j = 0;
 
         while i < ac.len() && j < bc.len() {
-            let a_key = (ac[i].from, ac[i].to);
-            let b_key = (bc[j].from, bc[j].to);
+            let a_key = ac[i].key();
+            let b_key = bc[j].key();
 
             if a_key == b_key {
                 // Matching gene: 50/50 from either parent
@@ -702,9 +807,7 @@ impl Genome {
         };
 
         // Sort connections for genome_distance efficiency
-        child
-            .connections
-            .sort_by(|a, b| a.from.cmp(&b.from).then(a.to.cmp(&b.to)));
+        child.connections.sort_by_key(|c| c.key());
 
         // Apply standard mutations
         child = child.reproduce(mcfg, innovations, rng);
@@ -732,8 +835,8 @@ impl Genome {
         let mut disjoint_count = 0usize;
 
         while i < sc.len() && j < oc.len() {
-            let a = (sc[i].from, sc[i].to);
-            let b = (oc[j].from, oc[j].to);
+            let a = sc[i].key();
+            let b = oc[j].key();
 
             if a == b {
                 matching_weight_diff += (sc[i].weight - oc[j].weight).abs();

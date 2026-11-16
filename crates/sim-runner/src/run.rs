@@ -205,7 +205,8 @@ fn execute(
         simulated_ticks: 0,
         checkpoint_every: options.checkpoint_every,
         export_genomes_every: options.export_genomes_every,
-        stats_schema_version: 2,
+        // 3: appended mean_recurrent_connections and recurrent_brain_fraction.
+        stats_schema_version: 3,
         topology_hash_version: config.activity_tracking.hash_version,
         environmental_rng: "independent_stream; drought schedule depends only on its seed and drought settings",
         seed,

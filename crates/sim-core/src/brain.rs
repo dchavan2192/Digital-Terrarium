@@ -57,6 +57,14 @@ pub struct Brain {
     /// Non-input node IDs in topological (evaluation) order.
     /// Hidden nodes sorted by depth, then output nodes.
     pub eval_order: Vec<u16>,
+    /// Enabled recurrent connections `(from, to, weight)`: `to` receives `from`'s
+    /// activation of the PREVIOUS tick. Sorted by the target's evaluation order,
+    /// like `connections`. Empty for a brain without memory.
+    #[serde(default)]
+    pub recurrent: Vec<(u16, u16, f64)>,
+    /// Genome connection index of each entry of `recurrent`.
+    #[serde(default)]
+    pub recurrent_gene_index: Vec<u16>,
 }
 
 /// Output actions produced by the brain each tick.
@@ -96,6 +104,19 @@ impl Brain {
         num_outputs: usize,
         hidden_nodes: &[(u16, f64)],
         connections: &[(u16, u16, f64, bool)],
+    ) -> Self {
+        Self::from_neat_with_memory(num_inputs, num_outputs, hidden_nodes, connections, &[])
+    }
+
+    /// Like [`Brain::from_neat`], plus enabled recurrent connections given as
+    /// `(from, to, weight, genome connection index)`. A recurrent target must be a
+    /// hidden or output node; its source may be any node.
+    pub fn from_neat_with_memory(
+        num_inputs: usize,
+        num_outputs: usize,
+        hidden_nodes: &[(u16, f64)],
+        connections: &[(u16, u16, f64, bool)],
+        recurrent: &[(u16, u16, f64, u16)],
     ) -> Self {
         assert!(num_inputs <= MAX_INPUTS);
         assert!(num_outputs <= MAX_OUTPUTS);
@@ -137,6 +158,19 @@ impl Brain {
         let gene_index = sorted.iter().map(|c| c.3).collect();
         let sorted = sorted.into_iter().map(|(f, t, w, _)| (f, t, w)).collect();
 
+        // Recurrent edges are consumed in the same node order as feed-forward ones.
+        let mut recurrent_sorted = recurrent.to_vec();
+        recurrent_sorted.sort_by(|a, b| {
+            node_eval_pos[a.1 as usize]
+                .cmp(&node_eval_pos[b.1 as usize])
+                .then(a.0.cmp(&b.0))
+        });
+        let recurrent_gene_index = recurrent_sorted.iter().map(|c| c.3).collect();
+        let recurrent_sorted = recurrent_sorted
+            .into_iter()
+            .map(|(f, t, w, _)| (f, t, w))
+            .collect();
+
         Brain {
             inputs: num_inputs,
             hidden: hidden_nodes.len(),
@@ -144,32 +178,52 @@ impl Brain {
             connections: sorted,
             gene_index,
             eval_order,
+            recurrent: recurrent_sorted,
+            recurrent_gene_index,
         }
+    }
+
+    /// Run a forward pass without memory. Returns (output actions, activity_sum).
+    ///
+    /// Recurrent connections, if any, see a previous state of all zeros, as they do
+    /// on a creature's first tick. Uses a stack-allocated buffer.
+    #[inline]
+    pub fn forward(&self, inputs: &[f64]) -> (BrainOutput, f64) {
+        let mut act = [0.0f64; MAX_NODES];
+        self.forward_with_memory(inputs, &[], &mut act)
     }
 
     /// Run a forward pass. Returns (output actions, activity_sum).
     ///
-    /// activity_sum = Σ|weight × source_activation| over all connections.
-    /// This is the metabolic cost of thinking — Attwell & Laughlin (2001).
+    /// - `prev`: this brain's activations from the previous tick, indexed by node
+    ///   slot. An empty slice means "no previous state" (all zeros).
+    /// - `act`: at least [`Brain::slot_count`] entries; receives this tick's
+    ///   activations, which the caller keeps as the next tick's `prev`.
     ///
-    /// Uses stack-allocated activation buffer — zero heap allocation.
-    /// Connections are pre-sorted so this is a single linear pass through the
-    /// connection list, matching the topological evaluation order.
+    /// activity_sum = Σ|weight × source_activation| over all connections, recurrent
+    /// ones included. This is the metabolic cost of thinking — Attwell & Laughlin
+    /// (2001). No heap allocation. Connections are pre-sorted so this is a single
+    /// linear pass matching the topological evaluation order.
     #[inline]
-    pub fn forward(&self, inputs: &[f64]) -> (BrainOutput, f64) {
+    pub fn forward_with_memory(
+        &self,
+        inputs: &[f64],
+        prev: &[f64],
+        act: &mut [f64],
+    ) -> (BrainOutput, f64) {
         debug_assert_eq!(inputs.len(), self.inputs);
+        debug_assert!(act.len() >= self.slot_count());
 
-        let mut act = [0.0f64; MAX_NODES];
+        act.fill(0.0);
         act[0] = 1.0; // bias node
-        for (i, &v) in inputs.iter().enumerate() {
-            act[i + 1] = v;
-        }
+        act[1..=inputs.len()].copy_from_slice(inputs);
 
         let mut activity_sum = 0.0f64;
 
         // Evaluate nodes in topological order.
-        // Connections are pre-sorted to match eval_order — single linear pass.
+        // Both connection lists are pre-sorted to match eval_order — one linear pass.
         let mut ci = 0;
+        let mut ri = 0;
         for &node in &self.eval_order {
             let mut sum = 0.0;
             while ci < self.connections.len() && self.connections[ci].1 == node {
@@ -178,6 +232,13 @@ impl Brain {
                 activity_sum += signal.abs();
                 sum += signal;
                 ci += 1;
+            }
+            while ri < self.recurrent.len() && self.recurrent[ri].1 == node {
+                let (from, _, w) = self.recurrent[ri];
+                let signal = prev.get(from as usize).copied().unwrap_or(0.0) * w;
+                activity_sum += signal.abs();
+                sum += signal;
+                ri += 1;
             }
             act[node as usize] = fast_tanh(sum);
         }
@@ -198,6 +259,19 @@ impl Brain {
         )
     }
 
+    /// Number of node slots (bias + inputs + outputs + hidden): the length of the
+    /// activation state this brain reads and writes.
+    #[inline]
+    pub fn slot_count(&self) -> usize {
+        1 + self.inputs + self.outputs + self.hidden
+    }
+
+    /// Whether this brain has recurrent connections, i.e. needs its previous state.
+    #[inline]
+    pub fn has_memory(&self) -> bool {
+        !self.recurrent.is_empty()
+    }
+
     /// Re-apply effective weights from the genome without reallocating.
     ///
     /// `effective_weight(gene_idx)` returns the weight for the gene at that index
@@ -208,6 +282,13 @@ impl Brain {
         for (c, &gi) in self.connections.iter_mut().zip(self.gene_index.iter()) {
             c.2 = effective_weight(gi as usize);
         }
+        for (c, &gi) in self
+            .recurrent
+            .iter_mut()
+            .zip(self.recurrent_gene_index.iter())
+        {
+            c.2 = effective_weight(gi as usize);
+        }
     }
 
     /// Total number of neurons (hidden + output) for energy cost calculation.
@@ -215,8 +296,13 @@ impl Brain {
         self.hidden + self.outputs
     }
 
-    /// Number of active (enabled) connections.
+    /// Number of active (enabled) connections, recurrent ones included.
     pub fn connection_count(&self) -> usize {
-        self.connections.len()
+        self.connections.len() + self.recurrent.len()
+    }
+
+    /// Number of active recurrent connections.
+    pub fn recurrent_count(&self) -> usize {
+        self.recurrent.len()
     }
 }

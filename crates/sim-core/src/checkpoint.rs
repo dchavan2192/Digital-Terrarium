@@ -19,7 +19,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Version 2 added the separate environment random stream (`env_rng`).
 /// Version 3 replaced per-genome node counters with the shared `innovations` registry.
-pub const CHECKPOINT_VERSION: u32 = 3;
+/// Version 4 added recurrent genes, the brain's recurrent list and organism memory.
+pub const CHECKPOINT_VERSION: u32 = 4;
 pub const CORE_BUILD_ID: &str = env!("TERRARIUM_CORE_BUILD");
 pub const CORE_TARGET: &str = env!("TERRARIUM_CORE_TARGET");
 const FORMAT: &str = "terrarium-checkpoint";
@@ -310,8 +311,24 @@ fn validate(sim: &Simulation) -> Result<(), CheckpointError> {
         {
             return Err(invalid("brain and genome dimensions differ"));
         }
-        if b.connections.len() != o.genome.connections.iter().filter(|c| c.enabled).count() {
+        let enabled = |recurrent: bool| {
+            o.genome
+                .connections
+                .iter()
+                .filter(|c| c.enabled && c.recurrent == recurrent)
+                .count()
+        };
+        if b.connections.len() != enabled(false)
+            || b.recurrent.len() != enabled(true)
+            || b.recurrent.len() != b.recurrent_gene_index.len()
+        {
             return Err(invalid("brain enabled-edge count differs from genome"));
+        }
+        // Previous-tick activations: absent, or exactly one finite value per slot.
+        if !(o.memory.is_empty() || o.memory.len() == b.slot_count())
+            || o.memory.iter().any(|v| !v.is_finite())
+        {
+            return Err(invalid("organism memory does not match its brain"));
         }
         // Brains address nodes by local slot: fixed nodes keep their ids, hidden
         // nodes follow in genome order (see Genome::slot_of).
@@ -351,10 +368,43 @@ fn validate(sim: &Simulation) -> Result<(), CheckpointError> {
             }
             used_genes[b.gene_index[idx] as usize] = true;
             if !gene.enabled
+                || gene.recurrent
                 || o.genome.slot_of(gene.from) != Some(from)
                 || o.genome.slot_of(gene.to) != Some(to)
             {
                 return Err(invalid("brain gene mapping mismatch"));
+            }
+        }
+        // Recurrent edges: any source slot, a computed target, same ordering rule.
+        let mut last_target = 0;
+        for (idx, &(from, to, weight)) in b.recurrent.iter().enumerate() {
+            let (from, to) = (from as usize, to as usize);
+            if from >= slots
+                || from == 0
+                || to >= slots
+                || !seen[to]
+                || !weight.is_finite()
+                || (idx > 0 && order[to] < last_target)
+            {
+                return Err(invalid("invalid recurrent brain edge/order"));
+            }
+            last_target = order[to];
+            let gi = b.recurrent_gene_index[idx] as usize;
+            let gene = o
+                .genome
+                .connections
+                .get(gi)
+                .ok_or_else(|| invalid("recurrent gene index out of bounds"))?;
+            if used_genes[gi] {
+                return Err(invalid("duplicate brain gene mapping"));
+            }
+            used_genes[gi] = true;
+            if !gene.enabled
+                || !gene.recurrent
+                || o.genome.slot_of(gene.from) != Some(from)
+                || o.genome.slot_of(gene.to) != Some(to)
+            {
+                return Err(invalid("recurrent gene mapping mismatch"));
             }
         }
         if o.genome
@@ -407,15 +457,22 @@ pub(crate) fn validate_genome(g: &Genome) -> Result<(), CheckpointError> {
         let (Some(from_depth), Some(to_depth)) = (depth(c.from), depth(c.to)) else {
             return Err(invalid("genome edge refers to a node the genome lacks"));
         };
-        if from_depth >= to_depth
+        // Feed-forward genes must go up in depth. Recurrent genes may go anywhere
+        // except from the bias or into a bias/input node.
+        let direction_ok = if c.recurrent {
+            c.from != 0 && c.to as usize > g.num_inputs
+        } else {
+            from_depth < to_depth
+        };
+        if !direction_ok
             || !c.weight.is_finite()
             || !c.methylation.is_finite()
             || !(0.0..=1.0).contains(&c.methylation)
-            || previous.is_some_and(|key| key >= (c.from, c.to))
+            || previous.is_some_and(|key| key >= c.key())
         {
             return Err(invalid("invalid genome edge or ordering"));
         }
-        previous = Some((c.from, c.to));
+        previous = Some(c.key());
     }
     for v in [
         g.mutation_rate,

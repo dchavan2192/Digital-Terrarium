@@ -249,6 +249,8 @@ fn apply_param(config: &mut Config, param: &str, value: f64) -> bool {
             config.niche_construction.activation_threshold = value
         }
         "mutation.prune_probability" => config.mutation.prune_probability = value,
+        // Memory: 0 switches recurrent connections off entirely.
+        "mutation.add_recurrent_probability" => config.mutation.add_recurrent_probability = value,
         "creature.feeding_speed_factor" => config.creature.feeding_speed_factor = value,
 
         // Feature toggles (0 = off, nonzero = on) for ON/OFF ablation experiments
@@ -303,6 +305,7 @@ fn print_supported_params() {
         "combat.idle_attack_cost",
         "niche_construction.activation_threshold",
         "mutation.prune_probability",
+        "mutation.add_recurrent_probability",
         "creature.feeding_speed_factor",
         "reproduction.sexual",
         "niche_construction.enabled",

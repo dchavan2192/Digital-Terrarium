@@ -317,6 +317,12 @@ pub struct MutationConfig {
     /// Probability of deleting one connection per offspring.
     #[serde(default = "default_prune_probability")]
     pub prune_probability: f64,
+    /// Probability of adding one recurrent connection per offspring. A recurrent
+    /// connection carries a node's activation from the previous tick, which gives
+    /// the brain memory. 0 (the default) switches memory off entirely: no recurrent
+    /// gene can appear and no random number is drawn for it.
+    #[serde(default)]
+    pub add_recurrent_probability: f64,
     /// Per-trait probability of mutating each scalar trait (mutation rate/step,
     /// aging rate, body size, preferred temperature, diet preference).
     #[serde(default = "default_trait_probability")]
@@ -983,6 +989,10 @@ impl Config {
             (
                 "mutation.prune_probability",
                 self.mutation.prune_probability,
+            ),
+            (
+                "mutation.add_recurrent_probability",
+                self.mutation.add_recurrent_probability,
             ),
             (
                 "mutation.trait_probability",

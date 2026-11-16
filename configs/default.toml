@@ -138,6 +138,11 @@ add_connection_probability = 0.02  # Add a new feed-forward edge
 add_node_probability = 0.01        # Split an edge with a new hidden node
 toggle_probability = 0.01          # Flip one edge's enabled flag
 prune_probability = 0.02           # Delete one edge (was 0.04: a built-in drift toward smaller brains)
+# Memory. A recurrent connection carries a node's activation from the previous tick
+# into the current one, so a brain can hold state (Stanley & Miikkulainen 2002).
+# 0 = off: no recurrent connection can appear and runs are identical to a build
+# without the mechanism. Not yet switched on by default; see docs/research/MEMORY_DESIGN.md.
+add_recurrent_probability = 0.0    # Chance per birth of adding one recurrent connection
 trait_probability = 0.05           # Per-trait chance to mutate each scalar trait
 
 [density_pressure]

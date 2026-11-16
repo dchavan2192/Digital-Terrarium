@@ -80,6 +80,13 @@ pub struct Simulation {
     activity_tracker: crate::activity::ActivityTracker,
     /// Reusable per-tick buffer: organism already took part in a sexual mating this tick.
     mated_buf: Vec<bool>,
+    /// Reusable per-tick buffer: this tick's brain activations, `MAX_NODES` per
+    /// organism. The parallel think phase writes here (each organism its own
+    /// chunk) so it can stay read-only on the organisms; the sequential phase then
+    /// copies a chunk into `Organism::memory` for brains that have recurrent
+    /// connections. Transient, so it is not part of a checkpoint.
+    #[serde(skip)]
+    activations: Vec<f64>,
     /// Lineage diversity measured at the most recent `lineage_window` checkpoint.
     lineage_diversity_cached: usize,
 }
@@ -238,6 +245,10 @@ pub struct TickStats {
     pub energy_cap_overflow: f64,
     /// Observed reserve change minus independently recorded net flows; should be near zero.
     pub energy_balance_residual: f64,
+    /// Mean number of active recurrent connections per brain (0 without memory).
+    pub mean_recurrent_connections: f64,
+    /// Share of living creatures whose brain has at least one recurrent connection.
+    pub recurrent_brain_fraction: f64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -415,6 +426,7 @@ impl Simulation {
                 clade_id: next_id,
                 output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
                     crate::organism::NUM_OUTPUTS],
+                memory: Vec::new(),
             };
             organisms.push(org);
             next_id += 1;
@@ -444,6 +456,7 @@ impl Simulation {
             species_representatives: Vec::new(),
             activity_tracker,
             mated_buf: Vec::with_capacity(cap),
+            activations: Vec::new(),
             lineage_diversity_cached: 0,
         }
     }
@@ -551,11 +564,18 @@ impl Simulation {
         let construction_grid = &self.construction_grid;
         let spatial_grid = &self.spatial_grid;
 
-        let iter = 0..organism_count;
+        // One activation chunk per organism; the buffer is reused across ticks.
+        self.activations
+            .resize(organism_count * crate::brain::MAX_NODES, 0.0);
+        let activations = &mut self.activations;
         #[cfg(feature = "parallel")]
-        let iter = iter.into_par_iter();
+        let iter = activations
+            .par_chunks_mut(crate::brain::MAX_NODES)
+            .enumerate();
+        #[cfg(not(feature = "parallel"))]
+        let iter = activations.chunks_mut(crate::brain::MAX_NODES).enumerate();
         self.actions = iter
-            .map(|i| {
+            .map(|(i, act)| {
                 if !organisms[i].alive {
                     return Action::default();
                 }
@@ -740,7 +760,12 @@ impl Simulation {
                 inputs[idx] = (here / food_max_per_cell).min(1.0);
 
                 let brain_inputs = &inputs[..organisms[i].brain.inputs];
-                let (output, brain_activity) = organisms[i].brain.forward(brain_inputs);
+                // Recurrent connections read the organism's previous activations;
+                // this tick's go into its own chunk of the shared buffer.
+                let (output, brain_activity) =
+                    organisms[i]
+                        .brain
+                        .forward_with_memory(brain_inputs, &organisms[i].memory, act);
 
                 Action {
                     turn: output.turn,
@@ -796,6 +821,19 @@ impl Simulation {
                 continue;
             }
             let org = &mut self.organisms[i];
+
+            // Memory: keep this tick's activations as the previous state for the
+            // next one. Only brains with recurrent connections need it; the vector
+            // is sized once, on the creature's first tick.
+            if org.brain.has_memory() {
+                let slots = org.brain.slot_count();
+                let start = i * crate::brain::MAX_NODES;
+                if org.memory.len() != slots {
+                    org.memory.resize(slots, 0.0);
+                }
+                org.memory
+                    .copy_from_slice(&self.activations[start..start + slots]);
+            }
 
             // Turn
             org.heading += action.turn * max_turn;
@@ -1319,6 +1357,7 @@ impl Simulation {
                 clade_id: org.clade_id,
                 output_bins: [[0.0; crate::organism::NUM_ENTROPY_BINS];
                     crate::organism::NUM_OUTPUTS],
+                memory: Vec::new(),
             };
             self.next_id += 1;
             ledger.reproduction_cost += parent_cost;
@@ -1779,7 +1818,25 @@ impl Simulation {
             energy_balance_residual,
             ledger.tolerance(total_energy)
         );
+        // Memory: how much of the population carries recurrent connections.
+        let (total_recurrent, brains_with_memory) =
+            self.organisms.iter().fold((0usize, 0usize), |(r, m), o| {
+                (
+                    r + o.brain.recurrent_count(),
+                    m + usize::from(o.brain.has_memory()),
+                )
+            });
+        let (mean_recurrent_connections, recurrent_brain_fraction) = if population > 0 {
+            (
+                total_recurrent as f64 / population as f64,
+                brains_with_memory as f64 / population as f64,
+            )
+        } else {
+            (0.0, 0.0)
+        };
         self.stats = TickStats {
+            mean_recurrent_connections,
+            recurrent_brain_fraction,
             energy_before: ledger.before,
             energy_after: total_energy,
             energy_food_input: ledger.food_input,

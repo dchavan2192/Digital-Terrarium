@@ -86,6 +86,6 @@ The session stopped because the usage limit was near. Everything below is commit
 - Population-wide node identity (`genome::Innovations`); no lifetime neuron cap. Checkpoint version 3.
 - Demo: KPI unit text fixed, species announcements at 5% of the population, expandable trend charts on the headline tiles.
 
-**In progress, NOT started in code:** memory (recurrent connections). The full design, the decisions already made and the tests to write are in `docs/research/MEMORY_DESIGN.md`. Reference states for the "off means identical" check are in `output/conformance/ref-pre-memory*/` (local, ignored by git; the design says how to regenerate them).
+**Memory (recurrent connections) was implemented later on 2026-11-16, off by default.** Outcome and open points are at the end of `docs/research/MEMORY_DESIGN.md`. Do not switch it on by default; the next step is the behavioural test. Reference states for the "off means identical" check are in `output/conformance/ref-pre-memory*/` (local, ignored by git; the design says how to regenerate them).
 
 **Open after that:** behavioural test battery before switching memory on (roadmap 2.4); the neutral shadow model; freezing the study plan in `docs/PREREG.md`; inspector and Follow-camera visual check; better Pi cooling before any longer run.

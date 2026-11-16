@@ -1,6 +1,6 @@
-# Memory: recurrent connections (design, not yet implemented)
+# Memory: recurrent connections
 
-Status: **design only, written 2026-11-16. No code has been changed.** Roadmap item 2.1 / Phase 9b. The owner asked to start it; the session ended before implementation began.
+Status: **implemented 2026-11-16, off by default.** Roadmap item 2.1 / Phase 9b. The design below was written before the code and the code follows it; see "What was built and checked" at the end for the outcome and what is still open.
 
 ## Why
 
@@ -36,3 +36,13 @@ Brains are feed-forward: each tick a creature reacts only to what it senses now.
 - Behavioural test first (roadmap 2.4): a delayed-response task that a feed-forward brain cannot solve, to show memory is used and not merely present.
 - Then a Pi comparison of recurrence on against off at the validated food setting, with the drought schedule held fixed (`food.droughts.schedule_seed`).
 - Raising `MAX_NODES` (roadmap 2.2) is separate.
+
+## What was built and checked (2026-11-16)
+
+- Everything in "Decisions" 1–9 is implemented as written. `mutation.add_recurrent_probability` is `0.0` in `configs/default.toml`.
+- **Off means identical.** With the probability at 0, states at tick 3,000 (default config, seed 42) and tick 1,500 (seed 9, regrowth 0.006, cap 2,000) match the saved pre-memory references in every field that existed before: organisms, genomes, both random-number states, grids, innovation registry. Script: `output/conformance/compare_off.py` (local).
+- **Tests** (`crates/sim-core/tests/memory.rs`, 8): a self-loop carries state across ticks; an input-sourced recurrent edge is a one-tick delay; feed-forward and recurrent genes on one pair stay distinct through crossover; the mutation adds valid genes and add-node never splits one; at probability 0 nothing of the mechanism exists over 400 ticks; with it on, memory spreads, is sized per brain and the energy ledger stays balanced; a mid-run checkpoint continues exactly; wiping memory changes what happens next.
+- **Cross-platform:** macOS and WASM fingerprints match through tick 8,000 with the probability at 0.3; CI now compares Linux with WASM in both modes.
+- Checkpoint format version 4; stats schema version 3 (two columns appended).
+- **Not verified by eye:** the demo's brain diagram draws memory connections as dotted brass curves (a loop for a self-connection), but the demo runs with memory off, so no such edge has been seen on screen.
+- **Not done, deliberately:** memory is not switched on anywhere. Whether evolution uses it is an experiment, not an assumption. Next is the behavioural test (a delayed-response task a feed-forward brain cannot solve) and then an on/off comparison on the Pi at the validated food setting.

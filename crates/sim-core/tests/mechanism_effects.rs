@@ -58,6 +58,7 @@ fn sensor_to_output(s: &mut Simulation, sensor: usize, slot: usize, bias: f64, w
         weight,
         enabled: true,
         methylation: 0.0,
+        recurrent: false,
     });
     s.organisms[0].brain = g.build_brain();
 }

@@ -275,7 +275,7 @@ Returns length 0 if `id` is not alive. Building it allocates a little and scans 
               {"id": 1, "kind": "in", "label": "ray0_dist", "depth": 0, "layer": 0}, "...",
               {"id": 20, "kind": "out", "label": "turn", "depth": 1, "layer": 2},
               {"id": 27, "kind": "hidden", "label": "h27", "depth": 0.5, "layer": 1}],
-    "edges": [{"from": 0, "to": 27, "weight": 0.31, "enabled": true, "methylation": 0.0, "effective_weight": 0.31}],
+    "edges": [{"from": 0, "to": 27, "weight": 0.31, "enabled": true, "methylation": 0.0, "effective_weight": 0.31, "recurrent": false}],
     "output_histograms": [{"name": "turn", "bins": [0.1, "... 8 values"], "entropy": 0.52}]
   }
 }

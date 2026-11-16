@@ -133,6 +133,7 @@ cargo test --workspace
 - **Epigenetics**: effective weight = `weight × (1 − methylation)`, applied both at birth and to the living brain
 - **Activation**: fast_tanh (Pade approximant, ~3-5x faster than std)
 - **Forward pass**: Stack-allocated `[f64; MAX_NODES]`, single linear pass through pre-sorted connections
+- **Memory (off by default)**: a recurrent connection gene (`recurrent: true`) feeds its target the source's activation from the previous tick. `mutation.add_recurrent_probability = 0` disables it and leaves trajectories identical to a build without it. State lives in `Organism::memory`; the parallel think phase writes into a per-tick scratch buffer and never mutates organisms. Design and checks: `docs/research/MEMORY_DESIGN.md`
 - **Node identity**: hidden-node ids are issued by the shared `Innovations` registry (the same split of the same connection gets the same id in every lineage) and are NOT buffer positions; `Genome::build_brain` maps them to local slots. The node limit (`MAX_NODES` − fixed nodes = 36 hidden with 20 inputs) applies to neurons held at once, not to a lineage's history
 
 ## Key Experiment Results (November 2026)
@@ -166,6 +167,7 @@ All in `configs/default.toml`. Key ones:
 | `creature.feeding_speed_factor` | 0.5 | Speed multiplier in feeding mode (handling vs searching, Holling 1959) |
 | `combat.idle_attack_cost` | 0.0 | Cost of attacking with no target in range (5 = old rule) |
 | `mutation.prune_probability` | 0.02 | Balanced against add rates (0.04 = old shrink bias) |
+| `mutation.add_recurrent_probability` | 0.0 | Chance per birth of a memory (recurrent) connection; 0 = memory off |
 | `niche_construction.activation_threshold` | 0.2 | Construct outputs below this do nothing and cost nothing |
 | `speciation.dynamic` | true | Auto-compute species threshold from genome variance |
 | `epigenetics.stress_repro_fraction` | 0.25 | Stressed when energy < 0.25 × reproduction.threshold |
