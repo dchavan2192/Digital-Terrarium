@@ -15,6 +15,14 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::time::Instant;
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum Fitness {
+    #[default]
+    TerminalOnly,
+    TerminalProgress,
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Protocol {
@@ -24,6 +32,8 @@ struct Protocol {
     tournament: usize,
     seeds: Vec<u64>,
     hidden: usize,
+    #[serde(default)]
+    fitness: Fitness,
     mutation: MutationConfig,
 }
 
@@ -110,6 +120,8 @@ struct Candidate {
     parent_id: Option<u64>,
     born_generation: u32,
     correct: u8,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    terminal_progress: Option<f64>,
     genome: Genome,
 }
 
@@ -123,33 +135,66 @@ fn write_json(path: &Path, value: &impl Serialize) -> RunResult<()> {
     file.write_all(b"\n").map_err(|e| e.to_string())
 }
 
-fn score(candidate: &mut Candidate, arena: &ArenaConfig) -> RunResult<()> {
+fn score(candidate: &mut Candidate, arena: &ArenaConfig, fitness: Fitness) -> RunResult<()> {
     candidate.genome.validate().map_err(|e| e.to_string())?;
     if candidate.genome.connections.iter().any(|c| c.recurrent) {
         return Err("unexpected recurrent gene in feed-forward acquisition".into());
     }
-    candidate.correct = delayed_choice::visible_score(&candidate.genome.build_brain(), arena)?;
+    let brain = candidate.genome.build_brain();
+    match fitness {
+        Fitness::TerminalOnly => {
+            candidate.correct = delayed_choice::visible_score(&brain, arena)?;
+            candidate.terminal_progress = None;
+        }
+        Fitness::TerminalProgress => {
+            let (correct, progress) = delayed_choice::visible_score_with_progress(&brain, arena)?;
+            if !progress.is_finite() || !(0.0..=1.0).contains(&progress) {
+                return Err("invalid terminal progress".into());
+            }
+            candidate.correct = correct;
+            candidate.terminal_progress = Some(progress);
+        }
+    }
     Ok(())
 }
 
-fn rank(population: &mut [Candidate]) {
-    population.sort_by(|a, b| b.correct.cmp(&a.correct).then(a.id.cmp(&b.id)));
+fn rank(population: &mut [Candidate], fitness: Fitness) {
+    population.sort_by(|a, b| {
+        b.correct
+            .cmp(&a.correct)
+            .then_with(|| {
+                if fitness == Fitness::TerminalProgress {
+                    b.terminal_progress
+                        .unwrap()
+                        .total_cmp(&a.terminal_progress.unwrap())
+                } else {
+                    std::cmp::Ordering::Equal
+                }
+            })
+            .then(a.id.cmp(&b.id))
+    });
 }
 
 fn generation_log(file: &mut File, generation: u32, population: &[Candidate]) -> RunResult<()> {
     let scores: Vec<_> = population
         .iter()
-        .map(|c| json!({"id":c.id,"parent_id":c.parent_id,"correct":c.correct}))
+        .map(|c| {
+            let mut row = json!({"id":c.id,"parent_id":c.parent_id,"correct":c.correct});
+            if let Some(progress) = c.terminal_progress {
+                row["terminal_progress"] = json!(progress);
+            }
+            row
+        })
         .collect();
     let mean = population.iter().map(|c| u64::from(c.correct)).sum::<u64>() as f64
         / (2 * population.len()) as f64;
-    serde_json::to_writer(
-        &mut *file,
-        &json!({"generation":generation,"champion_id":population[0].id,
+    let mut record = json!({"generation":generation,"champion_id":population[0].id,
         "best_mean_reward":f64::from(population[0].correct)/2.0,"population_mean_reward":mean,
-        "both_correct":population.iter().filter(|c| c.correct==2).count(),"scores":scores}),
-    )
-    .map_err(|e| e.to_string())?;
+        "both_correct":population.iter().filter(|c| c.correct==2).count(),"scores":scores});
+    if let Some(progress) = population[0].terminal_progress {
+        record["champion_terminal_progress"] = json!(progress);
+    }
+    serde_json::to_writer(&mut *file, &record).map_err(|e| e.to_string())?;
     file.write_all(b"\n").map_err(|e| e.to_string())?;
     file.flush().map_err(|e| e.to_string())
 }
@@ -179,13 +224,15 @@ fn search(protocol: &Protocol, arena: &ArenaConfig, seed: u64, dir: &Path) -> Ru
             parent_id: None,
             born_generation: 0,
             correct: 0,
+            terminal_progress: None,
             genome,
         };
-        score(&mut candidate, arena)?;
+        score(&mut candidate, arena, protocol.fitness)?;
         population.push(candidate);
     }
-    rank(&mut population);
+    rank(&mut population, protocol.fitness);
     let founder_best = population[0].correct;
+    let founder_progress = population[0].terminal_progress;
     write_json(&dir.join("founders.json"), &population)?;
     let mut curve = OpenOptions::new()
         .write(true)
@@ -208,6 +255,7 @@ fn search(protocol: &Protocol, arena: &ArenaConfig, seed: u64, dir: &Path) -> Ru
                 parent_id: Some(population[parent].id),
                 born_generation: generation,
                 correct: 0,
+                terminal_progress: None,
                 genome: population[parent].genome.reproduce(
                     &protocol.mutation,
                     &mut innovations,
@@ -215,26 +263,32 @@ fn search(protocol: &Protocol, arena: &ArenaConfig, seed: u64, dir: &Path) -> Ru
                 ),
             };
             next_id += 1;
-            score(&mut child, arena)?;
+            score(&mut child, arena, protocol.fitness)?;
             offspring.push(child);
         }
         // Elites are evaluated again: fixed population×(generations+1) budget.
         for elite in &mut offspring[..protocol.elites] {
-            score(elite, arena)?;
+            score(elite, arena, protocol.fitness)?;
         }
-        rank(&mut offspring);
+        rank(&mut offspring, protocol.fitness);
         population = offspring;
         generation_log(&mut curve, generation, &population)?;
     }
     write_json(&dir.join("final_population.json"), &population)?;
     write_json(&dir.join("innovations.json"), &innovations)?;
     let champion = &population[0];
-    let summary = json!({"seed":seed,"status":"completed","evaluations":protocol.population as u64*(u64::from(protocol.generations)+1),
+    let mut summary = json!({"seed":seed,"status":"completed","evaluations":protocol.population as u64*(u64::from(protocol.generations)+1),
         "founder_best_mean_reward":f64::from(founder_best)/2.0,"final_best_mean_reward":f64::from(champion.correct)/2.0,
         "champion_id":champion.id,"both_correct_at_founding":founder_best==2,"both_correct_at_end":champion.correct==2,
         "improvement_over_founders":champion.correct>founder_best,
         "elapsed_seconds":timer.elapsed().as_secs_f64(),
-        "champion_training_trials":delayed_choice::evaluate_brain(&champion.genome.build_brain(),arena,true)?});
+        "champion_training_trials":if protocol.fitness == Fitness::TerminalProgress {
+            delayed_choice::evaluate_brain_with_progress(&champion.genome.build_brain(), arena)?
+        } else { delayed_choice::evaluate_brain(&champion.genome.build_brain(),arena,true)? }});
+    if let Some(progress) = champion.terminal_progress {
+        summary["founder_best_terminal_progress"] = json!(founder_progress.unwrap());
+        summary["final_best_terminal_progress"] = json!(progress);
+    }
     write_json(&dir.join("summary.json"), &summary)?;
     Ok(summary)
 }
@@ -279,7 +333,7 @@ pub fn run(protocol_path: &Path, arena_path: &Path, output: &Path) -> RunResult<
     // Validate everything before creating artifacts, and pin the positive controls.
     let controls = delayed_choice::validate_controls(&arena, true)?;
     let session = run::create_session(output)?;
-    let manifest = json!({"schema_version":1,"task":"visible_cue_genetic_acquisition","status":"started",
+    let mut manifest = json!({"schema_version":1,"task":"visible_cue_genetic_acquisition","status":"started",
         "protocol":protocol,"arena":arena,"protocol_path":protocol_path,"arena_path":arena_path,
         "total_evaluations":evaluations,"execution":"serial; no ecology or Rayon pool",
         "fitness":"number correct across cues [-1,+1]; terminal first contact only; wrong/timeout zero",
@@ -294,6 +348,20 @@ pub fn run(protocol_path: &Path, arena_path: &Path, output: &Path) -> RunResult<
         "core_build":sim_core::checkpoint::CORE_BUILD_ID,"compiler":env!("TERRARIUM_COMPILER"),
         "target":env!("TERRARIUM_TARGET"),"build_profile":env!("TERRARIUM_BUILD_PROFILE"),"rng":"ChaCha8Rng seed_from_u64; fixed-width random_index",
         "interpretation":"engineering feasibility pilot; genetic optimization across generations, not memory, within-life learning, ecological adaptation or generalization"});
+    if protocol.fitness == Fitness::TerminalProgress {
+        manifest["fitness"] = json!(
+            "correct-count primary, then mean clipped terminal surface-distance progress toward assigned goal; teacher target consulted only after termination"
+        );
+        manifest["selection"] = json!(
+            "asexual elitism; tournament with replacement; descending correct, descending terminal_progress, ascending persistent candidate ID; no crossover/speciation"
+        );
+        manifest["champion_rule"] = json!(
+            "best final population member by correct count, terminal progress, then ID; fixed budget, no early stopping"
+        );
+        manifest["progress_definition"] = json!(
+            "mean across cues of clamp((start_surface_distance-terminal_surface_distance)/start_surface_distance,0,1); confirmed correct contact=1; terminal means first contact or horizon, never closest approach"
+        );
+    }
     write_json(&session.join("manifest.json"), &manifest)?;
     write_json(&session.join("controls.json"), &controls)?;
     let mut results = Vec::new();
@@ -329,6 +397,49 @@ pub fn run(protocol_path: &Path, arena_path: &Path, output: &Path) -> RunResult<
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn progress_breaks_only_correctness_ties_then_uses_id() {
+        let cfg = Config::parse(include_str!("../../../configs/default.toml")).unwrap();
+        let mut rng = ChaCha8Rng::seed_from_u64(99);
+        let genome = Genome::random(
+            &cfg.brain,
+            &cfg.mutation,
+            &cfg.aging,
+            &cfg.temperature,
+            &cfg.food.fruit,
+            &mut rng,
+        );
+        let make = |id, correct, progress| Candidate {
+            id,
+            parent_id: None,
+            born_generation: 0,
+            correct,
+            terminal_progress: Some(progress),
+            genome: genome.clone(),
+        };
+        let population = vec![
+            make(1, 1, 0.5),
+            make(9, 1, 0.8),
+            make(3, 2, 0.0),
+            make(2, 1, 0.8),
+        ];
+        let mut progressed = population.clone();
+        rank(&mut progressed, Fitness::TerminalProgress);
+        assert_eq!(
+            progressed.iter().map(|c| c.id).collect::<Vec<_>>(),
+            vec![3, 2, 9, 1]
+        );
+        let mut legacy = population;
+        rank(&mut legacy, Fitness::TerminalOnly);
+        assert_eq!(
+            legacy.iter().map(|c| c.id).collect::<Vec<_>>(),
+            vec![3, 1, 2, 9]
+        );
+        let omitted: Protocol =
+            toml::from_str(include_str!("../../../configs/visible_acquisition.toml")).unwrap();
+        assert_eq!(omitted.fitness, Fitness::TerminalOnly);
+    }
+
     #[test]
     fn protocol_rejects_work_overflow_and_invalid_designs() {
         let mut p: Protocol =

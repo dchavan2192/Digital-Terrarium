@@ -1,0 +1,20 @@
+# Fresh paired search-method pilot; original seeds and archived pilot stay unchanged.
+# Freeze this file plus the arena and source revision before a scientific pilot.
+fitness = "terminal_progress"
+population = 64
+generations = 25 # 25 replacements after the separately reported founder generation
+elites = 8
+tournament = 3
+seeds = [2100, 2101, 2102]
+hidden = 8
+
+# Weight-only native asexual mutation; topology, recurrence and scalar-trait mutation disabled.
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.0
+add_node_probability = 0.0
+toggle_probability = 0.0
+prune_probability = 0.0
+add_recurrent_probability = 0.0
+trait_probability = 0.0

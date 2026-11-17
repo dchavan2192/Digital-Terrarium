@@ -281,6 +281,7 @@ fn condition(
     clear: bool,
     cue_visible: bool,
     trace: bool,
+    score_progress: bool,
 ) -> RunResult<Value> {
     let mut trials = Vec::new();
     for cue in [-1, 1] {
@@ -340,20 +341,42 @@ fn condition(
         // The hidden answer is used ONLY here, after movement terminates.
         let target = if cue == 1 { "left" } else { "right" };
         let reward = u8::from(choice == target);
-        trials.push(json!({"cue":cue,"target":target,"choice":choice,"reward":reward,"movement_ticks":movement_ticks,"initial_pose":initial_pose,"hold_trace":hold_trace,"trajectory":trajectory}));
+        let mut trial = json!({"cue":cue,"target":target,"choice":choice,"reward":reward,"movement_ticks":movement_ticks,"initial_pose":initial_pose,"hold_trace":hold_trace,"trajectory":trajectory});
+        if score_progress {
+            trial["terminal_progress"] = json!(terminal_progress(
+                config,
+                pose,
+                if cue == 1 { 0 } else { 1 },
+                reward == 1
+            )?);
+        }
+        trials.push(trial);
     }
     let mean_reward = trials
         .iter()
         .map(|trial| trial["reward"].as_u64().unwrap())
         .sum::<u64>() as f64
         / 2.0;
-    Ok(json!({"clear_state_each_tick":clear,"mean_reward":mean_reward,"trials":trials}))
+    let mean_progress = score_progress.then(|| {
+        trials
+            .iter()
+            .map(|t| t["terminal_progress"].as_f64().unwrap())
+            .sum::<f64>()
+            / 2.0
+    });
+    let mut result =
+        json!({"clear_state_each_tick":clear,"mean_reward":mean_reward,"trials":trials});
+    if let Some(progress) = mean_progress {
+        result["mean_terminal_progress"] = json!(progress);
+    }
+    Ok(result)
 }
 
-pub(crate) fn evaluate_brain(
+fn evaluate_brain_mode(
     brain: &Brain,
     config: &ArenaConfig,
     cue_visible: bool,
+    score_progress: bool,
 ) -> RunResult<Value> {
     config.validate()?;
     if brain.inputs != config.input_count() || brain.outputs != 7 || brain.slot_count() > MAX_NODES
@@ -363,8 +386,70 @@ pub(crate) fn evaluate_brain(
         );
     }
     Ok(
-        json!({"cue_visible":cue_visible,"intact":condition(brain,config,false,cue_visible,true)?,"same_network_state_cleared":condition(brain,config,true,cue_visible,true)?}),
+        json!({"cue_visible":cue_visible,"intact":condition(brain,config,false,cue_visible,true,score_progress)?,"same_network_state_cleared":condition(brain,config,true,cue_visible,true,score_progress)?}),
     )
+}
+
+pub(crate) fn evaluate_brain(
+    brain: &Brain,
+    config: &ArenaConfig,
+    cue_visible: bool,
+) -> RunResult<Value> {
+    evaluate_brain_mode(brain, config, cue_visible, false)
+}
+
+pub(crate) fn evaluate_brain_with_progress(
+    brain: &Brain,
+    config: &ArenaConfig,
+) -> RunResult<Value> {
+    evaluate_brain_mode(brain, config, true, true)
+}
+
+/// Terminal-only diagnostic consulted after motion ends, never by the controller.
+fn terminal_progress(
+    config: &ArenaConfig,
+    terminal: Pose,
+    target: usize,
+    correct_contact: bool,
+) -> RunResult<f64> {
+    let (x, y) = config.goals()[target];
+    let surface =
+        |pose: Pose| ((pose.x - x).powi(2) + (pose.y - y).powi(2)).sqrt() - config.goal_radius;
+    let start = surface(config.start());
+    if !start.is_finite() || start <= 0.0 {
+        return Err(
+            "terminal progress requires a finite positive starting surface distance".into(),
+        );
+    }
+    let raw_end = surface(terminal);
+    if !raw_end.is_finite() {
+        return Err("non-finite terminal surface distance".into());
+    }
+    // Confirmed swept correct contact is exactly full progress; rounding of the
+    // intersection pose must not break ties between successful controllers.
+    if correct_contact {
+        return Ok(1.0);
+    }
+    let end = raw_end.max(0.0);
+    Ok(((start - end) / start).clamp(0.0, 1.0))
+}
+
+pub(crate) fn visible_score_with_progress(
+    brain: &Brain,
+    config: &ArenaConfig,
+) -> RunResult<(u8, f64)> {
+    if brain.inputs != config.input_count() || brain.outputs != 7 || brain.slot_count() > MAX_NODES
+    {
+        return Err("brain layout differs from visible acquisition task".into());
+    }
+    let result = condition(brain, config, false, true, false, true)?;
+    let correct = result["trials"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|t| t["reward"].as_u64().unwrap() as u8)
+        .sum();
+    Ok((correct, result["mean_terminal_progress"].as_f64().unwrap()))
 }
 
 /// Training uses exactly the intact visible trials, without allocating step traces.
@@ -374,7 +459,7 @@ pub(crate) fn visible_score(brain: &Brain, config: &ArenaConfig) -> RunResult<u8
     {
         return Err("brain layout differs from visible acquisition task".into());
     }
-    let result = condition(brain, config, false, true, false)?;
+    let result = condition(brain, config, false, true, false, false)?;
     Ok(result["trials"]
         .as_array()
         .unwrap()
@@ -405,9 +490,9 @@ pub(crate) fn validate_controls(config: &ArenaConfig, cue_visible: bool) -> RunR
     let recurrent = reference(config, true);
     let plain = reference(config, false);
     let mut controls = vec![
-        condition(&recurrent, config, false, cue_visible, true)?,
-        condition(&plain, config, false, cue_visible, true)?,
-        condition(&recurrent, config, true, cue_visible, true)?,
+        condition(&recurrent, config, false, cue_visible, true, false)?,
+        condition(&plain, config, false, cue_visible, true, false)?,
+        condition(&recurrent, config, true, cue_visible, true, false)?,
     ];
     for (control, name) in controls.iter_mut().zip([
         "recurrent_reference",
@@ -500,6 +585,73 @@ mod tests {
     }
 
     #[test]
+    fn terminal_progress_is_bounded_terminal_only_and_preserves_rewards() {
+        let config = config();
+        assert_eq!(
+            terminal_progress(&config, config.start(), 0, false).unwrap(),
+            0.0
+        );
+        let nearer = Pose {
+            x: -2.0,
+            y: 2.0,
+            heading: 0.0,
+        };
+        let closer = terminal_progress(&config, nearer, 0, false).unwrap();
+        assert!(closer > 0.0 && closer < 1.0);
+        assert_eq!(
+            terminal_progress(
+                &config,
+                Pose {
+                    x: 4.0,
+                    y: -4.0,
+                    heading: 0.0
+                },
+                0,
+                false
+            )
+            .unwrap(),
+            0.0
+        );
+        assert_eq!(terminal_progress(&config, nearer, 0, true).unwrap(), 1.0);
+        assert!(
+            terminal_progress(
+                &config,
+                Pose {
+                    x: f64::NAN,
+                    ..nearer
+                },
+                0,
+                false
+            )
+            .is_err()
+        );
+        let mut invalid = config.clone();
+        invalid.goal_radius = 32.0_f64.sqrt();
+        assert!(terminal_progress(&invalid, config.start(), 0, false).is_err());
+        let brain = reference(&config, false);
+        let mut reported = evaluate_brain_with_progress(&brain, &config).unwrap();
+        assert_eq!(
+            visible_score_with_progress(&brain, &config).unwrap(),
+            (2, 1.0)
+        );
+        for name in ["intact", "same_network_state_cleared"] {
+            assert_eq!(reported[name]["mean_terminal_progress"], 1.0);
+            reported[name]
+                .as_object_mut()
+                .unwrap()
+                .remove("mean_terminal_progress");
+            for trial in reported[name]["trials"].as_array_mut().unwrap() {
+                trial.as_object_mut().unwrap().remove("terminal_progress");
+            }
+        }
+        assert_eq!(
+            reported,
+            evaluate_brain(&brain, &config, true).unwrap(),
+            "diagnostics must not change any inputs, actions, rewards or trajectories"
+        );
+    }
+
+    #[test]
     fn controls_choose_and_external_state_cannot_carry_the_cue() {
         let config = config();
         let result = validate_controls(&config, false).unwrap();
@@ -540,8 +692,8 @@ mod tests {
         let config = config();
         for recurrent in [false, true] {
             let brain = reference(&config, recurrent);
-            let detailed = condition(&brain, &config, false, true, true).unwrap();
-            let compact = condition(&brain, &config, false, true, false).unwrap();
+            let detailed = condition(&brain, &config, false, true, true, false).unwrap();
+            let compact = condition(&brain, &config, false, true, false, false).unwrap();
             for i in 0..2 {
                 for key in [
                     "cue",

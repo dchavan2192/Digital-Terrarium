@@ -6,6 +6,14 @@
 
 ---
 
+## Acquisition-method revision — 2026-11-17 (development, comparison not yet run)
+
+- Continuing after the archived three-seed partial/null acquisition result. Added explicit opt-in `terminal_progress` fitness: correct count remains primary, mean clipped progress toward the assigned goal **after termination** breaks ties, then persistent ID. Original terminal-only method remains the default; old configs, controllers, sensor inputs, rewards and search random draws retain their behavior. No engine or demo setting change.
+- New mode records per-candidate/mean/per-cue progress separately from actual correctness. Confirmed correct contacts normalize to1; finite-positive starting distance and finite terminal distances are guarded. No extra neural evaluations or online reward are introduced. [Design/research limits](research/TERMINAL_PROGRESS_ACQUISITION_2026-11-17.md).
+- Fresh paired configs/seeds2100–2102 and [prospective comparison plan](results/TERMINAL_PROGRESS_COMPARISON_PLAN_2026-11-17.md) fix64/25 budgets, original geometry, all-failure retention, primary two-choice acquisition and guarded serial Pi execution. Do not run before full validation, review, clean-source/input pinning and saved analysis readiness. No new pilot outcomes yet.
+- Targeted runner tests pass, including default/explicit terminal-only byte-identical search artifacts, deterministic new-mode replay/ranking, correct-count priority, progress boundary/nonfinite guards, unchanged input/action/reward trajectories, and unknown-mode rejection. All161 workspace Rust tests, all-target Clippy and format checks pass; independent code review found no blocker. Comparison still requires saved audit-script readiness and a pinned clean build before launch.
+- New remote ecology branch `science/diet-competition-kernel` is separate/unmerged. [Read-only review](research/DIET_COMPETITION_BRANCH_REVIEW_2026-11-17.md) found domain-validation and unsupported-sweep gaps; do not fold it into acquisition or launch its experiments yet.
+
 ## Demo metric clarity — 2026-11-17
 
 - User asked whether the demo UI needed improvement. Focused changes make the observed connection growth interpretable: memory panel now separates measured average enabled feed-forward/recurrent/total links, discloses the running config’s mutation-attempt probability, and keeps tick-zero/missing metrics unavailable. Individual inspector shows the same decomposition and labels static cost as a baseline estimate.
