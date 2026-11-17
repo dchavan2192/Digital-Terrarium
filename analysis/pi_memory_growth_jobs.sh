@@ -19,8 +19,6 @@ while read -r seed rate; do
   mkdir -p "$job"
   RAYON_NUM_THREADS=1 "$ROOT/sim-runner" --config "$ROOT/base.toml" --seed "$seed" \
     --set food.regrowth_rate=0.002 --set creature.hard_cap=500 \
-    --set food.seasons.period=3600 --set food.droughts.spawn_rate=0.0006 \
-    --set food.droughts.duration=1500 --set daynight.period=600 \
     --set "mutation.add_recurrent_probability=$rate" \
     --ticks 200000 --log-interval 500 --checkpoint-every 50000 \
     --export-genomes-every 200000 --output "$job" > "$job/runner.log" 2>&1 &
