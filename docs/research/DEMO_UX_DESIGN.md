@@ -7,6 +7,12 @@ Architecture assumed (decision D7 in `docs/PROGRESS.md`): sim-core → `crates/s
 
 ---
 
+## 2026-11-17 metric-clarity update
+
+The optional memory panel shows measured average enabled feed-forward, recurrent and total links per living creature, plus the actual configured recurrence-add attempt probability. Unknown/tick-zero averages stay unavailable. Inspector counts use the individual enabled-edge pool. Presence is distinct from useful recall, and the demo’s high mutation setting is disclosed. KPI/event wording describes model measurements rather than asserting intelligence, altruism, carrying capacity or adaptation. Literature citations indicate inspiration, not validation of those claims. Sharing is displayed as events per creature, and inspector static brain cost is labelled a baseline estimate.
+
+Browser visual QA for this update was unavailable because the browser host was not accessible. Automated unit/real-WASM checks validate data wiring; layout remains unverified in this session. Existing GitHub Pages hosting and simulation settings are retained.
+
 ## 0. What the current demo gets wrong (diagnosis)
 
 | Symptom (owner: "too game-like, no one knows what is happening") | Root cause in current viewer | Fix in this spec |
@@ -305,11 +311,11 @@ Each tile shows a **plain-English label**, a big number, a unit or qualifier, a 
 
 | # | Label | Value (from `TickStats`) | Format | Tooltip (what · why · cite) |
 |---|---|---|---|---|
-| 1 | **Creatures alive** | `population` | `482` (+ "/ 500 cap" small) | How many creatures are alive. Populations boom when food is plentiful and crash in droughts. The cap is the world's carrying capacity. *Lotka 1925; Volterra 1926.* |
-| 2 | **Species** | `species_count` | `7` | Groups of creatures whose brains and bodies have evolved far enough apart to count as distinct. New species arise as lineages adapt to different parts of the world. *Stanley & Miikkulainen 2002 (NEAT); Schluter 2000.* |
-| 3 | **Brain size** | `mean_connections` (primary), `mean_brain_neurons` (secondary) | `41 links · 9 neurons` | Average number of connections in a creature's brain. Brains grow by mutation but cost energy to run, so the size shows whether intelligence is paying for itself. *Aiello & Wheeler 1995; Laughlin et al. 1998.* |
-| 4 | **Cooperation** | `cooperation_rate` (+ `kin_share_ratio` in tooltip) | `64%` | Share of creatures that donated energy to a neighbour recently. Nearly all sharing is between relatives, so helping kin helps your own genes. *Hamilton 1964 (rB > C); Trivers 1971.* |
-| 5 | **Food chain** | `mean_trophic_level` (+ `predator_count`) | `1.18` with a qualifier: < 1.1 "Mostly grazers", 1.1–1.4 "Some hunting", > 1.4 "Predators common" | 1.0 means everyone eats plants and 2.0 means everyone eats other creatures. Rising values mean predation is evolving. *Lindeman 1942.* |
+| 1 | **Creatures alive** | `population` | `482` (+ "/ 500 cap" small) | How many creatures are alive. Populations boom when food is plentiful and crash in droughts. The cap is a configured limit, not a measured carrying capacity. *Lotka 1925; Volterra 1926.* |
+| 2 | **Species** | `species_count` | `7` | Similarity groups defined by the model’s inherited brain/body distance rule. Their count alone does not establish biological speciation or adaptation. *Stanley & Miikkulainen 2002 (NEAT); Schluter 2000.* |
+| 3 | **Brain links** | `mean_connections` (primary), `mean_brain_neurons` (secondary) | `41 links · 9 neurons` | Average enabled brain links, including recurrence. Mutation adds links and the model charges energy for them; count alone does not establish intelligence or useful memory. Show measured feed-forward/recurrent decomposition when available. *Aiello & Wheeler 1995; Laughlin et al. 1998.* |
+| 4 | **Sharing** | `cooperation_rate` (+ `kin_share_ratio` in tooltip) | `0.64 events / creature` | Recorded sharing events per living creature at the sampled tick. Hue similarity is a model kin proxy; it is not genealogy or evidence of evolved altruism. *Hamilton 1964 (rB > C); Trivers 1971.* |
+| 5 | **Food chain** | `mean_trophic_level` (+ `predator_count`) | `1.18` with a qualifier: < 1.1 "Mostly grazers", 1.1–1.4 "Some hunting", > 1.4 "Predators common" | Average of 1 plus each creature’s lifetime predation-intake fraction. Changes alone do not establish evolutionary adaptation. *Lindeman 1942.* |
 
 A sixth "Generations" counter sits in the time bar, not the strip: `Gen 57 (deepest lineage)` from `max_generation`.
 
@@ -344,12 +350,12 @@ A table of up to 12 rows, sorted by population: swatch, name ("Sp. 3", plus an o
 | Drought starts | drought list gains an entry | high | "A drought has struck the north-east. Food there will regrow at 5% for the next ~5,000 ticks." (compass from x,y: N/NE/E/…/centre) |
 | Drought ends | entry disappears | med | "The north-east drought has ended. Food is starting to return." |
 | Population crash | population falls ≥ 25% vs. the max over the last 1 000 ticks | high | "Population crash: down 31% to 330. {cause hint}". Cause hint: if a drought started in the window, "likely the drought"; if season multiplier < 0.8, "winter food shortage"; else omitted |
-| Population boom | population ≥ 95% of hard_cap for the first time in 2 000 ticks, or +30% in 1 000 ticks | low | "The world is full: 500 creatures, the carrying capacity. Now only the efficient survive." |
+| Population boom | population ≥ 95% of hard_cap for the first time in 2 000 ticks, or +30% in 1 000 ticks | low | "Near the configured cap: 500 creatures. Births can be blocked at 500." |
 | New species | stable species ID first seen **and** reaches ≥ 10 members (avoid noise from 1-member clusters) | high | "A new species has emerged: Sp. 9 ●, branching from Sp. 3. It's larger and hunts more." (diff vs. parent species' mean size and trophic level, if available) |
 | Extinction | species with peak ≥ 10 members reaches 0 | high | "Sp. 4 ● has gone extinct after 8,200 ticks. At its peak it numbered 140." |
-| Predation surge | `predator_count` ≥ 2× its 2 000-tick mean and ≥ 10, or trophic level crosses 1.1 / 1.25 / 1.4 upward | med | "Predation is rising: 1 in 5 meals now comes from hunting." |
-| Cooperation surge / collapse | `cooperation_rate` crosses 25 / 50 / 75% (either way, with 5-pt hysteresis) | med | "Cooperation is spreading: over half of creatures now share energy, almost always with relatives." |
-| Record brain | `mean_connections` new all-time max that is ≥ 10% above the last announced record | low | "Brains hit a new record: 52 connections on average. Is the extra thinking paying off?" |
+| Predation surge | `predator_count` ≥ 2× its 2 000-tick mean and ≥ 10, or trophic level crosses 1.1 / 1.25 / 1.4 upward | med | "Hunting accounts for 20% of intake on average, over creatures’ lifetimes." |
+| Cooperation surge / collapse | `cooperation_rate` crosses 25 / 50 / 75% (either way, with 5-pt hysteresis) | med | "Energy sharing is more frequent, mostly between similar-hue creatures." |
+| Record brain | `mean_connections` new all-time max that is ≥ 10% above the last announced record | low | "Brain links reached a new record: 52 enabled connections per creature." |
 | Generation milestone | `max_generation` crosses 10, 25, 50, 100, 250, 500, 1000 | low | "Generation 100: the deepest lineage is 100 generations removed from its random ancestor." |
 | Season | season multiplier crosses its max/min (seasons.period = 10 000 ticks) | low | "Winter is setting in: food is regrowing 30% slower." |
 | Selected creature | follow mode only: births, kills, death of the followed creature | med | "#18342 just had offspring (#18990)." / "#18342 starved at age 812." |

@@ -1,6 +1,8 @@
 // Formatting helpers + KPI definitions. Pure module (node-testable).
 // Spec: docs/research/DEMO_UX_DESIGN.md §6.1.
 
+import { connectionBreakdown } from './memory.js';
+
 const NF = new Intl.NumberFormat('en-US');
 
 export function fmtInt(n) {
@@ -102,7 +104,7 @@ export const KPI_DEFS = [
     get: (s) => s.population,
     fmt: (v, s, cfg) => ({ value: fmtInt(v), unit: cfg && cfg.hardCap ? `/ ${fmtInt(cfg.hardCap)} cap` : '' }),
     what: 'How many creatures are alive.',
-    why: 'Populations boom when food is plentiful and crash in droughts. The cap is the world’s carrying capacity.',
+    why: 'Populations boom when food is plentiful and crash in droughts. The cap is a configured limit, not a measured carrying capacity.',
     cite: 'Lotka 1925; Volterra 1926',
   },
   {
@@ -110,39 +112,43 @@ export const KPI_DEFS = [
     label: 'Species',
     get: (s) => s.speciesCount,
     fmt: (v) => ({ value: fmtInt(v), unit: '' }),
-    what: 'Groups of creatures whose brains and bodies have evolved far enough apart to count as distinct.',
-    why: 'New species arise as lineages adapt to different parts of the world.',
+    what: 'Similarity groups defined by the simulation’s inherited brain and body distance rule.',
+    why: 'Group counts depend on the distance threshold; they do not by themselves establish biological speciation or adaptation.',
     cite: 'Stanley & Miikkulainen 2002 (NEAT); Schluter 2000',
   },
   {
     key: 'brain',
-    label: 'Brain size',
+    label: 'Brain links',
     get: (s) => s.mean_connections,
     fmt: (v, s) => ({
       value: fmtInt(v),
       unit: Number.isFinite(s.mean_brain_neurons) ? `links · ${fmtInt(s.mean_brain_neurons)} neurons` : 'links',
     }),
-    what: 'Average number of connections in a creature’s brain.',
-    why: 'Brains grow by mutation but cost energy to run, so the size shows whether intelligence is paying for itself.',
+    what: 'Average enabled brain connections, including recurrent links.',
+    why: 'Mutation can add links, and the model charges energy for them. A larger network does not establish intelligence or useful memory.',
     cite: 'Aiello & Wheeler 1995; Laughlin et al. 1998',
+    extra: (s) => {
+      const links = connectionBreakdown(s.mean_connections, s.mean_recurrent_connections);
+      return links ? `Per creature: ${fmtFixed(links.feedForward, 1)} feed-forward + ${fmtFixed(links.recurrent, 1)} recurrent enabled links.` : '';
+    },
   },
   {
     key: 'coop',
-    label: 'Cooperation',
+    label: 'Sharing',
     get: (s) => s.cooperation_rate,
-    fmt: (v) => ({ value: fmtPct(v), unit: 'share energy' }),
-    what: 'Share of creatures that donated energy to a neighbour recently.',
-    why: 'Nearly all sharing is between relatives, so helping kin helps your own genes.',
+    fmt: (v) => ({ value: fmtFixed(v, 2), unit: 'events / creature' }),
+    what: 'Recorded sharing events per living creature at the sampled tick.',
+    why: 'The model uses hue similarity as a kin proxy. Sharing counts do not establish genealogical relatedness or evolved altruism.',
     cite: 'Hamilton 1964 (rB > C); Trivers 1971',
-    extra: (s) => (Number.isFinite(s.kin_share_ratio) ? `Kin share ratio now: ${fmtPct(s.kin_share_ratio)} of gifts go to relatives.` : ''),
+    extra: (s) => (Number.isFinite(s.kin_share_ratio) ? `Similar-hue recipients: ${fmtPct(s.kin_share_ratio)} of gifts.` : ''),
   },
   {
     key: 'trophic',
     label: 'Food chain',
     get: (s) => s.mean_trophic_level,
     fmt: (v) => ({ value: fmtFixed(v, 2), unit: trophicQualifier(v) }),
-    what: '1.0 means everyone eats plants and 2.0 means everyone eats other creatures.',
-    why: 'Rising values mean predation is evolving.',
+    what: 'Average diet index: 1 plus each creature’s lifetime fraction of intake from attacks; 1 indicates no recorded predation intake.',
+    why: 'Higher values indicate more predation-derived intake among current creatures; this alone does not establish evolutionary change.',
     cite: 'Lindeman 1942',
     extra: (s) => (Number.isFinite(s.predator_count) ? `${fmtInt(s.predator_count)} creatures get most of their energy by hunting.` : ''),
   },

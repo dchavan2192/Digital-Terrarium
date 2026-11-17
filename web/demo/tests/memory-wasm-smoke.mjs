@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { instantiateWasmBackend, createSim } from '../js/sim.js';
-import { memoryOverlay, recurrentEdgeCount } from '../js/memory.js';
+import { memoryOverlay, recurrentEdgeCount, connectionBreakdown } from '../js/memory.js';
 
 const bytes = await readFile(process.argv[2] || new URL('../terrarium.wasm', import.meta.url));
 const config = await readFile(new URL('../demo.toml', import.meta.url), 'utf8');
@@ -22,7 +22,14 @@ sim.step(1000);
 const id = sim.memoryCreatureId();
 assert.ok(id >= 0);
 assert.ok(recurrentEdgeCount(sim.inspect(id).brain) > 0, 'candidate really has an enabled memory edge');
-assert.ok(sim.stats().recurrent_brain_fraction > 0);
+const stats = sim.stats();
+assert.ok(stats.recurrent_brain_fraction > 0);
+const links = connectionBreakdown(stats.mean_connections, stats.mean_recurrent_connections);
+assert.ok(links && links.recurrent > 0 && links.feedForward >= 0);
+const brain = sim.inspect(id).brain;
+const individual = connectionBreakdown(brain.enabledConnections, recurrentEdgeCount(brain));
+assert.ok(individual && individual.recurrent > 0);
+assert.equal(sim.config.raw.config.mutation.add_recurrent_probability, 0.3);
 sim.reset(42);
 assert.equal(sim.memoryCreatureId(), -1);
 sim.step(1000);

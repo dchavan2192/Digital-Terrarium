@@ -21,6 +21,12 @@ export function memoryReadout(stats) {
     percent: Math.round(100 * fraction) };
 }
 
+// Both metrics count enabled edges over the same living population.
+export function connectionBreakdown(total, recurrent) {
+  if (!Number.isFinite(total) || !Number.isFinite(recurrent) || total < 0 || recurrent < 0 || recurrent > total) return null;
+  return { total, recurrent, feedForward: total - recurrent };
+}
+
 export function recurrentEdgeCount(brain) {
   return (brain?.edges || []).filter((edge) => edge.enabled !== false && edge.recurrent === true).length;
 }

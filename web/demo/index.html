@@ -106,10 +106,17 @@
       </div>
       <section class="memory-panel" id="memoryPanel" aria-labelledby="memoryTitle" hidden>
         <h2 id="memoryTitle">Experimental memory</h2>
-        <p>Recurrent links carry a brain signal from the previous tick. Their benefit has not been established.</p>
+        <p>Recurrent links carry a brain signal from the previous tick.</p>
         <p class="memory-count tnum" id="memoryCount">Waiting for a measured tick…</p>
+        <p class="memory-links-label">Average enabled links / creature</p>
+        <dl class="memory-links tnum" aria-label="Average enabled links per living creature">
+          <div><dt>Feed-forward</dt><dd id="memoryForward">–</dd></div>
+          <div><dt>Recurrent</dt><dd id="memoryRecurrent">–</dd></div>
+          <div><dt>Total links</dt><dd id="memoryTotal">–</dd></div>
+        </dl>
+        <p class="memory-hint" id="memoryMutation"></p>
         <button class="btn btn-sm" id="memoryInspectBtn" type="button" disabled>Inspect a memory creature</button>
-        <p class="memory-hint">Links evolve in offspring. Try 16×, then inspect the dotted gold connections.</p>
+        <p class="memory-hint">More links do not prove useful recall. Try 16×, then inspect the dotted gold links.</p>
       </section>
       <section class="panel" id="feedPanel" role="tabpanel" aria-labelledby="tabFeed">
         <ol class="feed" id="feed" aria-live="polite" aria-relevant="additions"></ol>

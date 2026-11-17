@@ -6,6 +6,12 @@
 
 ---
 
+## Demo metric clarity — 2026-11-17
+
+- User asked whether the demo UI needed improvement. Focused changes make the observed connection growth interpretable: memory panel now separates measured average enabled feed-forward/recurrent/total links, discloses the running config’s mutation-attempt probability, and keeps tick-zero/missing metrics unavailable. Individual inspector shows the same decomposition and labels static cost as a baseline estimate.
+- Brain KPI now says **Brain links**, with measured decomposition in its tooltip. Removed unsupported intelligence-payoff, carrying-capacity, genealogical-kin and adaptation claims from KPI/event wording. Sharing now reports events per creature rather than implying a donor percentage; hue similarity remains explicitly a proxy. UI design spec updated to prevent reintroducing old claims.
+- Validation: 14 Node tests pass; real WASM memory smoke checks actual recurrent counts, population/individual link breakdowns and the configured 0.3 probability. JS syntax/diff checks pass. Browser host unavailable, so visual layout is not verified in this session. No engine/default-config/Pi experiment change; publication uses existing GitHub Pages.
+
 ## Resumed development — completed fixed acquisition pilot, 2026-11-17
 
 - Owner resumed development after the stopping point. GitHub had no incoming source changes; Pi was idle at 51.6°C. Built exact `5504a20` in a clean isolated Pi worktree, one Cargo worker; all three frozen input/source hashes match. Old root checkout and prior binaries remain intact.

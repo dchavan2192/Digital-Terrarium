@@ -26,7 +26,7 @@ import { createInspector } from './ui/inspector.js';
 import { createTour, tourSeen } from './ui/tour.js';
 import { renderEnergy } from './ui/energy.js';
 import { icon, podSilhouette } from './ui/icons.js';
-import { memoryOverlay, memoryReadout } from './memory.js';
+import { memoryOverlay, memoryReadout, connectionBreakdown } from './memory.js';
 
 const LOG = '[terrarium]';
 const TICKS_PER_SEC = { 1: 15, 4: 60, 16: 240 }; // §3.7
@@ -247,6 +247,10 @@ function startRun(seed, first = false) {
     : 'Memory mode needs the current real WASM simulation; it is unavailable with mock data.';
   $('#memoryPanel').hidden = !S.memoryEnabled;
   $('#memoryInspectBtn').disabled = true;
+  const recurrenceRate = S.cfg.raw?.config?.mutation?.add_recurrent_probability;
+  $('#memoryMutation').textContent = Number.isFinite(recurrenceRate) && recurrenceRate >= 0 && recurrenceRate <= 1
+    ? `${new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 1 }).format(recurrenceRate)} chance per birth to try adding a recurrent link.`
+    : 'Demo mutation setting unavailable.';
   // Opening line, shown immediately (§1.1 item 5).
   S.feed.add(S.engine.opening(S.cfg.initialCount));
   S.limiter.force(performance.now());
@@ -700,11 +704,15 @@ function sample(now) {
   if (!s) return;
   S.lastStats = s;
   if (S.memoryEnabled) {
-    const memory = memoryReadout(s);
+    const memory = s.tick > 0 ? memoryReadout(s) : null;
+    const links = s.tick > 0 && s.population > 0 ? connectionBreakdown(s.mean_connections, s.mean_recurrent_connections) : null;
     $('#memoryCount').textContent = memory
       ? `${fmtInt(memory.count)} / ${fmtInt(memory.population)} creatures have recurrent links (${memory.percent}%).`
       : 'Waiting for a measured tick…';
     $('#memoryInspectBtn').disabled = !memory || memory.count === 0;
+    $('#memoryForward').textContent = links ? fmtFixed(links.feedForward, 1) : '–';
+    $('#memoryRecurrent').textContent = links ? fmtFixed(links.recurrent, 1) : '–';
+    $('#memoryTotal').textContent = links ? fmtFixed(links.total, 1) : '–';
   }
   if (!$('#energyPanel').hidden) renderEnergy($('#energyBudget'), s);
   S.lastSampleTick = s.tick;

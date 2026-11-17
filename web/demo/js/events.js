@@ -55,12 +55,6 @@ export const ICONS = {
 
 const PRIORITY_RANK = { high: 0, med: 1, low: 2 };
 
-function quarterWord(level) {
-  if (level >= 0.75) return 'three-quarters';
-  if (level >= 0.5) return 'half';
-  return 'a quarter';
-}
-
 /**
  * Detector. Call `opening()` once, then `ingest(sample)` whenever a fresh stats
  * sample arrives (the demo samples every ~20 sim ticks). Returns new events.
@@ -191,7 +185,7 @@ export function createEventEngine(world, rules = EVENT_RULES) {
         const atCap = cap > 0 && s.population >= cap * rules.boomCapFrac;
         if (atCap) {
           if (tick - lastAtCapTick > rules.boomQuietTicks && cooled('boom', tick)) {
-            fire(out, 'boom', 'low', tick, `The world is full: ${fmtInt(s.population)} creatures, the carrying capacity. Now only the efficient survive.`);
+            fire(out, 'boom', 'low', tick, `Near the configured cap: ${fmtInt(s.population)} creatures. Births can be blocked at ${fmtInt(cap)}.`);
           }
           lastAtCapTick = tick;
         } else {
@@ -294,7 +288,7 @@ export function createEventEngine(world, rules = EVENT_RULES) {
         if ((crossed || confirmed('predSurge', surge, tick)) && cooled('predation', tick)) {
           const frac = Math.max(0, (s.mean_trophic_level || 1) - 1);
           const text = frac >= 0.08
-            ? `Predation is rising: about 1 in ${Math.max(2, Math.round(1 / frac))} meals now comes from hunting.`
+            ? `Hunting accounts for ${fmtPct(frac)} of intake on average, over creatures’ lifetimes.`
             : `Predation is rising: ${fmtInt(pred)} creatures now live mostly by hunting.`;
           fire(out, 'predation', 'med', tick, text);
         }
@@ -310,15 +304,14 @@ export function createEventEngine(world, rules = EVENT_RULES) {
           while (coopBand + 1 < lv.length && r > lv[coopBand + 1] + rules.coopHysteresis) coopBand++;
           delete pendingConfirm.coopUp;
           if (!first && cooled('cooperation', tick)) {
-            const kin = s.kin_share_ratio >= 0.8 ? ', almost always with relatives' : '';
-            fire(out, 'cooperation', 'med', tick, `Cooperation is spreading: over ${quarterWord(lv[coopBand])} of creatures now share energy${kin}.`);
+            const kin = s.kin_share_ratio >= 0.8 ? ', mostly between similar-hue creatures' : '';
+            fire(out, 'cooperation', 'med', tick, `Energy sharing is more frequent${kin}.`);
           }
         } else if (confirmed('coopDown', down, tick)) {
           while (coopBand >= 0 && r < lv[coopBand] - rules.coopHysteresis) coopBand--;
           delete pendingConfirm.coopDown;
           if (cooled('cooperation', tick)) {
-            const lvl = lv[coopBand + 1];
-            fire(out, 'cooperation', 'med', tick, `Cooperation is fading: fewer than ${quarterWord(lvl)} of creatures now share energy.`);
+            fire(out, 'cooperation', 'med', tick, `Energy sharing is less frequent.`);
           }
         }
       }
@@ -342,7 +335,7 @@ export function createEventEngine(world, rules = EVENT_RULES) {
           brainRecord = mc;
           if (mc >= brainAnnounced * (1 + rules.recordBrainStep) && cooled('record', tick)) {
             brainAnnounced = mc;
-            fire(out, 'record', 'low', tick, `Brains hit a new record: ${fmtInt(mc)} connections on average. Is the extra thinking paying off?`);
+            fire(out, 'record', 'low', tick, `Brain links reached a new record: ${fmtInt(mc)} enabled connections per creature.`);
           }
         }
       }

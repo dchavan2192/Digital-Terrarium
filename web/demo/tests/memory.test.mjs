@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { memoryOverlay, memoryReadout, recurrentEdgeCount, visibleBrainEdges } from '../js/memory.js';
+import { memoryOverlay, memoryReadout, connectionBreakdown, recurrentEdgeCount, visibleBrainEdges } from '../js/memory.js';
 
 test('demo memory overlay preserves other settings and replaces an existing mutation key', () => {
   const base = '[food]\nregrowth_rate = 0.002\n[mutation]\nweight_probability = 0.1\nadd_recurrent_probability = 0.0 # off\n[sharing]\nshare_amount = 5\n';
@@ -30,4 +30,13 @@ test('simplified brain diagram retains weak recurrent edges', () => {
   assert.equal(visible.length, 31);
   assert.ok(visible.includes(memory));
   assert.equal(visibleBrainEdges(edges, false), edges);
+});
+
+
+test('connection breakdown uses both measured edge counts and rejects unavailable or inconsistent metrics', () => {
+  assert.deepEqual(connectionBreakdown(300, 50), { total: 300, recurrent: 50, feedForward: 250 });
+  assert.deepEqual(connectionBreakdown(231, 0), { total: 231, recurrent: 0, feedForward: 231 });
+  for (const [total, recurrent] of [[300, undefined], [300, NaN], [Infinity, 0], [10, 11], [-1, 0], [10, -1]]) {
+    assert.equal(connectionBreakdown(total, recurrent), null);
+  }
 });
