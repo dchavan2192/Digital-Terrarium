@@ -48,3 +48,21 @@ Verify all six per-seed summaries, root completion files,26×64 generation recor
 Report every search's founder/final correct count and final score distribution; first generation with two correct if any; treatment founder/final progress; all paired true-score/acquisition differences. Plot all six training curves without tick/gen-level confidence intervals. No test set is held out here and no acquired-memory claim follows. Champion sampling uses the declared training rank, never a post-hoc trial score.
 
 Retain binary, clean source/build/compiler/target, exact protocols/arena, supervisor/guard/scripts, launch command/limits, thermal/status/exit records, all founders/final genotypes, every generation's IDs/parents/scores, and final visible traces. Intermediate full genomes are not claimed to be archived. Hash stable final files and publish the all-arm report/raw archive with exclusions stated. Any revised next method or generalization study requires a separate frozen design and fresh validation conditions. Do not silently replace the original null/partial pilot.
+
+## Pre-launch execution pin
+
+Execution source is **72f7c5b32119e57dddb062e957543ada6e2db53d**. The clean isolated Pi worktree is `output/builds/visible_progress_72f7c5b`. Its single-worker release build completed in52.77seconds, ending at60.9°C; this is compilation telemetry, not a search runtime measurement. All four method/protocol source hashes above matched on the Pi. Old binaries and outputs remain untouched.
+
+The paired worker runs `terminal_only` then `terminal_progress`, stops on any technical error, and refuses a previously attempted parent or child. Existing supervisors own only their direct guard/runner children. The analysis requires parent and both children to complete with exit0, identical binary/build metadata, full seed coverage, exact1800-second watchdog settings and matching founder genotypes by ID.
+
+Analysis/operational files are fixed before launch by these hashes:
+
+| File | SHA-256 |
+|---|---|
+| `analysis/run_progress_comparison.sh` | `97f6ad71c84916890aa2b8e1c64240dd98b27b274eadd507af94ab64cbdae38f` |
+| `analysis/run_guarded_acquisition.py` | `1d69615f7c27b63a4854043dfefbaca7fd85539ce7b32fc1141915ee47cd5a49` |
+| `analysis/summarize_progress_comparison.py` | `3befdff4c8e71f5cb6d04f8e86e432ed15414acd735cf778caf859254376a931` |
+| `analysis/plot_progress_comparison.py` | `56bd35c4a66aa951fbdb33bae70c770d9a9b2e6076ee6930934bfc45528e50a7` |
+| `analysis/test_progress_comparison.py` | `35fbecfe617669a9cb666ac4025e4d5f9dbae6e4bbeb77887622339c84e927dd` |
+
+Prepared parent before launch: `/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z`, with separate `terminal_only` and `terminal_progress` children. Both contain the same pinned binary and clean execution-source records. The prospective auditor’s seven pure tests and the seven supervisor fixture tests pass; independent review found no blocker. This operational/analysis commit precedes all actual comparison outcomes.
