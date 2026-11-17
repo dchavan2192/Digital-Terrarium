@@ -73,3 +73,15 @@ All 898 feed-forward donor genotypes have matching intact/reset paths, but
 competence control with the same fixed task and donor population, before
 recurrent-genotype comparisons. The active Pi baseline gate remains pending.
 The user requested a usage-limit stopping point; no additional campaign started.
+
+## Baseline and visible-cue update — 2026-11-17 UTC
+
+The pinned ten-seed current-engine baseline passed all four engineering gates
+(CAL-2026-11-17-BASELINE); the Pi is idle and its guarded batch is preserved.
+The default-false `--cue-visible` competence diagnostic is implemented, source
+`bda6f35`. Manufactured controls all solve visible trials, but natural donor
+controllers produce zero correct visible trials out of 1,796 (31 wrong contacts,
+1,765 timeouts). Their delayed failures cannot be assigned to memory. See the
+[diagnostic report](../results/VISIBLE_CUE_CONTROL_2026-11-17.md). Establish task
+competence or a relevant ecological endpoint before interpreting a memory
+comparison. No after-outcome tuning, extra campaign or positive cognition claim.

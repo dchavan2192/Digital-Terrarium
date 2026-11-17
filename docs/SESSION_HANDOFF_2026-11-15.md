@@ -13,10 +13,13 @@ Next development is visible-cue competence control, now implemented default fals
 on the two movement CLI commands and targeted/full tested. Same arena, 898 donors,
 hold phases/horizon/reward; only movement cue availability differs. Controls all
 reward 1 when visible and 1/.5/.5 when hidden. All 153 Rust, 10 JS and 10 thermal tests
-pass, Clippy/format pass; no overlapping Cargo runs. The visible-vs-delayed actual
-donor comparison follows a saved clean implementation revision. Keep inference
+pass, Clippy/format pass; no overlapping Cargo runs. The actual comparison is complete on clean `bda6f35`: delayed 7 correct/7 wrong/
+1,782 timeouts versus visible 0 correct/31 wrong/1,765 timeouts. All 898 pairs/hashes
+and unchanged delayed traces audited. See VISIBLE_CUE_CONTROL_2026-11-17.md. Keep inference
 limited to task competence; unfamiliar donor brains may time out even with cues.
-No new evolutionary campaign started. User authorization to commit/push persists.
+Competence is still unestablished even with cues; validate a competence/training
+protocol or ecological endpoint before any memory-benefit comparison. No new
+evolutionary campaign started. User authorization to commit/push persists.
 
 ## Stop/resume record — 2026-11-16, 22:43 UTC (read first)
 

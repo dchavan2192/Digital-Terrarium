@@ -106,3 +106,7 @@ motor requirements. After competence is interpretable, evaluate evolved
 recurrent genotypes against matched state-reset controls. Ecological memory
 ON/OFF work still waits for the full current-engine baseline gate and a frozen
 study design. Memory remains off in the default ecology.
+
+Update 2026-11-17: the [planned visible-cue diagnostic](VISIBLE_CUE_CONTROL_2026-11-17.md)
+is complete. Manufactured controls succeed; natural donor task competence
+remains unestablished. Retain the interpretation limits above.

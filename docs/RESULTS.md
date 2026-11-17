@@ -70,6 +70,10 @@ Configuration: `configs/default.toml`, seed 42. Commands are in [the runner READ
 
 [Controlled movement arena report](results/DELAYED_CHOICE_ARENA_2026-11-16.md): manufactured recurrent controller reward 1.0; feed-forward and same-network state-cleared controls 0.5, all choosing after five movement ticks. All 898 evolved feed-forward donors had identical opposite-cue and intact/reset paths: 7 chose left, 891 timed out. The timeouts do not identify a memory deficit; visible-cue/motor controls remain necessary. Clean source `0bc1be2`; full traces, protocol, plot, hashes and public raw-data archive are linked. Instrument validation only; no new evolutionary result.
 
+## Registered implementation check: CHK-2026-11-17-VISIBLE-CUE-COMPETENCE
+
+[Visible-cue diagnostic](results/VISIBLE_CUE_CONTROL_2026-11-17.md): manufactured recurrent, feed-forward and state-cleared controls all score 1.0 when the cue stays visible; delayed controls retain 1/.5/.5. All 898 natural feed-forward donors were evaluated unchanged in both conditions. Delayed: 7 correct, 7 wrong, 1,782 timeouts. Visible: 0 correct, 31 wrong, 1,765 timeouts. Intact/reset records match; the delayed behavior matches archived 0bc1be2 exactly. Clean source bda6f35; hashes/pairs/public raw outputs linked. Task competence is not established, so delayed failure cannot be interpreted as a memory deficit. This is an instrument diagnostic, not a memory-selection result.
+
 ## Calibration observations awaiting registration
 
 The progress log describes post-sharing-fix Pi pilots and a separate demo tuning pass. They are useful leads for choosing calibration ranges, but are not promoted here until exact run metadata, configurations, raw outputs, and analysis are reconciled. Presentation tuning and experimental calibration must remain separate.
