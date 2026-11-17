@@ -280,6 +280,7 @@ fn condition(
     config: &ArenaConfig,
     clear: bool,
     cue_visible: bool,
+    trace: bool,
 ) -> RunResult<Value> {
     let mut trials = Vec::new();
     for cue in [-1, 1] {
@@ -291,11 +292,14 @@ fn condition(
             let presenting = tick < config.cue_ticks;
             let inputs = sensors(config, pose, if presenting { f64::from(cue) } else { 0.0 });
             let actions = state.think(brain, &inputs, clear)?;
-            hold_trace.push(json!({"phase":if presenting {"cue"}else{"blank"},"tick":tick+1,"pose":pose,"inputs":inputs,"actions":actions}));
+            if trace {
+                hold_trace.push(json!({"phase":if presenting {"cue"}else{"blank"},"tick":tick+1,"pose":pose,"inputs":inputs,"actions":actions}));
+            }
             // Position AND heading are frozen; no motor or action state carries over.
         }
         let mut trajectory = Vec::new();
         let mut choice = "timeout";
+        let mut movement_ticks = 0;
         for tick in 1..=config.horizon {
             let inputs = sensors(config, pose, if cue_visible { f64::from(cue) } else { 0.0 });
             let actions = state.think(brain, &inputs, clear)?;
@@ -324,7 +328,10 @@ fn condition(
             if !after.x.is_finite() || !after.y.is_finite() || !after.heading.is_finite() {
                 return Err("non-finite arena pose".into());
             }
-            trajectory.push(json!({"tick":tick,"pose_before":before,"inputs":inputs,"actions":actions,"pose_after":after,"contact_fraction":hit.map(|(_,t)|t)}));
+            movement_ticks = tick;
+            if trace {
+                trajectory.push(json!({"tick":tick,"pose_before":before,"inputs":inputs,"actions":actions,"pose_after":after,"contact_fraction":hit.map(|(_,t)|t)}));
+            }
             pose = after;
             if hit.is_some() {
                 break;
@@ -333,7 +340,7 @@ fn condition(
         // The hidden answer is used ONLY here, after movement terminates.
         let target = if cue == 1 { "left" } else { "right" };
         let reward = u8::from(choice == target);
-        trials.push(json!({"cue":cue,"target":target,"choice":choice,"reward":reward,"movement_ticks":trajectory.len(),"initial_pose":initial_pose,"hold_trace":hold_trace,"trajectory":trajectory}));
+        trials.push(json!({"cue":cue,"target":target,"choice":choice,"reward":reward,"movement_ticks":movement_ticks,"initial_pose":initial_pose,"hold_trace":hold_trace,"trajectory":trajectory}));
     }
     let mean_reward = trials
         .iter()
@@ -356,8 +363,24 @@ pub(crate) fn evaluate_brain(
         );
     }
     Ok(
-        json!({"cue_visible":cue_visible,"intact":condition(brain,config,false,cue_visible)?,"same_network_state_cleared":condition(brain,config,true,cue_visible)?}),
+        json!({"cue_visible":cue_visible,"intact":condition(brain,config,false,cue_visible,true)?,"same_network_state_cleared":condition(brain,config,true,cue_visible,true)?}),
     )
+}
+
+/// Training uses exactly the intact visible trials, without allocating step traces.
+/// Only terminal correctness is selected; pose/target distances never enter fitness.
+pub(crate) fn visible_score(brain: &Brain, config: &ArenaConfig) -> RunResult<u8> {
+    if brain.inputs != config.input_count() || brain.outputs != 7 || brain.slot_count() > MAX_NODES
+    {
+        return Err("brain layout differs from visible acquisition task".into());
+    }
+    let result = condition(brain, config, false, true, false)?;
+    Ok(result["trials"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|trial| trial["reward"].as_u64().unwrap() as u8)
+        .sum())
 }
 
 fn reference(config: &ArenaConfig, recurrent: bool) -> Brain {
@@ -382,9 +405,9 @@ pub(crate) fn validate_controls(config: &ArenaConfig, cue_visible: bool) -> RunR
     let recurrent = reference(config, true);
     let plain = reference(config, false);
     let mut controls = vec![
-        condition(&recurrent, config, false, cue_visible)?,
-        condition(&plain, config, false, cue_visible)?,
-        condition(&recurrent, config, true, cue_visible)?,
+        condition(&recurrent, config, false, cue_visible, true)?,
+        condition(&plain, config, false, cue_visible, true)?,
+        condition(&recurrent, config, true, cue_visible, true)?,
     ];
     for (control, name) in controls.iter_mut().zip([
         "recurrent_reference",
@@ -509,6 +532,29 @@ mod tests {
                     assert_eq!(step["inputs"][12].as_f64(), trial["cue"].as_f64());
                 }
             }
+        }
+    }
+
+    #[test]
+    fn trace_free_training_matches_the_instrument() {
+        let config = config();
+        for recurrent in [false, true] {
+            let brain = reference(&config, recurrent);
+            let detailed = condition(&brain, &config, false, true, true).unwrap();
+            let compact = condition(&brain, &config, false, true, false).unwrap();
+            for i in 0..2 {
+                for key in [
+                    "cue",
+                    "target",
+                    "choice",
+                    "reward",
+                    "movement_ticks",
+                    "initial_pose",
+                ] {
+                    assert_eq!(detailed["trials"][i][key], compact["trials"][i][key]);
+                }
+            }
+            assert_eq!(visible_score(&brain, &config).unwrap(), 2);
         }
     }
 

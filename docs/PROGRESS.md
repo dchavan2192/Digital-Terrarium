@@ -6,6 +6,14 @@
 
 ---
 
+## Wrap-up — next development and overnight diagnostic, 2026-11-17 UTC
+
+- Memory demo deployment for `646e374` completed successfully. User reports rising average connections. This observation is not yet a replicated result; memory mode's 0.3 add-recurrent probability creates a plausible structural mutation bias.
+- Added a separate bounded `acquire-visible` CLI with random founders, weight-only controller optimization, sparse terminal fitness, fixed generation budget, deterministic champion rule, full final-population retention and trace-free shared arena scoring. [Implementation/protocol handoff](research/VISIBLE_ACQUISITION_RUNNER.md). No actual acquisition campaign yet; do not infer learning from implementation tests.
+- Validation: all 157 workspace Rust tests pass, all-target Clippy passes; seeded CLI replay and invalid-design rejection pass, shared compact scoring agrees with full instrument. Shell syntax check passes for the overnight worker. Independent review found two blockers (founder config field and retained-trace work); both corrected.
+- User requested an overnight Pi run and then usage-limit wrap-up. Pi was idle at 52.1°C. [Frozen exploratory structural-growth plan](results/MEMORY_GROWTH_PILOT_PLAN_2026-11-17.md): four fresh seeds × memory-off/on, eight serial 200k-tick runs at demo settings, existing pinned validated engine, guarded 75/65°C. Exact active batch location and launch evidence follow in the next saved entry.
+- Next session: inspect the overnight batch status/guard/logs before any work; preserve every artifact. Summarize all runs under the saved plan once complete. Then finish acquisition-pilot readiness and freeze its source/protocol before launch. No broad memory-benefit claim or cost sweep is authorized by these diagnostics.
+
 ## Demo and research council — 2026-11-17 UTC
 
 - Added optional **Memory on** demo mode (`demo/?seed=42&memory=1`), measured recurrent-creature count and an inspect button. Gold dotted brain edges retain previous-tick activations. Toggle restarts the same seed; reset/new seed retain mode, shared links carry mode. Recurrence arises through offspring mutation (demo-only probability 0.3), rather than being injected into founders. Experiment defaults remain off.

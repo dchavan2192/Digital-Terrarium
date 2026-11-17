@@ -8,6 +8,7 @@
 //!   cargo run -p sim-runner --release -- --config configs/default.toml --ticks 100000
 //!   cargo run -p sim-runner --release -- sweep --config configs/default.toml --param food.regrowth_rate --values 0.001,0.002,0.005,0.01 --seeds 30 --ticks 100000
 
+mod acquisition;
 mod assay;
 mod delayed_choice;
 mod exported_assay;
@@ -72,6 +73,15 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Bounded visible-cue genetic acquisition pilot; no ecology or delayed task.
+    AcquireVisible {
+        #[arg(long, default_value = "configs/visible_acquisition.toml")]
+        protocol: PathBuf,
+        #[arg(long, default_value = "configs/delayed_choice.toml")]
+        arena: PathBuf,
+        #[arg(long, default_value = "output/visible-acquisition")]
+        output: PathBuf,
+    },
     /// Validate controlled delayed-choice movement using fixed neural controls.
     DelayedChoice {
         #[arg(long, default_value = "configs/delayed_choice.toml")]
@@ -231,6 +241,11 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::AcquireVisible {
+            protocol,
+            arena,
+            output,
+        }) => acquisition::run(&protocol, &arena, &output),
         Some(Commands::DelayedChoice { arena, cue_visible }) => {
             movement_assay::controls(&arena, cue_visible)
         }

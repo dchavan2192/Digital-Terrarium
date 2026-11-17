@@ -1,0 +1,19 @@
+# Engineering feasibility pilot, not ecological selection or a memory experiment.
+# Freeze this file plus the arena and source revision before a scientific pilot.
+population = 64
+generations = 25 # 25 replacements after the separately reported founder generation
+elites = 8
+tournament = 3
+seeds = [2000, 2001, 2002]
+hidden = 8
+
+# Weight-only native asexual mutation; topology, recurrence and scalar-trait mutation disabled.
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.0
+add_node_probability = 0.0
+toggle_probability = 0.0
+prune_probability = 0.0
+add_recurrent_probability = 0.0
+trait_probability = 0.0

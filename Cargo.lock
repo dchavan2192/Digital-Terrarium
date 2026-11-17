@@ -1587,6 +1587,8 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "csv",
+ "rand",
+ "rand_chacha",
  "rayon",
  "serde",
  "serde_json",
