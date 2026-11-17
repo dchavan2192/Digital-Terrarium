@@ -6,6 +6,15 @@
 
 ---
 
+## Requested stopping point — 2026-11-17, completed overnight analysis
+
+- Owner requested a clean stop, complete documentation, commit and push. **Do not start another experiment from this stopping-point turn.** Pi overnight batch `output/memory_growth/overnight_20261117T040010Z` completed at 06:19 UTC: all eight runs survived 200k ticks, exit 0; guard finished. Fresh 14:40 UTC check: no runner, 52.7°C, no active low-bit throttling flags.
+- [Final exploratory report](results/MEMORY_GROWTH_PILOT_2026-11-17.md), [JSON/provenance](results/memory_growth_pilot_2026-11-17.json), all-run plot and strict summarizer saved. Four run-level late means: connections 224.828 off/495.864 on; recurrence 0/264.926; population 336.426/277.406. Mostly recurrent structural accumulation under a high add-mutation setting, not proof of useful recall. Demo cap blocking and dirty-build caveats retained; no defaults changed.
+- Independent agent reproduced all eight summaries and expressed-brain endpoint counts. Three analysis integration tests pass, including incomplete/duplicate/missing/nonfinite rejection; figure visually checked. No Rust/browser code changed in this turn, so the prior 157-test Rust/Clippy validation remains the implementation baseline.
+- Completed dataset mirrored locally to `output/memory-growth/overnight_20261117T040010Z` (checkpoints omitted), raw archive under `output/memory-growth/`; GitHub prerelease `memory-growth-pilot-2026-11-17` holds public reproducibility assets. All checkpoints and failed zero-tick preflight retained on Pi. Scripts/JSON record checksums.
+- [Next pilot plan](results/VISIBLE_ACQUISITION_PILOT_PLAN_2026-11-17.md) is fixed at implementation `5504a20`: 64 founders, 25 replacements, seeds 2000–2002, weight-only controller mutation, terminal fitness, no heldout validation. It has **not been launched**. Readiness review found no code blocker; next session must pin the Pi build/inputs and set a recorded operational watchdog/thermal guard before executing. Treat successful founders separately from acquisition and retain failed runs.
+- Resume by reading this entry, checking Pi activity, fetching GitHub and reviewing the fixed acquisition plan. Do not recreate or extend the completed growth campaign. No further feature work is required to save this turn.
+
 ## Active unattended batch — verified 2026-11-17 04:00–04:02 UTC
 
 - **Pi running:** `/home/pi/Digital-Terrarium/output/memory_growth/overnight_20261117T040010Z`. Eight fixed serial runs; seed 3000/rate 0 active, CSV verified through tick 5,500, population 343. This is progress evidence only; no outcomes interpreted. Read `launcher.pid` for the launcher identity; initial runner PID 32674 and guard PID 32663.

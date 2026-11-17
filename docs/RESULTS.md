@@ -20,6 +20,10 @@ Each accepted entry must contain:
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
 
+## Registered exploratory diagnostic: EXP-2026-11-17-MEMORY-GROWTH
+
+[Completed overnight report](results/MEMORY_GROWTH_PILOT_2026-11-17.md): all eight 200k-tick demo-setting worlds completed (four paired seeds, recurrence mutation 0/0.3). Late mean enabled connections: 224.828 off versus 495.864 on; recurrent additions account for about 97.75% of that difference. Late mean population: 336.426 versus 277.406. Strong mutation pressure, structural thresholds, cap blocking and divergent organism histories prevent adaptive-memory or selection-versus-drift claims. Independent audit and final-export checks pass; exact dirty-build provenance, full raw archive, hashes and all trajectories are linked in the report. This is an exploratory diagnostic, not an established scientific result or memory-benefit test.
+
 ## Historical claims withdrawn from current-model evidence
 
 | Claim or artifact | Status | Reason |
