@@ -1,0 +1,746 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "execution_source": "5504a20746bfe0dfcff54b95546324c02db1058d",
+  "source_dirty": "false",
+  "core_build": "297edc68fb18e05e",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "target": "aarch64-unknown-linux-gnu",
+  "build_profile": "release",
+  "independent_unit": "founder-population search run; n=3, not organisms or cue trials",
+  "interpretation": "fixed visible training acquisition only; no held-out validation, memory use, lifetime learning or ecological benefit",
+  "total_candidate_evaluations": 4992,
+  "runs": [
+    {
+      "seed": 2000,
+      "founder_best": 0.0,
+      "final_best": 0.5,
+      "champion_id": 117,
+      "improved": true,
+      "founder_score_counts": {
+        "0": 64,
+        "1": 0,
+        "2": 0
+      },
+      "final_score_counts": {
+        "0": 16,
+        "1": 48,
+        "2": 0
+      },
+      "generations": [
+        {
+          "best_mean_reward": 0.0,
+          "both_correct": 0,
+          "champion_id": 0,
+          "generation": 0,
+          "population_mean_reward": 0.0
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 1,
+          "population_mean_reward": 0.0078125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 2,
+          "population_mean_reward": 0.046875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 3,
+          "population_mean_reward": 0.1328125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 4,
+          "population_mean_reward": 0.265625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 5,
+          "population_mean_reward": 0.3515625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 6,
+          "population_mean_reward": 0.3671875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 7,
+          "population_mean_reward": 0.3828125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 8,
+          "population_mean_reward": 0.4609375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 9,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 10,
+          "population_mean_reward": 0.3671875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 11,
+          "population_mean_reward": 0.4375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 12,
+          "population_mean_reward": 0.3359375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 13,
+          "population_mean_reward": 0.3515625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 14,
+          "population_mean_reward": 0.40625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 15,
+          "population_mean_reward": 0.40625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 16,
+          "population_mean_reward": 0.390625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 17,
+          "population_mean_reward": 0.390625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 18,
+          "population_mean_reward": 0.390625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 19,
+          "population_mean_reward": 0.4296875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 20,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 21,
+          "population_mean_reward": 0.40625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 22,
+          "population_mean_reward": 0.4609375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 23,
+          "population_mean_reward": 0.3984375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 24,
+          "population_mean_reward": 0.40625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 117,
+          "generation": 25,
+          "population_mean_reward": 0.375
+        }
+      ],
+      "elapsed_seconds": 0.730673727,
+      "champion_choices": [
+        {
+          "cue": -1,
+          "target": "right",
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "target": "left",
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "seed": 2001,
+      "founder_best": 0.5,
+      "final_best": 0.5,
+      "champion_id": 17,
+      "improved": false,
+      "founder_score_counts": {
+        "0": 62,
+        "1": 2,
+        "2": 0
+      },
+      "final_score_counts": {
+        "0": 13,
+        "1": 51,
+        "2": 0
+      },
+      "generations": [
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 0,
+          "population_mean_reward": 0.015625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 1,
+          "population_mean_reward": 0.0703125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 2,
+          "population_mean_reward": 0.2109375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 3,
+          "population_mean_reward": 0.296875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 4,
+          "population_mean_reward": 0.390625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 5,
+          "population_mean_reward": 0.421875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 6,
+          "population_mean_reward": 0.421875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 7,
+          "population_mean_reward": 0.453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 8,
+          "population_mean_reward": 0.453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 9,
+          "population_mean_reward": 0.453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 10,
+          "population_mean_reward": 0.421875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 11,
+          "population_mean_reward": 0.4609375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 12,
+          "population_mean_reward": 0.4609375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 13,
+          "population_mean_reward": 0.421875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 14,
+          "population_mean_reward": 0.40625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 15,
+          "population_mean_reward": 0.4453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 16,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 17,
+          "population_mean_reward": 0.421875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 18,
+          "population_mean_reward": 0.421875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 19,
+          "population_mean_reward": 0.3984375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 20,
+          "population_mean_reward": 0.375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 21,
+          "population_mean_reward": 0.453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 22,
+          "population_mean_reward": 0.4296875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 23,
+          "population_mean_reward": 0.4296875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 24,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 17,
+          "generation": 25,
+          "population_mean_reward": 0.3984375
+        }
+      ],
+      "elapsed_seconds": 0.731903725,
+      "champion_choices": [
+        {
+          "cue": -1,
+          "target": "right",
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 16
+        },
+        {
+          "cue": 1,
+          "target": "left",
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "seed": 2002,
+      "founder_best": 0.5,
+      "final_best": 0.5,
+      "champion_id": 3,
+      "improved": false,
+      "founder_score_counts": {
+        "0": 60,
+        "1": 4,
+        "2": 0
+      },
+      "final_score_counts": {
+        "0": 12,
+        "1": 52,
+        "2": 0
+      },
+      "generations": [
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 0,
+          "population_mean_reward": 0.03125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 1,
+          "population_mean_reward": 0.078125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 2,
+          "population_mean_reward": 0.2265625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 3,
+          "population_mean_reward": 0.3359375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 4,
+          "population_mean_reward": 0.3671875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 5,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 6,
+          "population_mean_reward": 0.3828125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 7,
+          "population_mean_reward": 0.453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 8,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 9,
+          "population_mean_reward": 0.4375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 10,
+          "population_mean_reward": 0.4609375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 11,
+          "population_mean_reward": 0.4375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 12,
+          "population_mean_reward": 0.4375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 13,
+          "population_mean_reward": 0.390625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 14,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 15,
+          "population_mean_reward": 0.4453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 16,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 17,
+          "population_mean_reward": 0.40625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 18,
+          "population_mean_reward": 0.4453125
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 19,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 20,
+          "population_mean_reward": 0.359375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 21,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 22,
+          "population_mean_reward": 0.3984375
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 23,
+          "population_mean_reward": 0.4140625
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 24,
+          "population_mean_reward": 0.421875
+        },
+        {
+          "best_mean_reward": 0.5,
+          "both_correct": 0,
+          "champion_id": 3,
+          "generation": 25,
+          "population_mean_reward": 0.40625
+        }
+      ],
+      "elapsed_seconds": 0.73061069,
+      "champion_choices": [
+        {
+          "cue": -1,
+          "target": "right",
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 15
+        },
+        {
+          "cue": 1,
+          "target": "left",
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 17
+        }
+      ]
+    }
+  ],
+  "operational": {
+    "state": "completed",
+    "started_utc": "2026-11-17T16:39:32.889491+00:00",
+    "guard_pid": 37166,
+    "runner_pid": 37169,
+    "runner_exit_code": 0,
+    "runner_left_paused": false,
+    "reason": null,
+    "updated_utc": "2026-11-17T16:39:38.023836+00:00",
+    "elapsed_wall_seconds": 5.1343532159226015,
+    "guard_state": "monitoring",
+    "guard_exit_code": 0,
+    "ended_utc": "2026-11-17T16:39:38.023821+00:00",
+    "supervisor_exit_code": 0
+  },
+  "artifact_sha256": {
+    ".acquisition_supervisor.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".thermal_guard.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "Cargo.lock": "66606b58b984b6f74d18f8f58472c53907d54a8a1b05de6f50b19e8ba8c14da5",
+    "VISIBLE_ACQUISITION_OPERATIONS_2026-11-17.md": "c13f1432d692dcb4612ed55732ca3846c36a5919c7aaa3efcdb3466c02485d80",
+    "VISIBLE_ACQUISITION_PILOT_PLAN_2026-11-17.md": "3ccb6b8385d2fdf7d64d38ea4ec3cae7494e640e78943965f06a14951641475d",
+    "acquisition_source.rs": "765055f3aeed2a3e2a7b72f707a67815e655d29dd80d35bbc68eb50b76a589ef",
+    "arena_source.rs": "60a0a590902380cfaac2aa50540a6d302f70ebbf03a5172d1642e031537e96ee",
+    "build_observation.txt": "9f11f252b2d01ebb5c382d8d04f7989a3f2137534615401bddc6d893ff0b49c8",
+    "delayed_choice.toml": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+    "exit_code": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "guard.log": "9bea18f6776d91a26c1e1ca5725894aefcebe5249e7799ee02c1c5b22d7d02de",
+    "launcher.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "launcher.pid": "ea17c91df41434d6de6203a3572fb5284c16270fcf3a69432baaacbd7e76e1d2",
+    "operational_inputs.sha256": "f76c476aff17e1f3eca8e4e1a37f76ad1c54e30d57c2f7f6e667335c7c0fc6f2",
+    "operational_source_revision": "043d8d2f4b985793647f701aef82cfbf5c88285a712d2c7f3121a97ffedc4d0c",
+    "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+    "pinned_build.sha256": "a2856114f0da44c833460681599825d87cdbe306e36db8a0b20a70b7394118bc",
+    "platform.txt": "6b0e4a489ae3b1067b9de07fa2a2b9681e98fe8af434809987a2739011fba22f",
+    "plot_acquisition.py": "7e3a55eeb749a6be7d2ba51bb240f66ae325458f19ea72e97a00fd9ee75f239b",
+    "run_guarded_acquisition.py": "1d69615f7c27b63a4854043dfefbaca7fd85539ce7b32fc1141915ee47cd5a49",
+    "runner.log": "3d896b36b487c64c8c926fa1e70636e7aeacdf5ed94a99040b4ab5c5b7a2982a",
+    "runs/session_1794933573406315818_37169_0/controls.json": "fa83b4f27bb38cf3db731c2ec9d43eaba17b0db012c4a139e89e22a6b728ec92",
+    "runs/session_1794933573406315818_37169_0/manifest.json": "490ab63396e581ba30d22937652692cce5508ab591e13b5372530f9b6eacf831",
+    "runs/session_1794933573406315818_37169_0/seed_2000/final_population.json": "8104ed76b74ed87249de90734bc50d23b01c389fe12d72a9c407d7a33a9aa78d",
+    "runs/session_1794933573406315818_37169_0/seed_2000/founders.json": "8b36f8e9f2c67d82092c88c094967d8d14f547f7ce901cc5dad25e4cc97e8265",
+    "runs/session_1794933573406315818_37169_0/seed_2000/generations.jsonl": "7b8772bcd88ef3c9e1dcec67f12b0272ba5191297fb01ce9819a6e19c2ce869f",
+    "runs/session_1794933573406315818_37169_0/seed_2000/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1794933573406315818_37169_0/seed_2000/summary.json": "7904b7ae7bd8af5bb0fa4780cd100b82627c956237fdc1e6fe2191a13cdda373",
+    "runs/session_1794933573406315818_37169_0/seed_2001/final_population.json": "14b36e1cb179f8953a98a97e04bf74572b93c3b3b040d37a55ac9117ad0cad19",
+    "runs/session_1794933573406315818_37169_0/seed_2001/founders.json": "62675f2eb3d8279dba24942547cc76c596e2c786d7d9284841fbeec88f6f3d55",
+    "runs/session_1794933573406315818_37169_0/seed_2001/generations.jsonl": "87a9d4972b0c48bd140d46fb44739ae46dcd38bbcc2237413fb5cdacfd964f66",
+    "runs/session_1794933573406315818_37169_0/seed_2001/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1794933573406315818_37169_0/seed_2001/summary.json": "fb8ab37be7c69d74d9889bccbaad07202e2cc4303b8ebffd83f5e4e575d8404d",
+    "runs/session_1794933573406315818_37169_0/seed_2002/final_population.json": "19e0a538cf1d1df1017ad05bbeab155022d260f3f8dd17d82079a5066a59e83d",
+    "runs/session_1794933573406315818_37169_0/seed_2002/founders.json": "0578e15e86ac4f44f498941f57c370465ec598dc3c81b2024ebfe6844f48d0c9",
+    "runs/session_1794933573406315818_37169_0/seed_2002/generations.jsonl": "c7d4365dde962faaf57950575f64d308d5ef4142a8701d67956b7c095ab742d1",
+    "runs/session_1794933573406315818_37169_0/seed_2002/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1794933573406315818_37169_0/seed_2002/summary.json": "ab7bd01ee89163211cd43ea4e0c3f078942ca33f5ef0f8d08e6eda7c0b79d68f",
+    "runs/session_1794933573406315818_37169_0/summary.json": "72c160fc88c0d182226289899928b4fddc9e489f660a2e3693830f3fc07d7fbe",
+    "sim-runner": "a43a9205cb6c2efaf68437680c89133001f63f7bafbc196baf6ec9de5b2e223f",
+    "source_revision": "fda72094881d8e9f7d99135e443adeed964a097857c7088b9a6d8ffc6d5c7ebb",
+    "source_status": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "status": "d3be030801b90ea8057d3997d9845c7f850cc7b784450645d5ec2811cc927d7a",
+    "summarize_acquisition.py": "fda36e1703c99ed980c82300ca9476dd509120cecb624cd4f613cc0a416819c4",
+    "supervisor.json": "e9cfaf3487661785b04ca52f17a2564ec47093c6ba18918c9b36794a64cecf0b",
+    "supervisor_manifest.json": "7c91f6c261ef96274c19c585d8aa55af297512cf4abebf9bd319c7db1c93c7d6",
+    "thermal_guard/status.json": "e8aac657f22b38f6f5dfd178185a2fa424378695798ef0bb06cec61a1c570af4",
+    "thermal_supervisor.jsonl": "fbd414e2e6da2f0c0dc2acfc3908e0cd57f2291f5183b15afe785a2baef4de43",
+    "visible_acquisition.toml": "77e2a98d02c77a7eee05f6d571c9ad80f599e5bc5d0fac41d36a16a698407fce"
+  },
+  "archive": {
+    "name": "visible-acquisition-pilot-2026-11-17.tar.gz",
+    "bytes": 2896176,
+    "sha256": "4a361e41cff055b8011f369872e4ebcdfa137c5acfcfea298cb982b5cad4e6b3",
+    "release": "https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-acquisition-pilot-2026-11-17"
+  },
+  "analysis_scripts_sha256": {
+    "analysis/summarize_acquisition.py": "fda36e1703c99ed980c82300ca9476dd509120cecb624cd4f613cc0a416819c4",
+    "analysis/plot_acquisition.py": "7e3a55eeb749a6be7d2ba51bb240f66ae325458f19ea72e97a00fd9ee75f239b",
+    "analysis/test_acquisition_summary.py": "0aafd42e7e8b5490129dc093c2b8bcc3a77bd70685814da33d46b3a2c7c9d542"
+  }
+}

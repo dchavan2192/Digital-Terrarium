@@ -41,7 +41,9 @@ while True:
 RUNNER = '''#!/usr/bin/env python3
 import os,signal,time
 from pathlib import Path
-Path('runner.started').write_text(str(os.getpid()))
+# Publish the PID atomically: existence must never expose an empty file.
+Path('runner.started.pending').write_text(str(os.getpid()))
+Path('runner.started.pending').replace('runner.started')
 if MODE=='success': time.sleep(.10)
 else:
  signal.signal(signal.SIGTERM,signal.SIG_IGN)

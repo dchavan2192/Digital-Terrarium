@@ -6,6 +6,16 @@
 
 ---
 
+## Resumed development — completed fixed acquisition pilot, 2026-11-17
+
+- Owner resumed development after the stopping point. GitHub had no incoming source changes; Pi was idle at 51.6°C. Built exact `5504a20` in a clean isolated Pi worktree, one Cargo worker; all three frozen input/source hashes match. Old root checkout and prior binaries remain intact.
+- Added/pushed tested guarded supervisor and audit/plot tooling at `400eea3`; [operational record](results/VISIBLE_ACQUISITION_OPERATIONS_2026-11-17.md) fixes active watchdog 1,800 seconds including startup/cooling before outcomes. Seven supervisor process tests and ten thermal tests pass; CI runs them. Guard loss/interruption leaves only the owned runner paused; timeout never resumes a hot stopped runner.
+- Fixed [visible acquisition pilot](results/VISIBLE_ACQUISITION_PILOT_2026-11-17.md) completed all three seeds, no technical failures: seed 2000 best 0→0.5, seeds 2001/2002 0.5→0.5. No candidate scored both correct in any generation. Founders/final score counts and complete traces retained. This is partial/no acquisition under the fixed search budget, not memory failure or an architecture impossibility. No extra generations/seeds or post-outcome tuning.
+- Batch `output/acquisition/pilot_20261117T163705Z`, mirrored locally under `output/visible-acquisition/`. Clean source5504/core297edc68fb18e05e, native release. Supervisor elapsed5.134seconds; guard finished at54.0°C without pauses. Short execution occurred between guard polls; thermal readings are sparse, not continuous assurance. No additional experiment active after completion.
+- Strict summary plus independent audit verify all78 generation logs×64 records, elite/parent/ID rules, exact fixed topology and final visible replay. Three analysis integration tests pass, rejecting malformed sampling/topology/controls/cue replay. All data, hashes, plot and [raw archive](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-acquisition-pilot-2026-11-17) saved. No Rust mechanics or demo behavior changed this turn.
+- Repeat safety checks caught a fixture-only empty-PID publication race; the fake runner now publishes its PID atomically. Three consecutive seven-test safety suites and the three real-dataset audit tests pass after the fix. Production supervisor and actual Pi experiment were unchanged; no scientific rerun was needed.
+- **Next development:** diagnose and separately specify an acquisition-method revision before another search. Preserve this fixed-budget result; do not move to hidden-memory selection until visible competence is established. Changes to fitness/tie handling/budget require a new record and fresh declared evaluation, not silent continuation. Read the council and completed pilot reports first. Existing nightly schedule must check this entry before launching work.
+
 ## Requested stopping point — 2026-11-17, completed overnight analysis
 
 - Owner requested a clean stop, complete documentation, commit and push. **Do not start another experiment from this stopping-point turn.** Pi overnight batch `output/memory_growth/overnight_20261117T040010Z` completed at 06:19 UTC: all eight runs survived 200k ticks, exit 0; guard finished. Fresh 14:40 UTC check: no runner, 52.7°C, no active low-bit throttling flags.
