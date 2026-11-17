@@ -6,6 +6,15 @@
 
 ---
 
+## Active unattended batch — verified 2026-11-17 04:00–04:02 UTC
+
+- **Pi running:** `/home/pi/Digital-Terrarium/output/memory_growth/overnight_20261117T040010Z`. Eight fixed serial runs; seed 3000/rate 0 active, CSV verified through tick 5,500, population 343. This is progress evidence only; no outcomes interpreted. Read `launcher.pid` for the launcher identity; initial runner PID 32674 and guard PID 32663.
+- Guard confirmed `monitoring`, one matching pinned executable, 56.75°C, pause/resume 75/65°C; hardware flags `0xe0000` have no active low-bit flags. Pin SHA256 binary `5b608d5f2002e74d4185e60c595e686d185362a13e89f4ba26aaa2dca9d274cb` is recorded in batch `pinned.sha256` (use that file as authoritative). Engine source `0da954f`, protocol source `f63de31`; old engine build caveats remain in archived metadata.
+- Preflight attempt `overnight_20261117T035511Z` failed before any ticks because several demo settings are unsupported CLI overrides. Retained unchanged. Corrected operationally by generating the full TOML with whole-tree verification; fixed scientific settings/seeds/endpoints unchanged. New batch is active and the only simulation.
+- Read `status`, `thermal_guard/status.json`, `completed_jobs.txt`, `launcher.log`, then job manifests/CSV. Checkpoint every 50k, target 200k, logs every 500, final genomes saved. Do not replace executable, run another simulation, or blindly restart the whole worker. Recovery instructions are in the frozen plan. Preserve all partial/failed runs.
+- Development saved/pushed: `295efb2` acquisition runner (157 Rust tests + Clippy pass), `f63de31` verified full-config correction. CI/Pages passed `295efb2`; latest correction workflows were still in progress at handoff. No actual acquisition experiment launched.
+- User is sleeping; continue only within existing host permissions and approved commands. Do not broaden security access. Pause approval-dependent actions if needed. The project permission template remains unactivated; user rescinded earlier permission-reconfiguration work. Next science: summarize all eight structural-growth runs after completion; then pin/freeze the separate visible acquisition pilot before executing it.
+
 ## Wrap-up — next development and overnight diagnostic, 2026-11-17 UTC
 
 - Memory demo deployment for `646e374` completed successfully. User reports rising average connections. This observation is not yet a replicated result; memory mode's 0.3 add-recurrent probability creates a plausible structural mutation bias.
