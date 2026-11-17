@@ -1,17 +1,21 @@
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static FIXTURE_NUMBER: AtomicU64 = AtomicU64::new(0);
 
 fn fixture() -> PathBuf {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../output/acquisition-cli-tests")
         .join(format!(
-            "{}-{}",
+            "{}-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
-                .as_nanos()
+                .as_nanos(),
+            FIXTURE_NUMBER.fetch_add(1, Ordering::Relaxed)
         ));
     std::fs::create_dir_all(&path).unwrap();
     path

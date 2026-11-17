@@ -15,6 +15,7 @@ mod exported_assay;
 mod movement_assay;
 mod run;
 mod sweep;
+mod visible_validation;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -73,6 +74,15 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Replay all training-selected champions on a frozen visible robustness suite.
+    ValidateVisible {
+        #[arg(long)]
+        session: PathBuf,
+        #[arg(long, default_value = "configs/visible_validation.toml")]
+        suite: PathBuf,
+        #[arg(long, default_value = "output/visible-validation")]
+        output: PathBuf,
+    },
     /// Bounded visible-cue genetic acquisition pilot; no ecology or delayed task.
     AcquireVisible {
         #[arg(long, default_value = "configs/visible_acquisition.toml")]
@@ -241,6 +251,11 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::ValidateVisible {
+            session,
+            suite,
+            output,
+        }) => visible_validation::run(&session, &suite, &output),
         Some(Commands::AcquireVisible {
             protocol,
             arena,

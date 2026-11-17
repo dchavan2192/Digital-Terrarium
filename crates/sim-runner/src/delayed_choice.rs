@@ -70,7 +70,7 @@ impl ArenaConfig {
         ]
     }
 
-    fn validate(&self) -> RunResult<()> {
+    pub(crate) fn validate(&self) -> RunResult<()> {
         if self.ray_count == 0 || self.ray_count > 16 {
             return Err("arena ray_count must be in 1..=16".into());
         }
@@ -189,6 +189,61 @@ pub(crate) fn parse_config(path: &Path) -> RunResult<ArenaConfig> {
             .map_err(|e| format!("invalid arena config: {e}"))?;
     config.validate()?;
     Ok(config)
+}
+
+/// Policy-free sensor coverage and a privileged turn-in-place/straight witness.
+/// This is a plant check, not a neural controller or a fair policy baseline.
+pub(crate) fn geometry_preflight(config: &ArenaConfig) -> RunResult<Value> {
+    config.validate()?;
+    let start = config.start();
+    let goals = config.goals();
+    let mut checks = Vec::new();
+    for (index, goal) in goals.iter().copied().enumerate() {
+        let dx = goal.0 - start.x;
+        let dy = goal.1 - start.y;
+        let distance = (dx * dx + dy * dy).sqrt();
+        let desired = dy.atan2(dx);
+        let angle = (desired - start.heading + PI).rem_euclid(2.0 * PI) - PI;
+        let bounded_ticks = |ratio: f64| {
+            (ratio.is_finite() && ratio >= 0.0 && ratio.ceil() <= f64::from(u32::MAX))
+                .then(|| ratio.ceil() as u64)
+        };
+        let turn_ticks = bounded_ticks(angle.abs() / config.max_turn);
+        let move_ticks = bounded_ticks((distance - config.goal_radius) / config.max_speed);
+        let total = turn_ticks.zip(move_ticks).map(|(a, b)| a + b);
+        let end = Pose {
+            x: goal.0,
+            y: goal.1,
+            heading: desired,
+        };
+        let first = contact(start, end, goal, config.goal_radius);
+        let other = contact(start, end, goals[1 - index], config.goal_radius);
+        let clear_path = first.is_some_and(|t| other.is_none_or(|o| o > t));
+        let mut ray_hits = 0;
+        for ray in 0..config.ray_count {
+            let offset = if config.ray_count == 1 {
+                0.0
+            } else {
+                -config.ray_fov * 0.5 + config.ray_fov * ray as f64 / (config.ray_count - 1) as f64
+            };
+            let heading = start.heading + offset;
+            let end = Pose {
+                x: start.x + config.ray_range * sim_core::math::cos(heading),
+                y: start.y + config.ray_range * sim_core::math::sin(heading),
+                heading,
+            };
+            ray_hits += usize::from(contact(start, end, goal, config.goal_radius).is_some());
+        }
+        checks.push(json!({"goal":if index==0 {"left"}else{"right"},
+            "initial_ray_hits":ray_hits,"turn_in_place_ticks":turn_ticks,"straight_move_ticks":move_ticks,
+            "conservative_total_ticks":total,"direct_path_clear":clear_path,
+            "witness_within_horizon":clear_path && total.is_some_and(|n|n<=u64::from(config.horizon))}));
+    }
+    Ok(
+        json!({"interpretation":"privileged plant/reachability witness; not a neural or fair stateless baseline",
+        "initial_visibility":"geometric ray-circle hits, independent of a policy or reward label",
+        "goals":checks}),
+    )
 }
 
 /// Earliest intersection fraction along a continuous segment, preventing tunneling.
@@ -468,7 +523,7 @@ pub(crate) fn visible_score(brain: &Brain, config: &ArenaConfig) -> RunResult<u8
         .sum())
 }
 
-fn reference(config: &ArenaConfig, recurrent: bool) -> Brain {
+pub(crate) fn reference(config: &ArenaConfig, recurrent: bool) -> Brain {
     let turn = (config.input_count() + 1) as u16;
     let cue = (2 * config.ray_count + 3) as u16;
     let memory_edges = [(turn, turn, config.recurrent_weight, 3)];

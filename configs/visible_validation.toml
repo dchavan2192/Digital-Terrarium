@@ -1,0 +1,40 @@
+# Frozen saved-policy robustness diagnostics; never used during selection.
+version = 1
+
+[[cases]]
+name = "training_reference"
+kind = "reference"
+
+[[cases]]
+name = "rotation_minus_45"
+kind = "rigid_rotation"
+radians = -0.7853981633974483
+
+[[cases]]
+name = "rotation_plus_45"
+kind = "rigid_rotation"
+radians = 0.7853981633974483
+
+[[cases]]
+name = "near"
+kind = "relative_goals"
+forward = 3.0
+lateral = 3.0
+
+[[cases]]
+name = "far_forward"
+kind = "relative_goals"
+forward = 5.5
+lateral = 4.0
+
+[[cases]]
+name = "narrow"
+kind = "relative_goals"
+forward = 4.0
+lateral = 2.5
+
+[[cases]]
+name = "wide"
+kind = "relative_goals"
+forward = 4.0
+lateral = 5.0
