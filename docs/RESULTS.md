@@ -1,6 +1,6 @@
 # Results register
 
-Updated: 2026-11-16. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
+Updated: 2026-11-17 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
 
 ## Established scientific results for the corrected current model
 
@@ -52,7 +52,11 @@ Configuration: `configs/default.toml`, seed 42. Commands are in [the runner READ
 
 ## Registered calibration: CAL-2026-11-16-FOOD-VALIDATION
 
-[Held-out validation report](results/PHASE9A_VALIDATION_2026-11-16.md): 30/30 runs survived 200,000 ticks, with zero cap-blocked births. Rates 0.008, 0.010 and 0.012 all passed the predefined criteria; mean late populations across ten seeds were 913.92, 1067.22 and 1207.46 respectively (see JSON for full precision). The smallest acceptable rate, **0.008**, was approved by the owner together with cap 2,000 and applied to the defaults; current-engine revalidation is pending. Source `2b1c837`, pinned build `fab6214c28cf0b6d`, seeds 100–109, cap 2,000. This predates independent drought RNG, node identity fixes and memory; current-engine validation remains necessary. Full provenance, limitations, artifact checksums and reproduction command are in the report and linked JSON.
+[Held-out validation report](results/PHASE9A_VALIDATION_2026-11-16.md): 30/30 runs survived 200,000 ticks, with zero cap-blocked births. Rates 0.008, 0.010 and 0.012 all passed the predefined criteria; mean late populations across ten seeds were 913.92, 1067.22 and 1207.46 respectively (see JSON for full precision). The smallest acceptable rate, **0.008**, was approved by the owner together with cap 2,000 and applied to the defaults; current-engine revalidation subsequently passed (CAL-2026-11-17-BASELINE). Source `2b1c837`, pinned build `fab6214c28cf0b6d`, seeds 100–109, cap 2,000. This predates independent drought RNG, node identity fixes and memory; the subsequent pinned current-engine recheck is registered below. Full provenance, limitations, artifact checksums and reproduction command are in the report and linked JSON.
+
+## Registered calibration: CAL-2026-11-17-BASELINE
+
+[Current-engine recheck](results/CURRENT_BASELINE_RECHECK_2026-11-17.md): 10/10 seeds survived 200,000 ticks with zero cap blocking. Late population 893.629 (SD 12.5436; exploratory 95% t CI 884.656–902.602), lowest logged post-burn-in population 620. All four predefined engineering criteria passed for approved 0.008/cap 2,000. Source 0da954f, pinned build abad322241615ca2; reused seeds 100–109. All 30 artifact hashes independently verified; local summary equals the Pi finalizer. Sampled max temperature 75.7°C, no active throttling flags; 149 guarded cooling cycles. Calibration only: no equilibrium, memory-benefit or whole-batch second-machine replication claim. Full provenance and limits in report.
 
 ## Registered implementation check: CHK-2026-11-16-DELAYED-CUE
 

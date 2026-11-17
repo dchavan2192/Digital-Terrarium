@@ -275,7 +275,12 @@ impl State {
     }
 }
 
-fn condition(brain: &Brain, config: &ArenaConfig, clear: bool) -> RunResult<Value> {
+fn condition(
+    brain: &Brain,
+    config: &ArenaConfig,
+    clear: bool,
+    cue_visible: bool,
+) -> RunResult<Value> {
     let mut trials = Vec::new();
     for cue in [-1, 1] {
         let mut state = State::new();
@@ -292,7 +297,7 @@ fn condition(brain: &Brain, config: &ArenaConfig, clear: bool) -> RunResult<Valu
         let mut trajectory = Vec::new();
         let mut choice = "timeout";
         for tick in 1..=config.horizon {
-            let inputs = sensors(config, pose, 0.0);
+            let inputs = sensors(config, pose, if cue_visible { f64::from(cue) } else { 0.0 });
             let actions = state.think(brain, &inputs, clear)?;
             let before = pose;
             let heading = (pose.heading + config.max_turn * actions.turn.clamp(-1.0, 1.0))
@@ -338,7 +343,11 @@ fn condition(brain: &Brain, config: &ArenaConfig, clear: bool) -> RunResult<Valu
     Ok(json!({"clear_state_each_tick":clear,"mean_reward":mean_reward,"trials":trials}))
 }
 
-pub(crate) fn evaluate_brain(brain: &Brain, config: &ArenaConfig) -> RunResult<Value> {
+pub(crate) fn evaluate_brain(
+    brain: &Brain,
+    config: &ArenaConfig,
+    cue_visible: bool,
+) -> RunResult<Value> {
     config.validate()?;
     if brain.inputs != config.input_count() || brain.outputs != 7 || brain.slot_count() > MAX_NODES
     {
@@ -347,7 +356,7 @@ pub(crate) fn evaluate_brain(brain: &Brain, config: &ArenaConfig) -> RunResult<V
         );
     }
     Ok(
-        json!({"intact":condition(brain,config,false)?,"same_network_state_cleared":condition(brain,config,true)?}),
+        json!({"cue_visible":cue_visible,"intact":condition(brain,config,false,cue_visible)?,"same_network_state_cleared":condition(brain,config,true,cue_visible)?}),
     )
 }
 
@@ -368,14 +377,14 @@ fn reference(config: &ArenaConfig, recurrent: bool) -> Brain {
     )
 }
 
-pub(crate) fn validate_controls(config: &ArenaConfig) -> RunResult<Value> {
+pub(crate) fn validate_controls(config: &ArenaConfig, cue_visible: bool) -> RunResult<Value> {
     config.validate()?;
     let recurrent = reference(config, true);
     let plain = reference(config, false);
     let mut controls = vec![
-        condition(&recurrent, config, false)?,
-        condition(&plain, config, false)?,
-        condition(&recurrent, config, true)?,
+        condition(&recurrent, config, false, cue_visible)?,
+        condition(&plain, config, false, cue_visible)?,
+        condition(&recurrent, config, true, cue_visible)?,
     ];
     for (control, name) in controls.iter_mut().zip([
         "recurrent_reference",
@@ -397,9 +406,15 @@ pub(crate) fn validate_controls(config: &ArenaConfig) -> RunResult<Value> {
         })
     });
     let common_release = controls.iter().all(|condition| {
+        let cue_channel = 2 * config.ray_count + 2;
+        let mut negative_inputs = condition["trials"][0]["trajectory"][0]["inputs"].clone();
+        let mut positive_inputs = condition["trials"][1]["trajectory"][0]["inputs"].clone();
+        if cue_visible {
+            negative_inputs[cue_channel] = json!(0.0);
+            positive_inputs[cue_channel] = json!(0.0);
+        }
         condition["trials"][0]["initial_pose"] == condition["trials"][1]["initial_pose"]
-            && condition["trials"][0]["trajectory"][0]["inputs"]
-                == condition["trials"][1]["trajectory"][0]["inputs"]
+            && negative_inputs == positive_inputs
     });
     let no_timeout = controls.iter().all(|condition| {
         condition["trials"]
@@ -408,18 +423,48 @@ pub(crate) fn validate_controls(config: &ArenaConfig) -> RunResult<Value> {
             .iter()
             .all(|trial| trial["choice"] != "timeout")
     });
-    let checks = json!({"reference_reward_one":controls[0]["mean_reward"]==1.0,
-        "feed_forward_reward_half":controls[1]["mean_reward"]==0.5,
-        "cleared_reward_half":controls[2]["mean_reward"]==0.5,
-        "feed_forward_trajectories_identical_across_cues":same_trajectories(&controls[1]),
-        "cleared_trajectories_identical_across_cues":same_trajectories(&controls[2]),
-        "hold_poses_fixed":held_fixed,"release_pose_and_inputs_identical":common_release,"all_controls_make_a_choice":no_timeout});
+    let mut checks = json!({"reference_reward_one":controls[0]["mean_reward"]==1.0,
+        "hold_poses_fixed":held_fixed,"all_controls_make_a_choice":no_timeout});
+    if cue_visible {
+        let paths_differ = |condition: &Value| {
+            let poses = |trial: &Value| {
+                trial["trajectory"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|tick| tick["pose_after"].clone())
+                    .collect::<Vec<_>>()
+            };
+            poses(&condition["trials"][0]) != poses(&condition["trials"][1])
+        };
+        let cue_persists = controls.iter().all(|condition| {
+            condition["trials"].as_array().unwrap().iter().all(|trial| {
+                trial["trajectory"].as_array().unwrap().iter().all(|tick| {
+                    tick["inputs"][2 * config.ray_count + 2].as_f64() == trial["cue"].as_f64()
+                })
+            })
+        });
+        checks["feed_forward_reward_one"] = json!(controls[1]["mean_reward"] == 1.0);
+        checks["cleared_reward_one"] = json!(controls[2]["mean_reward"] == 1.0);
+        checks["feed_forward_choice_paths_differ_across_cues"] = json!(paths_differ(&controls[1]));
+        checks["cleared_choice_paths_differ_across_cues"] = json!(paths_differ(&controls[2]));
+        checks["release_pose_and_noncued_inputs_identical"] = json!(common_release);
+        checks["cue_present_throughout_movement"] = json!(cue_persists);
+    } else {
+        checks["feed_forward_reward_half"] = json!(controls[1]["mean_reward"] == 0.5);
+        checks["cleared_reward_half"] = json!(controls[2]["mean_reward"] == 0.5);
+        checks["feed_forward_trajectories_identical_across_cues"] =
+            json!(same_trajectories(&controls[1]));
+        checks["cleared_trajectories_identical_across_cues"] =
+            json!(same_trajectories(&controls[2]));
+        checks["release_pose_and_inputs_identical"] = json!(common_release);
+    }
     if !checks.as_object().unwrap().values().all(|v| v == true) {
         return Err(format!("delayed-choice controls failed: {checks}"));
     }
     Ok(
-        json!({"schema_version":1,"assay":"delayed_choice_controls","arena":config,"instrument_validated":true,"checks":checks,"controls":controls,
-        "interpretation":"controlled movement and delayed cue retention; not learning, ecological fitness, evolved cognition or UAL",
+        json!({"schema_version":1,"assay":"delayed_choice_controls","cue_visible":cue_visible,"arena":config,"instrument_validated":true,"checks":checks,"controls":controls,
+        "interpretation":if cue_visible {"visible-cue stimulus-response competence control; not memory use, learning, ecological fitness, evolved cognition or UAL"} else {"controlled movement and delayed cue retention; not learning, ecological fitness, evolved cognition or UAL"},
         "sensors":SENSOR_CONVENTIONS,"motion":MOTION_CONVENTIONS}),
     )
 }
@@ -434,7 +479,7 @@ mod tests {
     #[test]
     fn controls_choose_and_external_state_cannot_carry_the_cue() {
         let config = config();
-        let result = validate_controls(&config).unwrap();
+        let result = validate_controls(&config, false).unwrap();
         assert_eq!(result["instrument_validated"], true);
         for check in result["checks"].as_object().unwrap().values() {
             assert_eq!(check, true);
@@ -442,6 +487,29 @@ mod tests {
         assert_eq!(result["controls"][0]["trials"][0]["choice"], "right");
         assert_eq!(result["controls"][0]["trials"][1]["choice"], "left");
         assert_eq!(result["controls"][1]["trials"][0]["choice"], "left");
+    }
+
+    #[test]
+    fn visible_cue_controls_succeed_without_memory_and_hold_phases_are_unchanged() {
+        let config = config();
+        let hidden = validate_controls(&config, false).unwrap();
+        let visible = validate_controls(&config, true).unwrap();
+        assert_eq!(visible["cue_visible"], true);
+        assert_eq!(visible["instrument_validated"], true);
+        for (index, control) in visible["controls"].as_array().unwrap().iter().enumerate() {
+            assert_eq!(control["mean_reward"], 1.0);
+            for (trial_index, trial) in control["trials"].as_array().unwrap().iter().enumerate() {
+                assert_eq!(trial["choice"], trial["target"]);
+                assert_eq!(trial["movement_ticks"], 5);
+                assert_eq!(
+                    trial["hold_trace"],
+                    hidden["controls"][index]["trials"][trial_index]["hold_trace"]
+                );
+                for step in trial["trajectory"].as_array().unwrap() {
+                    assert_eq!(step["inputs"][12].as_f64(), trial["cue"].as_f64());
+                }
+            }
+        }
     }
 
     #[test]
@@ -460,8 +528,8 @@ mod tests {
         assert_eq!(differing, vec![2 * config.ray_count + 2]);
         let brain = reference(&config, true);
         assert_eq!(
-            evaluate_brain(&brain, &config).unwrap(),
-            evaluate_brain(&brain, &config).unwrap()
+            evaluate_brain(&brain, &config, false).unwrap(),
+            evaluate_brain(&brain, &config, false).unwrap()
         );
         let release = sensors(&config, pose, 0.0);
         assert_eq!(release[2 * config.ray_count + 2], 0.0);
@@ -487,13 +555,13 @@ mod tests {
     fn timeout_and_wrong_first_goal_are_explicit_zero_rewards() {
         let mut config = config();
         config.horizon = 1;
-        let result = evaluate_brain(&reference(&config, true), &config).unwrap();
+        let result = evaluate_brain(&reference(&config, true), &config, false).unwrap();
         for trial in result["intact"]["trials"].as_array().unwrap() {
             assert_eq!(trial["choice"], "timeout");
             assert_eq!(trial["reward"], 0);
         }
         config.horizon = 20;
-        let result = evaluate_brain(&reference(&config, false), &config).unwrap();
+        let result = evaluate_brain(&reference(&config, false), &config, false).unwrap();
         assert_eq!(result["intact"]["trials"][0]["choice"], "left");
         assert_eq!(result["intact"]["trials"][0]["reward"], 0);
     }
@@ -520,6 +588,6 @@ mod tests {
             &[],
             &[(0, turn, f64::MAX, true), (1, turn, f64::MAX, true)],
         );
-        assert!(evaluate_brain(&brain, &config).is_err());
+        assert!(evaluate_brain(&brain, &config, false).is_err());
     }
 }

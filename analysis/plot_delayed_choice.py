@@ -58,9 +58,14 @@ def main(source, destination):
         ax.set_aspect('equal')
         ax.spines[['top', 'right']].set_visible(False)
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.22), fontsize=7, frameon=False)
-    fig.suptitle('Delayed-choice movement task · actual manufactured-control trajectories', fontsize=13)
-    fig.supxlabel('Cue removed before release; both goal markers look identical.\n'
-                  'No training or evolution: this validates a memory-dependent task.', fontsize=9)
+    visible = result.get('cue_visible', False)
+    mode = 'visible cue' if visible else 'delayed cue'
+    fig.suptitle(f'Delayed-choice movement task · {mode} · manufactured controls', fontsize=13)
+    caption = ('Cue remains visible during movement; both goal markers look identical.\n'
+               'No training or evolution: stimulus-response competence control.' if visible else
+               'Cue removed before release; both goal markers look identical.\n'
+               'No training or evolution: this validates a memory-dependent task.')
+    fig.supxlabel(caption, fontsize=9)
     fig.savefig(destination, dpi=180)
     plt.close(fig)
 

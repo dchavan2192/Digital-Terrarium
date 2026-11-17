@@ -21,12 +21,12 @@ fn trace_budget(config: &ArenaConfig, trials: u64) -> RunResult<()> {
     Ok(())
 }
 
-pub fn controls(path: &Path) -> RunResult<()> {
+pub fn controls(path: &Path, cue_visible: bool) -> RunResult<()> {
     let config = delayed_choice::parse_config(path)?;
     trace_budget(&config, 6)?;
-    let mut result = delayed_choice::validate_controls(&config)?;
+    let mut result = delayed_choice::validate_controls(&config, cue_visible)?;
     result["arena_path"] = json!(path);
-    result["protocol"] = protocol(&config);
+    result["protocol"] = protocol(&config, cue_visible);
     result["evaluator"] = evaluator_metadata();
     println!(
         "{}",
@@ -35,10 +35,10 @@ pub fn controls(path: &Path) -> RunResult<()> {
     Ok(())
 }
 
-fn protocol(config: &ArenaConfig) -> Value {
+fn protocol(config: &ArenaConfig, cue_visible: bool) -> Value {
     json!({"cue_channel_zero_based":2*config.ray_count+2,
         "pose_held_through_cue_and_delay":true,"hold_actions_discarded":true,
-        "cue_zero_after_release":true,"correct_goal":{"positive_cue":"left","negative_cue":"right"},
+        "cue_visible":cue_visible,"cue_zero_after_release":!cue_visible,"correct_goal":{"positive_cue":"left","negative_cue":"right"},
         "reward":"one on correct first contact, zero on wrong contact or timeout; terminal only",
         "state_reset_each_trial":true,"body_scaling":false,"metabolism":false,
         "within_lifetime_updates":false,"training":false,
@@ -55,7 +55,7 @@ fn evaluator_metadata() -> Value {
         "build_profile":env!("TERRARIUM_BUILD_PROFILE")})
 }
 
-pub fn evaluate(path: &Path, arena_path: &Path) -> RunResult<()> {
+pub fn evaluate(path: &Path, arena_path: &Path, cue_visible: bool) -> RunResult<()> {
     let config = delayed_choice::parse_config(arena_path)?;
     let loaded = exported_assay::load_validated(path)?;
     let required_inputs = 2 * config.ray_count + 10;
@@ -70,17 +70,20 @@ pub fn evaluate(path: &Path, arena_path: &Path) -> RunResult<()> {
         results.push(json!({"id":record.id,"generation":record.generation,
             "root_ancestor_id":record.root_ancestor_id,
             "enabled_recurrent_connections":brain.recurrent_count(),
-            "evaluation":delayed_choice::evaluate_brain(&brain,&config)?}));
+            "evaluation":delayed_choice::evaluate_brain(&brain,&config,cue_visible)?}));
     }
     let mut result = loaded.metadata();
     result["schema_version"] = json!(1);
     result["assay"] = json!("exported_genome_delayed_choice");
-    result["interpretation"] = json!(
+    result["cue_visible"] = json!(cue_visible);
+    result["interpretation"] = json!(if cue_visible {
+        "visible-cue competence control; not memory use, training, natural ecology, evolutionary fitness, learned association or evidence of adaptive cognition"
+    } else {
         "controlled delayed-choice movement task; not training, natural ecology, evolutionary fitness, learned association or evidence of adaptive cognition"
-    );
+    });
     result["arena_path"] = json!(arena_path);
     result["arena"] = json!(config);
-    result["protocol"] = protocol(&config);
+    result["protocol"] = protocol(&config, cue_visible);
     result["input_path"] = json!(path);
     result["brain_source"] = json!(
         "exported genotype weights times (1-snapshot methylation); expressed_brain and live memory ignored; no within-life updates"

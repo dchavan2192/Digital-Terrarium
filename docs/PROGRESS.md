@@ -2,9 +2,17 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-16
+**Last updated**: 2026-11-17 UTC
 
 ---
+
+## Resumed — 2026-11-17 UTC: baseline completed, competence control
+
+- No incoming GitHub changes beyond saved `9d00b24`. Pi baseline completed at about 02:15 UTC; finalizer status `summarized`, guard `finished`, exit 0. All 10 seeds 100–109 survived 200k ticks, zero cap blocking; late mean 893.629 (SD 12.5436), post-burn-in minimum 620. All four fixed criteria pass. [Final report](results/CURRENT_BASELINE_RECHECK_2026-11-17.md), full JSON/plot and [raw-data release](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/current-baseline-recheck-2026-11-17).
+- Independent audit verified all 30 CSV/config/manifest hashes and 400 snapshots per seed. Local strict summary matches pinned Pi finalizer exactly. Source 0da954f/core abad322241615ca2, reuse of calibration seeds and dirty-build operational-file caveat retained. This is calibration, not equilibrium or memory-benefit evidence; full second-machine long-duration replication remains unmeasured.
+- Guard logged 149 pause/resume cycles, 7,303 seconds cooling; max 75.7°C in 537 minute observations, no active throttling flags. Pi is now idle/cooled (55.4°C at check). No new long experiment launched; retain all pinned binaries/checkpoints.
+- Implemented planned default-false `--cue-visible` on both movement commands. Only movement-phase cue changes; arena, donors, hold phases, horizon, rewards and state-reset rules are identical. Manufactured visible controls all reward 1; hidden controls remain 1/0.5/0.5. [Plan](results/VISIBLE_CUE_CONTROL_PLAN_2026-11-17.md) saved before actual donor evaluation. All 153 Rust tests, 10 JS and 10 thermal tests pass; all-target Clippy/format pass. Full workspace build/test serialized.
+- Next immediate action is the saved-revision all 898-donor visible/delayed comparison and independent audit, with no geometry/horizon tuning. Actual natural donors may remain unable to perform this unfamiliar task; no memory inference follows from that failure.
 
 ## Stopping point — 2026-11-16, 22:43 UTC
 
@@ -65,7 +73,7 @@ Completed this session:
 - [x] Pages ALSA prerequisite fixed; portfolio card updated to capabilities and limitations; Energy-tab deployment verified green.
 - [x] UI tour placement/focus and KPI width improvements; real WASM/energy smoke and presentation tests added to deployment gate.
 - [x] Short six-run Pi ecology pilot completed: 6/6 survived 20k ticks; zero cap-blocked births. [Report](results/PHASE9A_PILOT_2026-11-15.md), CAL-2026-11-15-FOOD.
-- [ ] 0.1 Long-duration holdout validation still required; no new defaults chosen.
+- [x] 0.1 Finite-duration baseline calibration completed 2026-11-17: approved 0.008/cap 2,000 passes 10/10 seeds×200k ticks; full second-machine replication remains unmeasured.
 - [x] 0.5 Cross-platform state equivalence measured and fixed (2026-11-15, later session; see "Cross-platform determinism" below). Checkpoint files still require the build that wrote them.
 - [x] Independent environment RNG/replayable drought schedules (2026-11-16, see below).
 - [x] Node-history/crossover fixes (2026-11-16, see "Node identity" below).
@@ -305,7 +313,7 @@ UAL is the best first target. It is defined behaviourally, it was proposed as an
 Each stage ends in a gate. Do not start a stage until the previous gate is met.
 
 **Stage 0: a trustworthy instrument** (about 1–2 weeks)
-- [ ] 0.1 Retune the ecology on honest energetics. Pi sweep of `food.regrowth_rate` over 0.002–0.012 at `hard_cap = 2000`, on the 2026-11-15 rules. B3 (the 29-neuron lifetime cap) is still open. Target: 800–1,300 creatures, zero cap-blocked births, 10 of 10 seeds alive at 200k ticks. Update `default.toml` and `demo.toml`.
+- [x] 0.1 Finite-duration ecology calibration: approved food 0.008/cap 2,000 passed ten seeds×200k ticks, all four criteria; report CAL-2026-11-17-BASELINE. B3 was fixed before this recheck. Demo retains its separate watchability overlay; broader two-machine replication remains unmeasured.
 - [x] 0.2 Energy ledger (implemented this session; scope above). Account for every source and sink each tick (food, fruit, metabolism, movement, brain, crowding, temperature, combat loss, sharing loss, reproduction, deaths, clamping at the energy cap). In debug builds, assert that the change in total energy equals the ledger. Expose the ledger in `TickStats`.
 - [x] 0.3 Mechanism-effect tests. Forced, matched fixtures exercise all nine enabled flags and test scoped OFF noninterference. Do not require arbitrary ecosystem divergence when a mechanism is inactive; see the council note for coverage limits.
 - [x] 0.4 Persistence (same-build single-run checkpoint/resume implemented; sweeps pending). Serde for `Genome`, `Organism` and simulation state; `--checkpoint-every` and `--resume` in sim-runner; periodic genome export. Test: 2,000 ticks straight must equal 1,000 + save + load + 1,000, bit for bit.

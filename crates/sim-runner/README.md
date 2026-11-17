@@ -141,6 +141,12 @@ sim-runner delayed-choice --arena configs/delayed_choice.toml > controls.json
 # Evaluate every genotype from one export in the same controlled movement task.
 sim-runner evaluate-delayed-choice --input genomes_seed100_tick200001.json \
   --arena configs/delayed_choice.toml > choices.json
+
+# Competence control: restore the cue at release and keep it during movement.
+sim-runner delayed-choice --arena configs/delayed_choice.toml \
+  --cue-visible > visible_controls.json
+sim-runner evaluate-delayed-choice --input genomes_seed100_tick200001.json \
+  --arena configs/delayed_choice.toml --cue-visible > visible_choices.json
 ```
 
 This task adds movement and terminal reward to delayed-cue evaluation. Position
@@ -157,7 +163,7 @@ manufactured reference weights live in the separate arena TOML. Ray sensors
 report goal proximity and identical goal types; these are task conventions,
 not a claim of identical natural-world vision. Full sensor conventions and
 pose/action traces are included in JSON. Every trial starts with fresh task
-and neural state. The controller's first decision inputs and pose are the
+and neural state. Without `--cue-visible`, its first decision inputs and pose are the
 same for both cues. Heading feedback after release is allowed; cue retention
 through the immobile delay is what the task tests.
 
@@ -180,3 +186,18 @@ A hand-built successful controller demonstrates task feasibility, not learning
 or adaptive evolved memory. A poor evolved-controller score can also reflect
 sensory/motor mismatch; visible-cue motor controls and recurrent-donor studies
 are needed before making a memory-selection claim.
+
+`--cue-visible` is an explicit, default-off competence control. It changes only
+the signed signal input during movement: the cue is restored at release and
+remains -1 or +1 through first contact or timeout. Cue presentation and blank
+hold phases, geometry, motion, horizon, reward rules and all-record sampling
+are unchanged. JSON records `cue_visible` and protocol `cue_zero_after_release`.
+Initial pose and all other first-decision inputs still match across cues.
+
+With the cue visible, all three manufactured references must choose correctly
+for both cues, including the feed-forward and state-cleared references. Their
+paths should differ with the visible cue; identical-path checks apply to the
+hidden-cue controls. Success with a visible cue requires no memory and is not
+evidence of memory use or learning. Poor donor scores can still reflect an
+unfamiliar cue/action mapping or sensory/motor mismatch; these deterministic
+scores are not an evolutionary memory-selection experiment.

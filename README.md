@@ -31,6 +31,8 @@ The [results register](docs/RESULTS.md) defines the evidence required before a n
 
 **Held-out engineering calibration:** all 30 runs across three food-regrowth rates survived 200,000 ticks with zero cap-blocked births. The predefined rule selected regrowth **0.008**, with mean late population **914** across ten runs (exploratory 95% CI: 884–944). The owner approved 0.008 and a population cap of 2,000 as the baseline for a current-engine recheck. These results characterize pinned source `2b1c837`, before recent engine changes; they do not establish memory benefits or current-engine equilibrium. [Report, plot and reproducible data](docs/results/PHASE9A_VALIDATION_2026-11-16.md).
 
+**Current-engine baseline recheck passed:** ten seeds reached 200,000 ticks at regrowth 0.008/cap 2,000 with zero cap-blocked births; mean late population 893.6 (exploratory 95% CI 884.7–902.6). This reuses calibration seeds and establishes the predefined finite-run engineering gate, not equilibrium or memory benefits. [Report and provenance](docs/results/CURRENT_BASELINE_RECHECK_2026-11-17.md).
+
 ## Architecture
 
 ```text
@@ -84,7 +86,7 @@ Plotting requires a Python environment with matplotlib, pandas, and scipy. Gener
 
 Start with [default.toml](configs/default.toml), or the separate [demo.toml](configs/demo.toml). Important controls include food regrowth, neural structure/activity costs, reproduction investment, transfer efficiency, construction cost, and environmental variability. The defaults are modeling choices undergoing calibration, not measured biological constants.
 
-The staged plan is to validate energy accounting and mechanism effects, establish a food-limited baseline, add persistence and evaluation, and then test mechanisms individually before studying interactions. Memory is implemented and off by default; behavioural evaluation and lifetime learning remain future work. Informative null results count as progress.
+The staged plan is to validate energy accounting and mechanism effects, establish a food-limited baseline, add persistence and evaluation, and then test mechanisms individually before studying interactions. Memory is implemented and off by default. Controlled cue and movement evaluation tools are available; adaptive-memory evidence and lifetime learning remain future work. Informative null results count as progress.
 
 Primary methods and prior art include [NEAT](https://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf), [Polyworld's selection-versus-drift comparison](https://arxiv.org/html/1112.4906), [MODES metric definitions](https://doi.org/10.1162/artl_a_00280), and the [ODD model-description protocol](https://www.jasss.org/23/2/7.html). See the [prior-art review](docs/research/PRIOR_ART.md) for boundaries on novelty claims and the [scientific council](docs/research/SCIENCE_COUNCIL_2026-11-15.md) for design decisions and unresolved alternatives.
 

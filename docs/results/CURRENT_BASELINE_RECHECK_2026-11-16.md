@@ -1,5 +1,7 @@
 # Current-engine baseline recheck — 2026-11-16
 
+Completed: see [the final report](CURRENT_BASELINE_RECHECK_2026-11-17.md); all four criteria passed.
+
 Plan fixed before launch. Engineering revalidation, not a new held-out selection
 study or a feature-effect experiment.
 

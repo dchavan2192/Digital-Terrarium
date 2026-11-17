@@ -25,10 +25,17 @@ fn artifacts(label: &str) -> PathBuf {
 }
 
 fn command(name: &str, arena: &Path, input: Option<&Path>) -> Output {
+    command_mode(name, arena, input, false)
+}
+
+fn command_mode(name: &str, arena: &Path, input: Option<&Path>, cue_visible: bool) -> Output {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_sim-runner"));
     cmd.arg(name).arg("--arena").arg(arena);
     if let Some(input) = input {
         cmd.arg("--input").arg(input);
+    }
+    if cue_visible {
+        cmd.arg("--cue-visible");
     }
     cmd.output().unwrap()
 }
@@ -112,6 +119,9 @@ fn synthetic_cli_scores_controls_and_prevents_physical_state_cue_leakage() {
     let output = command("delayed-choice", &arena(), None);
     let result = successful_json(&output);
     assert_eq!(result["instrument_validated"], true);
+    assert_eq!(result["cue_visible"], false);
+    assert_eq!(result["protocol"]["cue_visible"], false);
+    assert_eq!(result["protocol"]["cue_zero_after_release"], true);
     let controls = result["controls"].as_array().unwrap();
     assert_eq!(controls.len(), 3);
     for (name, expected) in [
@@ -125,6 +135,53 @@ fn synthetic_cli_scores_controls_and_prevents_physical_state_cue_leakage() {
         if name != "recurrent_reference" {
             let pair = trials(control);
             assert_eq!(pair[0]["trajectory"], pair[1]["trajectory"]);
+        }
+    }
+}
+
+#[test]
+fn visible_cue_cli_solves_competence_controls_and_exports_without_memory() {
+    let hidden = successful_json(&command("delayed-choice", &arena(), None));
+    let visible = successful_json(&command_mode("delayed-choice", &arena(), None, true));
+    assert_eq!(visible["cue_visible"], true);
+    assert_eq!(visible["protocol"]["cue_visible"], true);
+    assert_eq!(visible["protocol"]["cue_zero_after_release"], false);
+    assert_eq!(visible["arena"], hidden["arena"]);
+    for (index, control) in visible["controls"].as_array().unwrap().iter().enumerate() {
+        assert_eq!(control["mean_reward"], 1.0);
+        for (trial_index, trial) in trials(control).iter().enumerate() {
+            assert_eq!(trial["reward"], 1);
+            assert_eq!(trial["choice"], trial["target"]);
+            assert_eq!(
+                trial["hold_trace"],
+                hidden["controls"][index]["trials"][trial_index]["hold_trace"]
+            );
+            for step in trial["trajectory"].as_array().unwrap() {
+                assert_eq!(step["inputs"][12].as_f64(), trial["cue"].as_f64());
+            }
+        }
+    }
+    let dir = artifacts("visible-export-controls");
+    let donor_path = export_fixture(&dir);
+    let result = successful_json(&command_mode(
+        "evaluate-delayed-choice",
+        &arena(),
+        Some(&donor_path),
+        true,
+    ));
+    assert_eq!(result["cue_visible"], true);
+    assert_eq!(result["protocol"]["cue_zero_after_release"], false);
+    assert_eq!(result["sampling"]["evaluated"], 2);
+    for record in result["results"].as_array().unwrap() {
+        for name in ["intact", "same_network_state_cleared"] {
+            let condition = &record["evaluation"][name];
+            assert_eq!(condition["mean_reward"], 1.0);
+            for trial in trials(condition) {
+                assert_eq!(trial["choice"], trial["target"]);
+                for step in trial["trajectory"].as_array().unwrap() {
+                    assert_eq!(step["inputs"][12].as_f64(), trial["cue"].as_f64());
+                }
+            }
         }
     }
 }

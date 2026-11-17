@@ -1,5 +1,23 @@
 # Session handoff — 2026-11-15
 
+## Resume update — 2026-11-17 UTC (supersedes active-Pi notes)
+
+Baseline batch `validation_20261116T171843Z_28985` COMPLETED: ten of ten survived
+200k ticks with zero cap blocking; late mean 893.629, minimum 620. All four fixed
+criteria pass. Final report/raw release in RESULTS.md. Local analysis exactly
+matches pinned Pi finalizer; 30 artifact hashes audited. Guard finished after 149
+cooling cycles; sampled max 75.7°C, no active throttle flags. Pi now idle/cool,
+source 0da954f pinned outputs preserved. Do not relaunch/resume a completed batch.
+
+Next development is visible-cue competence control, now implemented default false
+on the two movement CLI commands and targeted/full tested. Same arena, 898 donors,
+hold phases/horizon/reward; only movement cue availability differs. Controls all
+reward 1 when visible and 1/.5/.5 when hidden. All 153 Rust, 10 JS and 10 thermal tests
+pass, Clippy/format pass; no overlapping Cargo runs. The visible-vs-delayed actual
+donor comparison follows a saved clean implementation revision. Keep inference
+limited to task competence; unfamiliar donor brains may time out even with cues.
+No new evolutionary campaign started. User authorization to commit/push persists.
+
 ## Stop/resume record — 2026-11-16, 22:43 UTC (read first)
 
 User requested a stopping point before usage limit. All new feature work stops here.
@@ -34,7 +52,7 @@ the permissions-configuration task; continue under normal host permissions.
 ## Latest continuation — 2026-11-16 (supersedes earlier pending items)
 
 - Calibration batch `validation_20261116T021704Z_23586` COMPLETED: 30/30 survived, no cap blocking; rate 0.008 selected by the fixed rule. Report, uncertainty, exploratory drift and raw archive links are in RESULTS.md and PROGRESS.md. Owner approved default food 0.008/cap2,000; demo keeps food0.002/cap500.
-- Current-engine baseline ACTIVE on Pi: `output/phase9a/validation_20261116T171843Z_28985`, source0da954f, ten seeds100–109 ×200k ticks, one worker/thread. Never replace its pinned executable. Its own thermal guard pauses at75°C/resumes65°C; check `thermal_guard/status.json` and guard.log. Its pinned finalizer waits to write `finalization/summary.json`; never summarize partial data as success.
+- Current-engine baseline ACTIVE on Pi: `output/phase9a/validation_20261116T171843Z_28985`, source 0da954f, ten seeds100–109 ×200k ticks, one worker/thread. Never replace its pinned executable. Its own thermal guard pauses at75°C/resumes65°C; check `thermal_guard/status.json` and guard.log. Its pinned finalizer waits to write `finalization/summary.json`; never summarize partial data as success.
 - Source d35dd2c added batch-specific PID-safe thermal control and the synthetic delayed-cue instrument. Pi instrument output is `output/delayed_cue_20261116T175013Z`, with committed JSON/report. Manufactured controls passed; no evolved-cognition claim. Full Rust129 tests and thermal: 10 tests pass. Next research task: exported-genotype behavioural evaluation before a memory ecology comparison; no other evolutionary campaign queued.
 - GitHub issue1 tracks results/recheck; raw dataset prerelease `calibration-food-2026-11-16`. Owner explicitly authorizes multiple agents, routine development, commits and pushes; preserve old runs and avoid destructive cleanup.
 - Owner also requests project-only personal filesystem access plus internet/GitHub without prompts. `docs/CODEX_PROJECT_PERMISSIONS.toml` is a prepared template, NOT installed/active. Current managed host policy cannot be changed from inside the chat. Do not claim this boundary is enforced. No global settings were read/changed for that task.

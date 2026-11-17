@@ -1,0 +1,462 @@
+{
+  "schema_version": 1,
+  "batch": "validation_20261116T171843Z_28985",
+  "complete": true,
+  "jobs": 10,
+  "finished": 10,
+  "unfinished": [],
+  "target_ticks": 200000,
+  "launched_source_revision": "0da954fa2911e5a0f075375b41196f8dafa6e4c8",
+  "windows": {
+    "late": "100000 < tick <= 200000",
+    "after_burn_in": "20000 <= tick <= 200000"
+  },
+  "criteria": {
+    "population_range": [
+      800.0,
+      1300.0
+    ],
+    "minimum_floor": 200,
+    "hard_cap": 2000
+  },
+  "measurement": "one run is the independent unit; snapshots within a run are not replicates",
+  "by_rate": [
+    {
+      "regrowth_rate": 0.008,
+      "seeds": 10,
+      "survived": 10,
+      "mean_late_population": 893.629,
+      "sd_late_population": 12.543584637397537,
+      "min_late_population": 872.9,
+      "max_late_population": 920.175,
+      "lowest_minimum_after_burn_in": 620,
+      "cap_blocked_births": 0,
+      "max_abs_energy_residual": 1.2359890888546943e-10,
+      "criteria": {
+        "all_seeds_survived": true,
+        "no_cap_blocked_births": true,
+        "mean_population_in_range": true,
+        "minimum_above_floor": true
+      },
+      "acceptable": true
+    }
+  ],
+  "decision": {
+    "proposed_default": 0.008,
+    "rule": "smallest acceptable rate"
+  },
+  "runs": [
+    {
+      "regrowth_rate": 0.008,
+      "seed": 100,
+      "sessions": [
+        "session_1794849523386022132_29131_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 908,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 514,
+      "max_abs_energy_residual": 9.903544651024276e-11,
+      "elapsed_seconds": 2622.373916629,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 900.41,
+      "late_mean_energy": 32.31115603065309,
+      "late_mean_attacks": 46.01,
+      "late_mean_shares": 0.115,
+      "late_mean_species": 14.845,
+      "late_mean_connections": 204.35837733084472,
+      "minimum_after_burn_in": 699,
+      "max_generation": 2331
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 101,
+      "sessions": [
+        "session_1794852145781404314_29673_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 911,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 485,
+      "max_abs_energy_residual": 1.0771827874123119e-10,
+      "elapsed_seconds": 3123.478756143,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 894.77,
+      "late_mean_energy": 32.45613128315432,
+      "late_mean_attacks": 43.035,
+      "late_mean_shares": 0.075,
+      "late_mean_species": 21.33,
+      "late_mean_connections": 214.7893695973813,
+      "minimum_after_burn_in": 648,
+      "max_generation": 2149
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 102,
+      "sessions": [
+        "session_1794855269283067195_29931_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 913,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 412,
+      "max_abs_energy_residual": 9.87376846950383e-11,
+      "elapsed_seconds": 2936.860326435,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 872.9,
+      "late_mean_energy": 32.48481095514756,
+      "late_mean_attacks": 42.135,
+      "late_mean_shares": 0.15,
+      "late_mean_species": 10.875,
+      "late_mean_connections": 225.89911406799564,
+      "minimum_after_burn_in": 626,
+      "max_generation": 2440
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 103,
+      "sessions": [
+        "session_1794858206167854969_30223_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 974,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 395,
+      "max_abs_energy_residual": 9.242739906767383e-11,
+      "elapsed_seconds": 3523.035948226,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 890.48,
+      "late_mean_energy": 31.994353147969402,
+      "late_mean_attacks": 41.27,
+      "late_mean_shares": 0.06,
+      "late_mean_species": 10.975,
+      "late_mean_connections": 226.76754739791073,
+      "minimum_after_burn_in": 636,
+      "max_generation": 2462
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 104,
+      "sessions": [
+        "session_1794861729229707353_30516_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 912,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 447,
+      "max_abs_energy_residual": 1.0967937669192906e-10,
+      "elapsed_seconds": 2873.671678646,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 880.06,
+      "late_mean_energy": 32.75668496677272,
+      "late_mean_attacks": 48.465,
+      "late_mean_shares": 0.115,
+      "late_mean_species": 16.605,
+      "late_mean_connections": 211.72219910476355,
+      "minimum_after_burn_in": 671,
+      "max_generation": 2322
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 105,
+      "sessions": [
+        "session_1794864602927002429_30821_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 876,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 529,
+      "max_abs_energy_residual": 9.28661592070057e-11,
+      "elapsed_seconds": 3336.070201966,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 899.495,
+      "late_mean_energy": 32.54992318410163,
+      "late_mean_attacks": 45.105,
+      "late_mean_shares": 0.525,
+      "late_mean_species": 16.37,
+      "late_mean_connections": 209.50636483935827,
+      "minimum_after_burn_in": 645,
+      "max_generation": 2357
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 106,
+      "sessions": [
+        "session_1794867939018992848_31132_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 887,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 403,
+      "max_abs_energy_residual": 1.1947776101806085e-10,
+      "elapsed_seconds": 3649.046356086,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 892.12,
+      "late_mean_energy": 32.22074522134429,
+      "late_mean_attacks": 42.035,
+      "late_mean_shares": 0.39,
+      "late_mean_species": 15.005,
+      "late_mean_connections": 225.1845664388541,
+      "minimum_after_burn_in": 620,
+      "max_generation": 2276
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 107,
+      "sessions": [
+        "session_1794871588088462848_31529_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 928,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 400,
+      "max_abs_energy_residual": 9.558220881444868e-11,
+      "elapsed_seconds": 3461.921360181,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 891.77,
+      "late_mean_energy": 32.176757492856666,
+      "late_mean_attacks": 43.315,
+      "late_mean_shares": 0.545,
+      "late_mean_species": 19.78,
+      "late_mean_connections": 220.47713089253875,
+      "minimum_after_burn_in": 635,
+      "max_generation": 2489
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 108,
+      "sessions": [
+        "session_1794875050038530754_31812_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 959,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 434,
+      "max_abs_energy_residual": 9.583089877196471e-11,
+      "elapsed_seconds": 3634.727133699,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 920.175,
+      "late_mean_energy": 32.26250203070091,
+      "late_mean_attacks": 44.29,
+      "late_mean_shares": 0.225,
+      "late_mean_species": 22.005,
+      "late_mean_connections": 191.69079793503076,
+      "minimum_after_burn_in": 651,
+      "max_generation": 2516
+    },
+    {
+      "regrowth_rate": 0.008,
+      "seed": 109,
+      "sessions": [
+        "session_1794878684790392964_32109_0"
+      ],
+      "resumed": false,
+      "survived": true,
+      "last_tick": 200000,
+      "final_population": 889,
+      "total_cap_blocked_births": 0,
+      "minimum_logged_population": 542,
+      "max_abs_energy_residual": 1.2359890888546943e-10,
+      "elapsed_seconds": 3047.992483735,
+      "source_revision": [
+        "0da954fa2911e5a0f075375b41196f8dafa6e4c8"
+      ],
+      "source_dirty": [
+        "true"
+      ],
+      "core_build_id": [
+        "abad322241615ca2"
+      ],
+      "target": [
+        "aarch64-unknown-linux-gnu"
+      ],
+      "compiler": [
+        "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+      ],
+      "late_mean_population": 894.11,
+      "late_mean_energy": 32.42259722460855,
+      "late_mean_attacks": 43.385,
+      "late_mean_shares": 0.205,
+      "late_mean_species": 17.705,
+      "late_mean_connections": 220.43670412446147,
+      "minimum_after_burn_in": 663,
+      "max_generation": 2285
+    }
+  ],
+  "sha256": {
+    "rate_0.008/seed_100/session_1794849523386022132_29131_0/manifest_seed100.toml": "d532d591f428a00b3851d2fc0c5d342e62c8bbde76187ce7dee09963bbd9f370",
+    "rate_0.008/seed_100/session_1794849523386022132_29131_0/stats_seed100.csv": "4393611cbb9e3f35487931f905ef2d4c0b9237add7f6ddbf614421859f63085a",
+    "rate_0.008/seed_100/session_1794849523386022132_29131_0/config_seed100.toml": "524e9471b73d2935acc09beade89f61d3eb7813d119962020dc338fc9a21a9d1",
+    "rate_0.008/seed_101/session_1794852145781404314_29673_0/manifest_seed101.toml": "cf967385db420e783441f4363d0eb8e31561c143d3500076e4f9387ad3e3ec58",
+    "rate_0.008/seed_101/session_1794852145781404314_29673_0/stats_seed101.csv": "d6746b826a3ce7f626ccf05e20762e3ec96c6b8ad766172cef79eb816561b6df",
+    "rate_0.008/seed_101/session_1794852145781404314_29673_0/config_seed101.toml": "19040bfd700f9ed92131187fbb9abb5ae90d360d172813464ccd83c6112ec235",
+    "rate_0.008/seed_102/session_1794855269283067195_29931_0/manifest_seed102.toml": "af068a4707f5ed25aa24dc01d116022383e13ed4dfbc2f1088a3077a16ff1571",
+    "rate_0.008/seed_102/session_1794855269283067195_29931_0/stats_seed102.csv": "1bf6c277a919eda27f6e56dda8ac032764fb481504453adbf98005375da24f59",
+    "rate_0.008/seed_102/session_1794855269283067195_29931_0/config_seed102.toml": "71f57b2625a506f9a137729b0cc7edda2eaf58a9343cc99d8da9764c07d3fe7b",
+    "rate_0.008/seed_103/session_1794858206167854969_30223_0/manifest_seed103.toml": "46bdf16bb03ccd9d48017fd01cc0d4b9a1cb3303033a602573a7d7a98641865e",
+    "rate_0.008/seed_103/session_1794858206167854969_30223_0/stats_seed103.csv": "1f84deca866eecd7c488c83fa86ef7714c3243246cd573edc86315ef127d8274",
+    "rate_0.008/seed_103/session_1794858206167854969_30223_0/config_seed103.toml": "c15764c647064efa69b9c428d61c881896fffbc145870b25e42955ae95cab57a",
+    "rate_0.008/seed_104/session_1794861729229707353_30516_0/manifest_seed104.toml": "3c19dd5b222f6cf07b4e5a1f7c4f3a912f81bc800913512c5b9d8d8c174e0cbc",
+    "rate_0.008/seed_104/session_1794861729229707353_30516_0/stats_seed104.csv": "e7be2195e0ae384de843ababd99fc0704f899458948d6f29fdec7644e02b0387",
+    "rate_0.008/seed_104/session_1794861729229707353_30516_0/config_seed104.toml": "7c1ece9f1a40ee10731390d107e9f3f847d3043cdb840ea9ae81ddda46a16262",
+    "rate_0.008/seed_105/session_1794864602927002429_30821_0/manifest_seed105.toml": "1dbb46d588974a5347e5e9a5e1519157f96a52d0aa92b9283eb1a65db4a20058",
+    "rate_0.008/seed_105/session_1794864602927002429_30821_0/stats_seed105.csv": "5678f59f68b8e4a0efc6a48590d69ed01d2111eb583da982965152ea40a0569e",
+    "rate_0.008/seed_105/session_1794864602927002429_30821_0/config_seed105.toml": "1fb812a4a4cab6702c53f4c7722f810738c09029956f46d1e2f13f60fcb3392d",
+    "rate_0.008/seed_106/session_1794867939018992848_31132_0/manifest_seed106.toml": "07d76e6bd1240740edbc257dddaaeedeef9a64fa65e530e593b8af31d5676bb6",
+    "rate_0.008/seed_106/session_1794867939018992848_31132_0/stats_seed106.csv": "14a968bfa176046b37818cf6d6fdab54ccd163bb8edfc67719fa4061d22021dd",
+    "rate_0.008/seed_106/session_1794867939018992848_31132_0/config_seed106.toml": "07ad9b5b9823a2a1181ebd1a5e7b08f524045674e29f28eb3b599a2566ef09ce",
+    "rate_0.008/seed_107/session_1794871588088462848_31529_0/manifest_seed107.toml": "95e04bd9ab59b132df46b09e48041415a3d201b0118cf15f7c53f2aa98c4d176",
+    "rate_0.008/seed_107/session_1794871588088462848_31529_0/stats_seed107.csv": "d6740689b40b14c2b5072ea0896d09dc27fde79727c4880980d0914bbef61d3d",
+    "rate_0.008/seed_107/session_1794871588088462848_31529_0/config_seed107.toml": "8ee9c4653017799d62484bd8d77d00510fbd7e2edbc31dbd8fc298153a777399",
+    "rate_0.008/seed_108/session_1794875050038530754_31812_0/manifest_seed108.toml": "895b14400fe0dda0900fc7ffce29b056f6692f2987e35b89f3913a46414e319f",
+    "rate_0.008/seed_108/session_1794875050038530754_31812_0/stats_seed108.csv": "7caf4f4d7120abc62d46d90089aa033e93a86c792d8b3fb259ea9ba2906ed87d",
+    "rate_0.008/seed_108/session_1794875050038530754_31812_0/config_seed108.toml": "a415ccd66e65869fcb78f36a540199b509cf74d47ef3408b12e39f7945317b8f",
+    "rate_0.008/seed_109/session_1794878684790392964_32109_0/manifest_seed109.toml": "f52cb5523f14b38d1889e10ef266a8e9489bf5acbe1eee863251e9b8d8308dc5",
+    "rate_0.008/seed_109/session_1794878684790392964_32109_0/stats_seed109.csv": "862a364bd66a25c9fa713ad06cc730dd9b4b89c25bb626c538f845611159ff29",
+    "rate_0.008/seed_109/session_1794878684790392964_32109_0/config_seed109.toml": "4ae2ddeb52f0daf669bb43761bbe04cc60e2cc422acc0cbe8c4fc15685df36cf"
+  }
+}

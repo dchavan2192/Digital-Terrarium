@@ -76,6 +76,9 @@ enum Commands {
     DelayedChoice {
         #[arg(long, default_value = "configs/delayed_choice.toml")]
         arena: PathBuf,
+        /// Keep the signed cue visible during movement as a competence control.
+        #[arg(long)]
+        cue_visible: bool,
     },
     /// Evaluate every exported genotype in a controlled delayed-choice arena.
     EvaluateDelayedChoice {
@@ -83,6 +86,9 @@ enum Commands {
         input: PathBuf,
         #[arg(long, default_value = "configs/delayed_choice.toml")]
         arena: PathBuf,
+        /// Keep the signed cue visible during movement as a competence control.
+        #[arg(long)]
+        cue_visible: bool,
     },
     /// Clamp synthetic delayed cues into every inherited genome of one export.
     /// Prints JSON; scores do not establish learning or ecological usefulness.
@@ -225,10 +231,14 @@ fn main() {
     }
 
     let result = match cli.command {
-        Some(Commands::DelayedChoice { arena }) => movement_assay::controls(&arena),
-        Some(Commands::EvaluateDelayedChoice { input, arena }) => {
-            movement_assay::evaluate(&input, &arena)
+        Some(Commands::DelayedChoice { arena, cue_visible }) => {
+            movement_assay::controls(&arena, cue_visible)
         }
+        Some(Commands::EvaluateDelayedChoice {
+            input,
+            arena,
+            cue_visible,
+        }) => movement_assay::evaluate(&input, &arena, cue_visible),
         Some(Commands::EvaluateDelayedCue {
             input,
             cue_channel,

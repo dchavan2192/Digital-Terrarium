@@ -1,0 +1,143 @@
+{
+  "batch": "validation_20261116T171843Z_28985",
+  "analysis": "exploratory; each run is the independent unit",
+  "early_window": "20000 <= tick <= 100000",
+  "late_window": "100000 < tick <= 200000",
+  "by_rate": [
+    {
+      "rate": 0.008,
+      "seeds": 10,
+      "early_population": 872.5857142857143,
+      "late_population": 893.629,
+      "early_connections": 225.60777233381975,
+      "late_connections": 215.08321717291392,
+      "late_energy": 32.363566153730915,
+      "late_species": 16.5495,
+      "late_population_cv": 0.1318908339061608,
+      "maximum_logged_population": 1277,
+      "runs_with_connection_decline": 10
+    }
+  ],
+  "runs": [
+    {
+      "rate": 0.008,
+      "seed": 100,
+      "early_population": 892.9006211180124,
+      "late_population": 900.41,
+      "early_connections": 217.45482367613235,
+      "late_connections": 204.35837733084472,
+      "late_energy": 32.31115603065309,
+      "late_species": 14.845,
+      "late_population_cv": 0.13343177660384192,
+      "maximum_logged_population": 1175
+    },
+    {
+      "rate": 0.008,
+      "seed": 101,
+      "early_population": 856.4596273291926,
+      "late_population": 894.77,
+      "early_connections": 225.7448128424845,
+      "late_connections": 214.7893695973813,
+      "late_energy": 32.45613128315432,
+      "late_species": 21.33,
+      "late_population_cv": 0.1348241623810371,
+      "maximum_logged_population": 1121
+    },
+    {
+      "rate": 0.008,
+      "seed": 102,
+      "early_population": 882.7142857142857,
+      "late_population": 872.9,
+      "early_connections": 234.55825651181837,
+      "late_connections": 225.89911406799564,
+      "late_energy": 32.48481095514756,
+      "late_species": 10.875,
+      "late_population_cv": 0.13103166180735787,
+      "maximum_logged_population": 1277
+    },
+    {
+      "rate": 0.008,
+      "seed": 103,
+      "early_population": 864.9378881987577,
+      "late_population": 890.48,
+      "early_connections": 228.8182642103148,
+      "late_connections": 226.76754739791073,
+      "late_energy": 31.994353147969402,
+      "late_species": 10.975,
+      "late_population_cv": 0.14090150163866566,
+      "maximum_logged_population": 1139
+    },
+    {
+      "rate": 0.008,
+      "seed": 104,
+      "early_population": 901.4223602484471,
+      "late_population": 880.06,
+      "early_connections": 226.6605254299136,
+      "late_connections": 211.72219910476355,
+      "late_energy": 32.75668496677272,
+      "late_species": 16.605,
+      "late_population_cv": 0.1270078444376822,
+      "maximum_logged_population": 1260
+    },
+    {
+      "rate": 0.008,
+      "seed": 105,
+      "early_population": 844.1428571428571,
+      "late_population": 899.495,
+      "early_connections": 216.2740074865854,
+      "late_connections": 209.50636483935827,
+      "late_energy": 32.54992318410163,
+      "late_species": 16.37,
+      "late_population_cv": 0.12504445848088927,
+      "maximum_logged_population": 1176
+    },
+    {
+      "rate": 0.008,
+      "seed": 106,
+      "early_population": 845.5155279503106,
+      "late_population": 892.12,
+      "early_connections": 233.33965187909274,
+      "late_connections": 225.1845664388541,
+      "late_energy": 32.22074522134429,
+      "late_species": 15.005,
+      "late_population_cv": 0.139151047015159,
+      "maximum_logged_population": 1150
+    },
+    {
+      "rate": 0.008,
+      "seed": 107,
+      "early_population": 881.0807453416149,
+      "late_population": 891.77,
+      "early_connections": 231.03342638507453,
+      "late_connections": 220.47713089253875,
+      "late_energy": 32.176757492856666,
+      "late_species": 19.78,
+      "late_population_cv": 0.1375227348492254,
+      "maximum_logged_population": 1174
+    },
+    {
+      "rate": 0.008,
+      "seed": 108,
+      "early_population": 853.3416149068323,
+      "late_population": 920.175,
+      "early_connections": 216.11385572918576,
+      "late_connections": 191.69079793503076,
+      "late_energy": 32.26250203070091,
+      "late_species": 22.005,
+      "late_population_cv": 0.125970690981821,
+      "maximum_logged_population": 1169
+    },
+    {
+      "rate": 0.008,
+      "seed": 109,
+      "early_population": 903.3416149068323,
+      "late_population": 894.11,
+      "early_connections": 226.08009918759558,
+      "late_connections": 220.43670412446147,
+      "late_energy": 32.42259722460855,
+      "late_species": 17.705,
+      "late_population_cv": 0.12402246086592862,
+      "maximum_logged_population": 1151
+    }
+  ]
+}
