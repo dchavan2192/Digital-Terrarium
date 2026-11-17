@@ -1,5 +1,10 @@
 """Data-independent tests of the paired pilot auditor; no evaluator is run."""
 import copy
+import json
+import os
+from pathlib import Path
+import shutil
+import tempfile
 import math
 import unittest
 
@@ -71,6 +76,54 @@ class ProgressAuditTests(unittest.TestCase):
         modified = copy.deepcopy(founders)
         modified[1]['weight'] = 2.001
         self.assertNotEqual(audit.digest_canonical(founders), audit.digest_canonical(modified))
+
+
+DATA = Path(__file__).resolve().parent.parent / 'output/progress-comparison/progress_comparison_20261117T205542Z'
+
+
+@unittest.skipUnless(DATA.exists(), 'download the archived paired dataset first')
+class DatasetAuditTests(unittest.TestCase):
+    def test_complete_six_searches_and_paired_founders(self):
+        result = audit.summarize(DATA, '72f7c5b32119e57dddb062e957543ada6e2db53d')
+        self.assertEqual(result['total_candidate_evaluations'], 9984)
+        self.assertEqual(len(result['paired']), 3)
+        self.assertEqual(len(result['canonical_founder_genome_sha256']), 3)
+        self.assertTrue(all(len(mode['runs']) == 3 for mode in result['modes'].values()))
+
+    def test_incomplete_parent_missing_generation_and_nonfinite_score_rejected(self):
+        for fault in ['parent', 'generation', 'nonfinite']:
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
+                shadow = Path(temporary) / 'parent'
+                shutil.copytree(DATA, shadow, copy_function=os.symlink)
+                if fault == 'parent':
+                    path = shadow / 'status'
+                    path.unlink()
+                    path.write_text('running\n')
+                elif fault == 'generation':
+                    path = next((shadow / 'terminal_only/runs').glob('session_*/seed_2100/generations.jsonl'))
+                    rows = path.read_text().splitlines()
+                    path.unlink()
+                    path.write_text('\n'.join(rows[:-1]) + '\n')
+                else:
+                    path = next((shadow / 'terminal_progress/runs').glob('session_*/seed_2100/final_population.json'))
+                    population = json.loads(path.read_text())
+                    population[0]['terminal_progress'] = float('nan')
+                    path.unlink()
+                    path.write_text(json.dumps(population))
+                with self.assertRaises(ValueError):
+                    audit.summarize(shadow)
+
+    def test_different_founder_genome_by_id_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            shadow = Path(temporary) / 'parent'
+            shutil.copytree(DATA, shadow, copy_function=os.symlink)
+            path = next((shadow / 'terminal_only/runs').glob('session_*/seed_2100/founders.json'))
+            founders = json.loads(path.read_text())
+            founders[0]['genome']['connections'][0]['weight'] += .001
+            path.unlink()
+            path.write_text(json.dumps(founders))
+            with self.assertRaisesRegex(ValueError, 'founder genomes differ'):
+                audit.summarize(shadow)
 
 
 if __name__ == '__main__':

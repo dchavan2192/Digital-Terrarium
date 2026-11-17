@@ -1,0 +1,1882 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "execution_source": "72f7c5b32119e57dddb062e957543ada6e2db53d",
+  "independent_unit": "paired founder-population search seed; n=3, not candidates, generations or cue trials",
+  "interpretation": "fixed visible training search-method pilot; no held-out validation, memory use, lifetime learning or ecological benefit",
+  "primary_endpoint": "true correct first-contact count/both-cue acquisition, distinct from progress tiebreak",
+  "total_candidate_evaluations": 9984,
+  "paired_seed_count": 3,
+  "frozen_protocol_sha256": {
+    "terminal_only": "bf979d245a715c86a5160dc15b5f67245e0bf3654ecb718dba7783bef495ce46",
+    "terminal_progress": "244decdcccbfb190501a979ff954d3be7a37dce431c9f9fe87892447085dea15"
+  },
+  "arena_sha256": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+  "canonical_founder_genome_sha256": {
+    "2100": "47506994313171381940337360b1ebfa0362bcc037e014404522eee7ad46a8b2",
+    "2101": "02f6002faa3be4349d892fa657c7456b67c3979e27932281468b057ae029f781",
+    "2102": "ebb9fb01e723a5ee83ed3e7b3b77b80b2ac3cd2af008715ad8b188b35a5d9137"
+  },
+  "modes": {
+    "terminal_only": {
+      "mode": "terminal_only",
+      "build": {
+        "source_revision": "72f7c5b32119e57dddb062e957543ada6e2db53d",
+        "source_dirty": "false",
+        "core_build": "297edc68fb18e05e",
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "target": "aarch64-unknown-linux-gnu",
+        "build_profile": "release"
+      },
+      "protocol": {
+        "fitness": "terminal_only",
+        "population": 64,
+        "generations": 25,
+        "elites": 8,
+        "tournament": 3,
+        "seeds": [
+          2100,
+          2101,
+          2102
+        ],
+        "hidden": 8,
+        "mutation": {
+          "weight_probability": 0.1,
+          "weight_step": 0.2,
+          "add_connection_probability": 0.0,
+          "add_node_probability": 0.0,
+          "toggle_probability": 0.0,
+          "prune_probability": 0.0,
+          "add_recurrent_probability": 0.0,
+          "trait_probability": 0.0
+        }
+      },
+      "arena": {
+        "ray_count": 5,
+        "ray_fov": 2.094,
+        "ray_range": 12.0,
+        "start_x": 0.0,
+        "start_y": 0.0,
+        "start_heading": 1.5707963267948966,
+        "goal_left_x": -4.0,
+        "goal_left_y": 4.0,
+        "goal_right_x": 4.0,
+        "goal_right_y": 4.0,
+        "goal_radius": 1.5,
+        "max_turn": 0.19634954084936207,
+        "max_speed": 1.0,
+        "cue_ticks": 1,
+        "blank_delay": 5,
+        "horizon": 20,
+        "energy": 0.5,
+        "body": 0.0,
+        "kin": 0.0,
+        "temperature": 0.5,
+        "pheromone": 0.0,
+        "light": 1.0,
+        "niche": 0.0,
+        "food": 0.0,
+        "cue_weight": 5.0,
+        "turn_bias": 2.0,
+        "recurrent_weight": 5.0,
+        "speed_bias": 2.0
+      },
+      "candidate_evaluations": 4992,
+      "runs": [
+        {
+          "seed": 2100,
+          "founder_best": 0.0,
+          "final_best": 0.5,
+          "both_correct_at_founding": false,
+          "both_correct_at_end": false,
+          "improved": true,
+          "champion_id": 423,
+          "founder_score_counts": {
+            "0": 64,
+            "1": 0,
+            "2": 0
+          },
+          "final_score_counts": {
+            "0": 18,
+            "1": 46,
+            "2": 0
+          },
+          "final_population_mean_reward": 0.359375,
+          "recomputed_champion_terminal_progress": 0.5,
+          "generations": [
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 0,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 1,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 2,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 3,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 4,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 5,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 6,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 7,
+              "population_mean_reward": 0.0078125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 8,
+              "population_mean_reward": 0.015625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 9,
+              "population_mean_reward": 0.0546875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 10,
+              "population_mean_reward": 0.1953125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 11,
+              "population_mean_reward": 0.265625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 12,
+              "population_mean_reward": 0.3671875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 13,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 14,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 15,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 16,
+              "population_mean_reward": 0.4296875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 17,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 18,
+              "population_mean_reward": 0.3515625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 19,
+              "population_mean_reward": 0.3984375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 20,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 21,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 22,
+              "population_mean_reward": 0.390625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 23,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 24,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 423,
+              "generation": 25,
+              "population_mean_reward": 0.359375
+            }
+          ],
+          "elapsed_seconds": 0.718502823,
+          "champion_choices": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 16
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 14
+            }
+          ]
+        },
+        {
+          "seed": 2101,
+          "founder_best": 0.0,
+          "final_best": 0.5,
+          "both_correct_at_founding": false,
+          "both_correct_at_end": false,
+          "improved": true,
+          "champion_id": 182,
+          "founder_score_counts": {
+            "0": 64,
+            "1": 0,
+            "2": 0
+          },
+          "final_score_counts": {
+            "0": 14,
+            "1": 50,
+            "2": 0
+          },
+          "final_population_mean_reward": 0.390625,
+          "recomputed_champion_terminal_progress": 0.5,
+          "generations": [
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 0,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 1,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 2,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 3,
+              "population_mean_reward": 0.015625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 4,
+              "population_mean_reward": 0.046875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 5,
+              "population_mean_reward": 0.1640625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 6,
+              "population_mean_reward": 0.3359375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 7,
+              "population_mean_reward": 0.453125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 8,
+              "population_mean_reward": 0.4453125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 9,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 10,
+              "population_mean_reward": 0.4453125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 11,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 12,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 13,
+              "population_mean_reward": 0.4296875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 14,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 15,
+              "population_mean_reward": 0.3671875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 16,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 17,
+              "population_mean_reward": 0.390625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 18,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 19,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 20,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 21,
+              "population_mean_reward": 0.4609375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 22,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 23,
+              "population_mean_reward": 0.4375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 24,
+              "population_mean_reward": 0.4609375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 182,
+              "generation": 25,
+              "population_mean_reward": 0.390625
+            }
+          ],
+          "elapsed_seconds": 0.72033584,
+          "champion_choices": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 15
+            }
+          ]
+        },
+        {
+          "seed": 2102,
+          "founder_best": 0.5,
+          "final_best": 0.5,
+          "both_correct_at_founding": false,
+          "both_correct_at_end": false,
+          "improved": false,
+          "champion_id": 0,
+          "founder_score_counts": {
+            "0": 62,
+            "1": 2,
+            "2": 0
+          },
+          "final_score_counts": {
+            "0": 10,
+            "1": 54,
+            "2": 0
+          },
+          "final_population_mean_reward": 0.421875,
+          "recomputed_champion_terminal_progress": 0.5,
+          "generations": [
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 0,
+              "population_mean_reward": 0.015625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 1,
+              "population_mean_reward": 0.0546875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 2,
+              "population_mean_reward": 0.15625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 3,
+              "population_mean_reward": 0.2578125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 4,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 5,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 6,
+              "population_mean_reward": 0.4453125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 7,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 8,
+              "population_mean_reward": 0.390625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 9,
+              "population_mean_reward": 0.359375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 10,
+              "population_mean_reward": 0.375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 11,
+              "population_mean_reward": 0.4609375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 12,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 13,
+              "population_mean_reward": 0.375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 14,
+              "population_mean_reward": 0.3671875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 15,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 16,
+              "population_mean_reward": 0.375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 17,
+              "population_mean_reward": 0.3515625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 18,
+              "population_mean_reward": 0.375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 19,
+              "population_mean_reward": 0.4375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 20,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 21,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 22,
+              "population_mean_reward": 0.375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 23,
+              "population_mean_reward": 0.3984375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 24,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "generation": 25,
+              "population_mean_reward": 0.421875
+            }
+          ],
+          "elapsed_seconds": 0.721284246,
+          "champion_choices": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 17
+            }
+          ]
+        }
+      ],
+      "operational": {
+        "supervisor": {
+          "state": "completed",
+          "started_utc": "2026-11-17T21:06:42.402238+00:00",
+          "guard_pid": 37738,
+          "runner_pid": 37741,
+          "runner_exit_code": 0,
+          "runner_left_paused": false,
+          "reason": null,
+          "updated_utc": "2026-11-17T21:06:47.534666+00:00",
+          "elapsed_wall_seconds": 5.13243739400059,
+          "guard_state": "monitoring",
+          "guard_exit_code": 0,
+          "ended_utc": "2026-11-17T21:06:47.534650+00:00",
+          "supervisor_exit_code": 0
+        },
+        "limits": {
+          "started_utc": "2026-11-17T21:06:42.402238+00:00",
+          "supervisor_pid": 37737,
+          "batch": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only",
+          "runner_command": [
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/sim-runner",
+            "acquire-visible",
+            "--protocol",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/visible_acquisition.toml",
+            "--arena",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/delayed_choice.toml",
+            "--output",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/runs"
+          ],
+          "guard_command": [
+            "/usr/bin/python3",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/pi_thermal_guard.py",
+            "--batch",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only",
+            "--high",
+            "75",
+            "--low",
+            "65",
+            "--poll",
+            "5",
+            "--sensor",
+            "/sys/class/thermal/thermal_zone0/temp",
+            "--output",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/thermal_guard"
+          ],
+          "environment_override": {
+            "RAYON_NUM_THREADS": "1"
+          },
+          "wall_seconds": 1800.0,
+          "wall_includes_startup_and_cooling": true,
+          "wall_watchdog_scope": "guard startup, cooling and active acquisition; terminal cleanup separately bounded",
+          "post_runner_guard_wait_seconds": 12,
+          "guard_stale_seconds": 20,
+          "startup_seconds": 15,
+          "poll_seconds": 0.5,
+          "terminate_grace_seconds": 2,
+          "temperature_high_c": 75,
+          "temperature_low_c": 65,
+          "guard_poll_seconds": 5,
+          "telemetry_interval_seconds": 5,
+          "completion_scope": "process supervision only; scientific artifact audit remains separate",
+          "sha256": {
+            "sim-runner": "01212c3c9cb6151a46bb43672b07dc0b5e73f9666cbc3e573a18de1575e22b60",
+            "visible_acquisition.toml": "bf979d245a715c86a5160dc15b5f67245e0bf3654ecb718dba7783bef495ce46",
+            "delayed_choice.toml": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+            "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c"
+          }
+        },
+        "final_guard": {
+          "state": "finished",
+          "updated_utc": "2026-11-17T21:06:47Z",
+          "guard_pid": 37738,
+          "batch": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only",
+          "executable": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/sim-runner",
+          "temperature_c": 55.65,
+          "sensor": "/sys/class/thermal/thermal_zone0/temp",
+          "high_c": 75.0,
+          "low_c": 65.0,
+          "poll_seconds": 5.0,
+          "running_matches": 0,
+          "paused": []
+        }
+      }
+    },
+    "terminal_progress": {
+      "mode": "terminal_progress",
+      "build": {
+        "source_revision": "72f7c5b32119e57dddb062e957543ada6e2db53d",
+        "source_dirty": "false",
+        "core_build": "297edc68fb18e05e",
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "target": "aarch64-unknown-linux-gnu",
+        "build_profile": "release"
+      },
+      "protocol": {
+        "fitness": "terminal_progress",
+        "population": 64,
+        "generations": 25,
+        "elites": 8,
+        "tournament": 3,
+        "seeds": [
+          2100,
+          2101,
+          2102
+        ],
+        "hidden": 8,
+        "mutation": {
+          "weight_probability": 0.1,
+          "weight_step": 0.2,
+          "add_connection_probability": 0.0,
+          "add_node_probability": 0.0,
+          "toggle_probability": 0.0,
+          "prune_probability": 0.0,
+          "add_recurrent_probability": 0.0,
+          "trait_probability": 0.0
+        }
+      },
+      "arena": {
+        "ray_count": 5,
+        "ray_fov": 2.094,
+        "ray_range": 12.0,
+        "start_x": 0.0,
+        "start_y": 0.0,
+        "start_heading": 1.5707963267948966,
+        "goal_left_x": -4.0,
+        "goal_left_y": 4.0,
+        "goal_right_x": 4.0,
+        "goal_right_y": 4.0,
+        "goal_radius": 1.5,
+        "max_turn": 0.19634954084936207,
+        "max_speed": 1.0,
+        "cue_ticks": 1,
+        "blank_delay": 5,
+        "horizon": 20,
+        "energy": 0.5,
+        "body": 0.0,
+        "kin": 0.0,
+        "temperature": 0.5,
+        "pheromone": 0.0,
+        "light": 1.0,
+        "niche": 0.0,
+        "food": 0.0,
+        "cue_weight": 5.0,
+        "turn_bias": 2.0,
+        "recurrent_weight": 5.0,
+        "speed_bias": 2.0
+      },
+      "candidate_evaluations": 4992,
+      "runs": [
+        {
+          "seed": 2100,
+          "founder_best": 0.0,
+          "final_best": 1.0,
+          "both_correct_at_founding": false,
+          "both_correct_at_end": true,
+          "improved": true,
+          "champion_id": 381,
+          "founder_score_counts": {
+            "0": 64,
+            "1": 0,
+            "2": 0
+          },
+          "final_score_counts": {
+            "0": 5,
+            "1": 20,
+            "2": 39
+          },
+          "final_population_mean_reward": 0.765625,
+          "recomputed_champion_terminal_progress": 1.0,
+          "generations": [
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 25,
+              "champion_terminal_progress": 0.3621024157834517,
+              "generation": 0,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 76,
+              "champion_terminal_progress": 0.5,
+              "generation": 1,
+              "population_mean_reward": 0.0078125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 137,
+              "champion_terminal_progress": 0.6536983929080988,
+              "generation": 2,
+              "population_mean_reward": 0.0546875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 206,
+              "champion_terminal_progress": 0.9168759860735092,
+              "generation": 3,
+              "population_mean_reward": 0.203125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 265,
+              "champion_terminal_progress": 0.9636128620558375,
+              "generation": 4,
+              "population_mean_reward": 0.3125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 265,
+              "champion_terminal_progress": 0.9636128620558375,
+              "generation": 5,
+              "population_mean_reward": 0.4453125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 1,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 6,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 8,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 7,
+              "population_mean_reward": 0.484375
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 18,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 8,
+              "population_mean_reward": 0.5078125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 27,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 9,
+              "population_mean_reward": 0.65625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 25,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 10,
+              "population_mean_reward": 0.640625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 35,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 11,
+              "population_mean_reward": 0.7421875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 33,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 12,
+              "population_mean_reward": 0.703125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 42,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 13,
+              "population_mean_reward": 0.765625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 42,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 14,
+              "population_mean_reward": 0.8125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 44,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 15,
+              "population_mean_reward": 0.828125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 39,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 16,
+              "population_mean_reward": 0.78125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 42,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 17,
+              "population_mean_reward": 0.8046875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 36,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 18,
+              "population_mean_reward": 0.71875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 43,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 19,
+              "population_mean_reward": 0.8203125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 36,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 20,
+              "population_mean_reward": 0.765625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 34,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 21,
+              "population_mean_reward": 0.734375
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 43,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 22,
+              "population_mean_reward": 0.78125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 36,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 23,
+              "population_mean_reward": 0.7265625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 41,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 24,
+              "population_mean_reward": 0.796875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 39,
+              "champion_id": 381,
+              "champion_terminal_progress": 1.0,
+              "generation": 25,
+              "population_mean_reward": 0.765625
+            }
+          ],
+          "elapsed_seconds": 0.731226513,
+          "champion_choices": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 20
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 20
+            }
+          ],
+          "founder_selected_champion_terminal_progress": 0.3621024157834517,
+          "final_selected_champion_terminal_progress": 1.0
+        },
+        {
+          "seed": 2101,
+          "founder_best": 0.0,
+          "final_best": 0.5,
+          "both_correct_at_founding": false,
+          "both_correct_at_end": false,
+          "improved": true,
+          "champion_id": 94,
+          "founder_score_counts": {
+            "0": 64,
+            "1": 0,
+            "2": 0
+          },
+          "final_score_counts": {
+            "0": 9,
+            "1": 55,
+            "2": 0
+          },
+          "final_population_mean_reward": 0.4296875,
+          "recomputed_champion_terminal_progress": 0.5,
+          "generations": [
+            {
+              "best_mean_reward": 0.0,
+              "both_correct": 0,
+              "champion_id": 28,
+              "champion_terminal_progress": 0.48191320553551426,
+              "generation": 0,
+              "population_mean_reward": 0.0
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 1,
+              "population_mean_reward": 0.015625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 2,
+              "population_mean_reward": 0.078125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 3,
+              "population_mean_reward": 0.28125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 4,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 5,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 6,
+              "population_mean_reward": 0.3515625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 7,
+              "population_mean_reward": 0.3671875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 8,
+              "population_mean_reward": 0.4140625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 9,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 10,
+              "population_mean_reward": 0.4375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 11,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 12,
+              "population_mean_reward": 0.4375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 13,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 14,
+              "population_mean_reward": 0.4609375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 15,
+              "population_mean_reward": 0.4375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 16,
+              "population_mean_reward": 0.4296875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 17,
+              "population_mean_reward": 0.4375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 18,
+              "population_mean_reward": 0.390625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 19,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 20,
+              "population_mean_reward": 0.4609375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 21,
+              "population_mean_reward": 0.3984375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 22,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 23,
+              "population_mean_reward": 0.4375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 24,
+              "population_mean_reward": 0.4296875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 94,
+              "champion_terminal_progress": 0.5,
+              "generation": 25,
+              "population_mean_reward": 0.4296875
+            }
+          ],
+          "elapsed_seconds": 0.723915676,
+          "champion_choices": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 11
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20
+            }
+          ],
+          "founder_selected_champion_terminal_progress": 0.48191320553551426,
+          "final_selected_champion_terminal_progress": 0.5
+        },
+        {
+          "seed": 2102,
+          "founder_best": 0.5,
+          "final_best": 1.0,
+          "both_correct_at_founding": false,
+          "both_correct_at_end": true,
+          "improved": true,
+          "champion_id": 818,
+          "founder_score_counts": {
+            "0": 62,
+            "1": 2,
+            "2": 0
+          },
+          "final_score_counts": {
+            "0": 1,
+            "1": 25,
+            "2": 38
+          },
+          "final_population_mean_reward": 0.7890625,
+          "recomputed_champion_terminal_progress": 1.0,
+          "generations": [
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 0,
+              "population_mean_reward": 0.015625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 1,
+              "population_mean_reward": 0.0546875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 2,
+              "population_mean_reward": 0.1796875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 3,
+              "population_mean_reward": 0.3203125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 4,
+              "population_mean_reward": 0.3984375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 5,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 6,
+              "population_mean_reward": 0.4296875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 0,
+              "champion_terminal_progress": 0.5,
+              "generation": 7,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 456,
+              "champion_terminal_progress": 0.5435329477345565,
+              "generation": 8,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 521,
+              "champion_terminal_progress": 0.605155175814612,
+              "generation": 9,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 580,
+              "champion_terminal_progress": 0.6153979722006945,
+              "generation": 10,
+              "population_mean_reward": 0.375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 580,
+              "champion_terminal_progress": 0.6153979722006945,
+              "generation": 11,
+              "population_mean_reward": 0.3984375
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 683,
+              "champion_terminal_progress": 0.6866760674676808,
+              "generation": 12,
+              "population_mean_reward": 0.40625
+            },
+            {
+              "best_mean_reward": 0.5,
+              "both_correct": 0,
+              "champion_id": 744,
+              "champion_terminal_progress": 0.8097759412695931,
+              "generation": 13,
+              "population_mean_reward": 0.3984375
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 1,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 14,
+              "population_mean_reward": 0.421875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 3,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 15,
+              "population_mean_reward": 0.390625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 6,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 16,
+              "population_mean_reward": 0.3828125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 13,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 17,
+              "population_mean_reward": 0.5390625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 25,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 18,
+              "population_mean_reward": 0.6015625
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 30,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 19,
+              "population_mean_reward": 0.6796875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 29,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 20,
+              "population_mean_reward": 0.6875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 34,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 21,
+              "population_mean_reward": 0.75
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 41,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 22,
+              "population_mean_reward": 0.796875
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 31,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 23,
+              "population_mean_reward": 0.703125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 36,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 24,
+              "population_mean_reward": 0.7578125
+            },
+            {
+              "best_mean_reward": 1.0,
+              "both_correct": 38,
+              "champion_id": 818,
+              "champion_terminal_progress": 1.0,
+              "generation": 25,
+              "population_mean_reward": 0.7890625
+            }
+          ],
+          "elapsed_seconds": 0.729946657,
+          "champion_choices": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 20
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 15
+            }
+          ],
+          "founder_selected_champion_terminal_progress": 0.5,
+          "final_selected_champion_terminal_progress": 1.0
+        }
+      ],
+      "operational": {
+        "supervisor": {
+          "state": "completed",
+          "started_utc": "2026-11-17T21:06:47.601654+00:00",
+          "guard_pid": 37745,
+          "runner_pid": 37747,
+          "runner_exit_code": 0,
+          "runner_left_paused": false,
+          "reason": null,
+          "updated_utc": "2026-11-17T21:06:52.734238+00:00",
+          "elapsed_wall_seconds": 5.132592484005727,
+          "guard_state": "monitoring",
+          "guard_exit_code": 0,
+          "ended_utc": "2026-11-17T21:06:52.734224+00:00",
+          "supervisor_exit_code": 0
+        },
+        "limits": {
+          "started_utc": "2026-11-17T21:06:47.601654+00:00",
+          "supervisor_pid": 37744,
+          "batch": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress",
+          "runner_command": [
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/sim-runner",
+            "acquire-visible",
+            "--protocol",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/visible_acquisition.toml",
+            "--arena",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/delayed_choice.toml",
+            "--output",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/runs"
+          ],
+          "guard_command": [
+            "/usr/bin/python3",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/pi_thermal_guard.py",
+            "--batch",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress",
+            "--high",
+            "75",
+            "--low",
+            "65",
+            "--poll",
+            "5",
+            "--sensor",
+            "/sys/class/thermal/thermal_zone0/temp",
+            "--output",
+            "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/thermal_guard"
+          ],
+          "environment_override": {
+            "RAYON_NUM_THREADS": "1"
+          },
+          "wall_seconds": 1800.0,
+          "wall_includes_startup_and_cooling": true,
+          "wall_watchdog_scope": "guard startup, cooling and active acquisition; terminal cleanup separately bounded",
+          "post_runner_guard_wait_seconds": 12,
+          "guard_stale_seconds": 20,
+          "startup_seconds": 15,
+          "poll_seconds": 0.5,
+          "terminate_grace_seconds": 2,
+          "temperature_high_c": 75,
+          "temperature_low_c": 65,
+          "guard_poll_seconds": 5,
+          "telemetry_interval_seconds": 5,
+          "completion_scope": "process supervision only; scientific artifact audit remains separate",
+          "sha256": {
+            "sim-runner": "01212c3c9cb6151a46bb43672b07dc0b5e73f9666cbc3e573a18de1575e22b60",
+            "visible_acquisition.toml": "244decdcccbfb190501a979ff954d3be7a37dce431c9f9fe87892447085dea15",
+            "delayed_choice.toml": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+            "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c"
+          }
+        },
+        "final_guard": {
+          "state": "finished",
+          "updated_utc": "2026-11-17T21:06:52Z",
+          "guard_pid": 37745,
+          "batch": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress",
+          "executable": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/sim-runner",
+          "temperature_c": 56.75,
+          "sensor": "/sys/class/thermal/thermal_zone0/temp",
+          "high_c": 75.0,
+          "low_c": 65.0,
+          "poll_seconds": 5.0,
+          "running_matches": 0,
+          "paused": []
+        }
+      }
+    }
+  },
+  "paired": [
+    {
+      "seed": 2100,
+      "terminal_only_final_best": 0.5,
+      "terminal_progress_final_best": 1.0,
+      "final_true_reward_difference": 0.5,
+      "terminal_only_both_correct": false,
+      "terminal_progress_both_correct": true,
+      "final_population_mean_reward_difference": 0.40625
+    },
+    {
+      "seed": 2101,
+      "terminal_only_final_best": 0.5,
+      "terminal_progress_final_best": 0.5,
+      "final_true_reward_difference": 0.0,
+      "terminal_only_both_correct": false,
+      "terminal_progress_both_correct": false,
+      "final_population_mean_reward_difference": 0.0390625
+    },
+    {
+      "seed": 2102,
+      "terminal_only_final_best": 0.5,
+      "terminal_progress_final_best": 1.0,
+      "final_true_reward_difference": 0.5,
+      "terminal_only_both_correct": false,
+      "terminal_progress_both_correct": true,
+      "final_population_mean_reward_difference": 0.3671875
+    }
+  ],
+  "mean_paired_final_true_reward_difference": 0.3333333333333333,
+  "artifact_sha256": {
+    ".comparison.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "TERMINAL_PROGRESS_ACQUISITION_2026-11-17.md": "aa1a190ce9a1743c9a13435ef0cdc107471174b90cb175516dfd89a15174e5a0",
+    "TERMINAL_PROGRESS_COMPARISON_PLAN_2026-11-17.md": "e24a775c55e813ba6fbda8898d2c01108b0712bd272c05cad1eaf8fe169105a0",
+    "build_observation.txt": "953ccb139a2597892c11061f26bf5bd484896ced8d96e6ebd657ec4b45276820",
+    "exit_code": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "launcher.log": "f650e6ad39f2f2f04c20ca5ab84f0ab0668e157b8fdd026fcd6e7c6a7f7699d5",
+    "launcher.pid": "36b36ccf541a41fee93146215e9ea92385238214776130adb62445b770283261",
+    "operational_inputs.sha256": "97e8a8b9128a3e17d554e5c5c1cc5226c9d32c25cfdd226e939b29279c46c8d2",
+    "operational_source_revision": "ce206b07e16348723d6c8dbec95ed49b2c85c82bff67243f90177ff2eae8ea96",
+    "plot_progress_comparison.py": "56bd35c4a66aa951fbdb33bae70c770d9a9b2e6076ee6930934bfc45528e50a7",
+    "run_guarded_acquisition.py": "1d69615f7c27b63a4854043dfefbaca7fd85539ce7b32fc1141915ee47cd5a49",
+    "run_progress_comparison.sh": "97f6ad71c84916890aa2b8e1c64240dd98b27b274eadd507af94ab64cbdae38f",
+    "status": "d3be030801b90ea8057d3997d9845c7f850cc7b784450645d5ec2811cc927d7a",
+    "summarize_acquisition.py": "fda36e1703c99ed980c82300ca9476dd509120cecb624cd4f613cc0a416819c4",
+    "summarize_progress_comparison.py": "3befdff4c8e71f5cb6d04f8e86e432ed15414acd735cf778caf859254376a931",
+    "terminal_only/.acquisition_supervisor.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "terminal_only/.thermal_guard.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "terminal_only/Cargo.lock": "66606b58b984b6f74d18f8f58472c53907d54a8a1b05de6f50b19e8ba8c14da5",
+    "terminal_only/acquisition_source.rs": "c1b4bf7b38e5c34be704431d193b46c4587e8e07c41d47c4d3aee75f9a1643ba",
+    "terminal_only/arena_source.rs": "35d48f791ae18c7610397c0d6459934fc6dce977cb2465cbf398318a02586301",
+    "terminal_only/delayed_choice.toml": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+    "terminal_only/exit_code": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "terminal_only/guard.log": "451e2fa5c3bd35a49b3e4578d2b833b8701c3c8485c547d7cea40b29e3acf791",
+    "terminal_only/operational_inputs.sha256": "de143e65b0243bde1af2dfb934a30f383b5c94cbe832066a109c02a0cb1696e1",
+    "terminal_only/operational_source_revision": "ce206b07e16348723d6c8dbec95ed49b2c85c82bff67243f90177ff2eae8ea96",
+    "terminal_only/pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+    "terminal_only/pinned_build.sha256": "5a1763b87b6a70a5f1ec2042e84c967c67ede81d745127ae3aefdab8d9b69228",
+    "terminal_only/platform.txt": "6b0e4a489ae3b1067b9de07fa2a2b9681e98fe8af434809987a2739011fba22f",
+    "terminal_only/runner.log": "0a181b77f3b62ea6ae8df75ff86d9a4319f47768b9901ce5b13c50e27a90b1b6",
+    "terminal_only/runs/session_1794949602917027560_37741_0/controls.json": "fa83b4f27bb38cf3db731c2ec9d43eaba17b0db012c4a139e89e22a6b728ec92",
+    "terminal_only/runs/session_1794949602917027560_37741_0/manifest.json": "10716b3cfa91c1b13d041ae8505da503b5fba9259b4f70cfbfde008e6ab5de65",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2100/final_population.json": "0c1b4e35598982f59e1361315198db0bfc1df760721702de102aeafd0c46e748",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2100/founders.json": "8bd23ffaf019889fd367a0e9c38b250764dde012f133184f5324d5ce056d93ed",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2100/generations.jsonl": "c9fabea5f7ea6a364311bbc7c2c11aed9ed5cdc13779f3b88c7d180877f63357",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2100/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2100/summary.json": "e3728bd0f1eb372d9939d7033f598dfec900eaad25e1cb773c5138bab7e3ecb3",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2101/final_population.json": "480be8df407992f6313443d64e66e35ce14197ea7d2361085193142b9a810f24",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2101/founders.json": "09bc87fab75e7061ac700db568b0e338d667c98c0e93bbd247a77102b1ad7a1c",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2101/generations.jsonl": "58298129e00f1361e844353cc851f6fe09b1dd3abee2af8664ca785af899d0db",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2101/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2101/summary.json": "73b347b14b4c83fc8f69a1b5213075257cf2fff7a89fdc50472a2966559f83c9",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2102/final_population.json": "971f295c67360705193c6b740bf8811315c2bc0139393a8a1e811258f3576b9a",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2102/founders.json": "74a153c87e6f8c4f3ac4d3191871c14e21348291253a947f8deedfe1df4cddb0",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2102/generations.jsonl": "15ceb16f68cb4917bede7c37ae761ee2cfc10b69ac76cf7edfd5e38f74b6de58",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2102/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "terminal_only/runs/session_1794949602917027560_37741_0/seed_2102/summary.json": "1881904ff05be72d6ac83d25673f8b5c2b2c99a5b2fc91dbd6ffa2865064ef26",
+    "terminal_only/runs/session_1794949602917027560_37741_0/summary.json": "94f2c37997fbfedc2cec8131af458c8793cf12a47c507679412c18c78e14a043",
+    "terminal_only/sim-runner": "01212c3c9cb6151a46bb43672b07dc0b5e73f9666cbc3e573a18de1575e22b60",
+    "terminal_only/source_revision": "1726a51a2bc9a8a82073edb74cfe16aa528b8dbef3e9370148ae4d1861011009",
+    "terminal_only/source_status": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "terminal_only/status": "d3be030801b90ea8057d3997d9845c7f850cc7b784450645d5ec2811cc927d7a",
+    "terminal_only/supervisor.json": "3b28e69d24f6f020adf6ee40d30014f80c4e732281e421fc881c739ba6c6639c",
+    "terminal_only/supervisor_manifest.json": "979784c8f28cb7d470405082cf0860cf9555d18b19af83ece235c7e32873192d",
+    "terminal_only/thermal_guard/status.json": "62fe127c2dc1b19e6fb5b16709bd4691d3f3e058b41ad19729853bc939d08fc7",
+    "terminal_only/thermal_supervisor.jsonl": "76b2d42de402295907874aa78e89cb62c9f0d119c7c4c9d60fbce64ac694b033",
+    "terminal_only/visible_acquisition.toml": "bf979d245a715c86a5160dc15b5f67245e0bf3654ecb718dba7783bef495ce46",
+    "terminal_progress/.acquisition_supervisor.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "terminal_progress/.thermal_guard.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "terminal_progress/Cargo.lock": "66606b58b984b6f74d18f8f58472c53907d54a8a1b05de6f50b19e8ba8c14da5",
+    "terminal_progress/acquisition_source.rs": "c1b4bf7b38e5c34be704431d193b46c4587e8e07c41d47c4d3aee75f9a1643ba",
+    "terminal_progress/arena_source.rs": "35d48f791ae18c7610397c0d6459934fc6dce977cb2465cbf398318a02586301",
+    "terminal_progress/delayed_choice.toml": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+    "terminal_progress/exit_code": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "terminal_progress/guard.log": "a2a34e257d9a1644df397aea58164eed3094d80a2a7f3c26b44be5d06f3eb155",
+    "terminal_progress/operational_inputs.sha256": "b63608ff5dde7b9ffae5fc012f16f4a91d841d7b98c8be848bb33e6ba2244388",
+    "terminal_progress/operational_source_revision": "ce206b07e16348723d6c8dbec95ed49b2c85c82bff67243f90177ff2eae8ea96",
+    "terminal_progress/pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+    "terminal_progress/pinned_build.sha256": "437c21616aef4f5b0537bb1b8e294437c0f0c3b30e8f38ad84540637fae471a7",
+    "terminal_progress/platform.txt": "6b0e4a489ae3b1067b9de07fa2a2b9681e98fe8af434809987a2739011fba22f",
+    "terminal_progress/runner.log": "48d9b9118fcaefb773aed69d22763b8752689fd466647cde72e3b0bfd0375d5d",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/controls.json": "fa83b4f27bb38cf3db731c2ec9d43eaba17b0db012c4a139e89e22a6b728ec92",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/manifest.json": "2b0b82981bf5e04ff1c3c194590ebaa179b452248cc1f402e22f3d773e72ef70",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2100/final_population.json": "9dec4fc4d2fae7dff45990fc199466855983cc9e5c2946a6e4146d6b6dde174e",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2100/founders.json": "25ef64970609aac424b3f7fd78239d71edc8aef30dd1e298ace786e0a81917a5",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2100/generations.jsonl": "5704ee910987f8d48f610df60dd8a0b6dbbae3099ddaa77e67fe0916cdbab600",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2100/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2100/summary.json": "9826a8be7b838722daf3b1c6288531e570c17c81d73aa87258f2a874f0b2f045",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2101/final_population.json": "ca706d9963821e9e4b9fda62f64261ef81f1dfd81cf7dcc2d265264e8fa86c1d",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2101/founders.json": "2a8a077e47de3c4d223698b9dc497e5697488f5146c3a7eaa4dac2dab83e3f17",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2101/generations.jsonl": "2b96e9dff6217481f87e058dab0f6dbabb206c1627ec7d91003ffe50c14a7377",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2101/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2101/summary.json": "67f2da7b6a10449f10745ba21b1c39c1b2269d7d2e117d8c838f1300ba0f230f",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2102/final_population.json": "20a309c63ac61c9a9d8d3339bdfaeb271bb96ab292fe8a04a3a8b9b16d7f7c33",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2102/founders.json": "c05ac82e5117f880cc968273a5158344cf1bebe8f23494b2adfa76929b6b2cc8",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2102/generations.jsonl": "7acab1cf2a1be6038998b0d47637dd1779463c4cde841a359956a4116e136eae",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2102/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/seed_2102/summary.json": "f8cbb20adabcbe1d59dc4e8447486c4612b21658282eed571d85d18685e5b2c0",
+    "terminal_progress/runs/session_1794949608116550471_37747_0/summary.json": "d1ab597b27a057a110cc33ee9354fda89effe64853a2d056c1dd28bfbe845458",
+    "terminal_progress/sim-runner": "01212c3c9cb6151a46bb43672b07dc0b5e73f9666cbc3e573a18de1575e22b60",
+    "terminal_progress/source_revision": "1726a51a2bc9a8a82073edb74cfe16aa528b8dbef3e9370148ae4d1861011009",
+    "terminal_progress/source_status": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "terminal_progress/status": "d3be030801b90ea8057d3997d9845c7f850cc7b784450645d5ec2811cc927d7a",
+    "terminal_progress/supervisor.json": "ee4af656e88fc622589a3c9e0d487ea7d141bce95249c6d129a7353936a732f3",
+    "terminal_progress/supervisor_manifest.json": "6a4eed819e77ec7838d2067829dcc0dfe962a103abf3a015af1ad3e0385494e0",
+    "terminal_progress/thermal_guard/status.json": "f3e0ac0d2bbc77de5df550627e890df8b8d99a010c8845f793a9a30b1989ab11",
+    "terminal_progress/thermal_supervisor.jsonl": "d7376c57f79985b6d6369dc23c05c3cd2cd8cd253fcb1b3e330e4414636f3a89",
+    "terminal_progress/visible_acquisition.toml": "244decdcccbfb190501a979ff954d3be7a37dce431c9f9fe87892447085dea15",
+    "test_progress_comparison.py": "35fbecfe617669a9cb666ac4025e4d5f9dbae6e4bbeb77887622339c84e927dd"
+  },
+  "archive": {
+    "name": "terminal-progress-comparison-2026-11-17.tar.gz",
+    "bytes": 5685678,
+    "sha256": "1b1f53619b695a095d3bc4d917947bab56750cfb5dbd1290e186b7eea581573d",
+    "release": "https://github.com/dchavan2192/Digital-Terrarium/releases/tag/terminal-progress-comparison-2026-11-17"
+  },
+  "analysis_scripts_sha256": {
+    "analysis/summarize_progress_comparison.py": "3befdff4c8e71f5cb6d04f8e86e432ed15414acd735cf778caf859254376a931",
+    "analysis/summarize_acquisition.py": "fda36e1703c99ed980c82300ca9476dd509120cecb624cd4f613cc0a416819c4",
+    "analysis/plot_progress_comparison.py": "56bd35c4a66aa951fbdb33bae70c770d9a9b2e6076ee6930934bfc45528e50a7",
+    "analysis/test_progress_comparison.py": "2bc85408be7144272574a710fd17af18f1d33881537d3ff0b5c7f19eee061286"
+  }
+}

@@ -6,6 +6,15 @@
 
 ---
 
+## Completed paired acquisition-method pilot — 2026-11-17
+
+- Fixed source 72f7c5b and prospective analysis/operational commit a2971d5 ran the unchanged fresh 2100–2102 comparison: terminal-only controls0/3 acquired both visible responses; progress tiebreak2/3 (first full acquisition generations 6 and14), with seed 2101 retained as partial. [Audited report](results/TERMINAL_PROGRESS_COMPARISON_2026-11-17.md), [JSON](results/terminal_progress_comparison_2026-11-17.json), all-run plot and [raw archive](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/terminal-progress-comparison-2026-11-17).
+- All six searches completed their declared64/25 budgets, no extensions/extra seeds/tuning. Correctness stays primary; full progress gains are not substituted for competence. Independent raw audit verified all 156×64 generation scores, exact topology/ranks/parents/elite rules, matched founder genotypes by ID and terminal progress from actual geometry. Default terminal-only behavior remains intact. No ecological/default/demo-engine change.
+- Parent `output/acquisition/progress_comparison_20261117T205542Z`, mirrored to `output/progress-comparison/`. Both supervisors/guards finished exit0 in about5.132 seconds each; final guard readings 55.65/56.75 °C, no pauses. Execution was shorter than a guard poll, so telemetry is sparse—not a continuous maximum/protection measurement. Pi idle after completion.
+- Validation: 161 Rust tests, Clippy/format, seven supervisor tests and seven pure auditor tests pass; three post-collection corruption/dataset integration tests also pass. Plot visually verified; stable raw payload hashes checked before publication. Earlier pilots and all pinned binaries preserved. The separate diet-competition branch remains unmerged pending its recorded validation fixes.
+- **Next development:** freeze fresh repeatability and held-out validation conditions for complete visible competence. Pilot n=3 pairs/training-only success does not establish robust transfer, adaptive memory or lifetime learning. Several successes contact on tick20, so do not infer delay tolerance. Do not reuse these pilot seeds as confirmatory data or launch hidden-memory selection before the competence gate. No further experiment launched after this comparison.
+- User asked about the demo: UI metric-clarity changes are live (c3ba0c8), but the new tiebreak is isolated task-selection research and has not been added to ecological reproduction or the browser demo.
+
 ## Acquisition-method revision — 2026-11-17 (development, comparison not yet run)
 
 - Continuing after the archived three-seed partial/null acquisition result. Added explicit opt-in `terminal_progress` fitness: correct count remains primary, mean clipped progress toward the assigned goal **after termination** breaks ties, then persistent ID. Original terminal-only method remains the default; old configs, controllers, sensor inputs, rewards and search random draws retain their behavior. No engine or demo setting change.

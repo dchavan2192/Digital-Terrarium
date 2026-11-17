@@ -20,6 +20,10 @@ Each accepted entry must contain:
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
 
+## Registered paired engineering pilot: EXP-2026-11-17-PROGRESS-TIEBREAK
+
+[Completed method comparison](results/TERMINAL_PROGRESS_COMPARISON_2026-11-17.md): with matched founders at three fresh seed labels, the opt-in terminal-progress tiebreak acquired both fixed visible training responses in 2/3 searches versus 0/3 terminal-only controls. All six searches/9,984 candidate evaluations are retained; one treatment remains partial. Clean source 72f7c5b, identical binaries and per-seed founders verified, independent geometry/ranking audit passed. This is small-n training-only feasibility, not confirmatory efficacy, held-out transfer, memory, lifetime learning or ecological adaptation. Several contacts occur at horizon tick20; robustness remains unmeasured. Full provenance, curves, hashes and all-arm raw archive are linked in the report.
+
 ## Registered engineering feasibility pilot: EXP-2026-11-17-VISIBLE-ACQUISITION
 
 [Fixed-budget acquisition report](results/VISIBLE_ACQUISITION_PILOT_2026-11-17.md): all three declared searches completed 64 founders/25 replacements at source `5504a20`, clean Pi release build. None reached both correct responses; final best reward 0.5 in every search. Seed 2000 improved from zero; seeds 2001/2002 retained partially competent founders. All 4,992 candidate evaluations and full final populations are retained, with independent audit, controls, hashes and raw archive. This limits this search procedure under this budget; it is not a memory deficit, architecture impossibility, held-out success or ecological result. Competence remains a gate before delayed-memory selection.
