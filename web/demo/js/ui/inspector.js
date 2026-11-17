@@ -6,6 +6,7 @@ import { whatIsItDoing, sizeWord, tempWord, dietWords, entropyWord, agingWord, h
 import { fmtInt, fmtFixed, speciesName, TIER_NAMES, trophicTier } from '../format.js';
 import { slotHex } from '../palette.js';
 import { DEATH_CAUSES } from '../sim.js';
+import { recurrentEdgeCount } from '../memory.js';
 
 export function createInspector(root, { compact, onClose, onFollow, onJump, onBack }) {
   const $ = (s) => root.querySelector(s);
@@ -100,8 +101,10 @@ export function createInspector(root, { compact, onClose, onFollow, onJump, onBa
       }
       graph.set(b, acts, d.id);
       const cost = d.energy.costBrain;
-      $('#brainCaption').textContent = `${fmtInt(b.enabledConnections)} connections · ${fmtInt(b.hidden)} hidden neurons${Number.isFinite(cost) ? ` · costs ${fmtFixed(cost, 2)} energy/tick to run` : ''}`;
+      const memoryLinks = recurrentEdgeCount(b);
+      $('#brainCaption').textContent = `${fmtInt(b.enabledConnections)} connections · ${fmtInt(b.hidden)} hidden neurons · ${fmtInt(memoryLinks)} recurrent${Number.isFinite(cost) ? ` · costs ${fmtFixed(cost, 2)} energy/tick to run` : ''}`;
       $('#brainNote').textContent = d.activations ? 'Node colour = live activation.' : 'Output colour = its recent average (last ~100 ticks). Live per-neuron activity needs a future sim-core hook.';
+      if (memoryLinks) $('#brainNote').textContent += ' Dotted gold links read the previous tick; their presence does not show useful recall.';
       // Energy.
       const e = d.energy;
       const frac = Math.max(0, Math.min(1, e.current / e.maximum));

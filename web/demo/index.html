@@ -31,6 +31,8 @@
       </a>
       <p class="hero">An evolving ecosystem: up to <span id="heroCap">500</span> creatures with neural-network brains compete for food, hunt, share and evolve, live in your browser.</p>
       <div class="hdr-actions">
+        <button class="btn btn-sm memory-toggle" id="memoryToggle" type="button" aria-pressed="false" aria-describedby="memoryHelp" title="Switch experimental recurrent memory. Starts a new world with the same seed.">Memory off</button>
+        <span class="sr-only" id="memoryHelp">Switching starts a new world. Memory links can evolve in offspring; their benefit has not been established.</span>
         <span class="badge" id="mockBadge" hidden title="terrarium.wasm could not be loaded, so a JS stand-in with fake data is running. See the console.">Mock data</span>
         <a class="link-sm" id="buildTag" hidden target="_blank" rel="noopener" title="The commit this demo was built from"></a>
         <a class="link-sm" href="../classic.html">Classic viewer</a>
@@ -102,6 +104,13 @@
         <button role="tab" id="tabEnergy" aria-selected="false" aria-controls="energyPanel" type="button" tabindex="-1">Energy</button>
         <button class="icon-btn sheet-close" id="sheetClose" type="button" aria-label="Close panel" data-icon="x"></button>
       </div>
+      <section class="memory-panel" id="memoryPanel" aria-labelledby="memoryTitle" hidden>
+        <h2 id="memoryTitle">Experimental memory</h2>
+        <p>Recurrent links carry a brain signal from the previous tick. Their benefit has not been established.</p>
+        <p class="memory-count tnum" id="memoryCount">Waiting for a measured tick…</p>
+        <button class="btn btn-sm" id="memoryInspectBtn" type="button" disabled>Inspect a memory creature</button>
+        <p class="memory-hint">Links evolve in offspring. Try 16×, then inspect the dotted gold connections.</p>
+      </section>
       <section class="panel" id="feedPanel" role="tabpanel" aria-labelledby="tabFeed">
         <ol class="feed" id="feed" aria-live="polite" aria-relevant="additions"></ol>
       </section>
@@ -129,7 +138,7 @@
         <p class="insp-doing" id="inspDoing" aria-live="polite"></p>
         <section class="insp-sec">
           <div class="insp-sec-head"><h3>Brain</h3>
-            <label class="toggle"><input type="checkbox" id="brainStrongest"> strongest 30 only</label></div>
+            <label class="toggle"><input type="checkbox" id="brainStrongest"> 30 strongest + memory</label></div>
           <canvas id="brainCanvas" class="brain" aria-label="Neural network diagram: inputs on the left, hidden neurons in the middle, outputs on the right"></canvas>
           <p class="caption" id="brainCaption"></p>
           <p class="note" id="brainNote"></p>

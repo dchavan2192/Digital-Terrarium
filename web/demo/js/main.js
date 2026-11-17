@@ -26,6 +26,7 @@ import { createInspector } from './ui/inspector.js';
 import { createTour, tourSeen } from './ui/tour.js';
 import { renderEnergy } from './ui/energy.js';
 import { icon, podSilhouette } from './ui/icons.js';
+import { memoryOverlay, memoryReadout } from './memory.js';
 
 const LOG = '[terrarium]';
 const TICKS_PER_SEC = { 1: 15, 4: 60, 16: 240 }; // §3.7
@@ -79,6 +80,8 @@ const S = {
   frame: 0,
   bootAt: 0,
   lastStats: null,
+  baseConfigText: '',
+  memoryEnabled: false,
   follow: { hold: 0, pose: { x: 0, y: 0, z: 0, heading: 0, simX: 0, simY: 0 } },
   deadId: -1,
   w: 1,
@@ -129,8 +132,13 @@ async function boot() {
   showBuildTag();
   S.bootAt = performance.now();
   const seed = parseSeed(params.get('seed')) ?? randomSeed();
-  const { sim, error } = await loadSim({ wasmUrl: 'terrarium.wasm', configUrl: 'demo.toml', seed, forceMock: params.has('mock') });
+  const { sim, error, configText } = await loadSim({ wasmUrl: 'terrarium.wasm', configUrl: 'demo.toml', seed, forceMock: params.has('mock') });
   S.sim = sim;
+  S.baseConfigText = configText;
+  if (params.get('memory') === '1' && sim.caps.memory) {
+    sim.init(memoryOverlay(S.baseConfigText, true), seed);
+    S.memoryEnabled = true;
+  }
   S.cfg = sim.config;
   if (sim.kind === 'mock') {
     $('#mockBadge').hidden = false;
@@ -228,7 +236,17 @@ function startRun(seed, first = false) {
   $('#seedInput').value = String(seed);
   const url = new URL(location.href);
   url.searchParams.set('seed', String(seed));
+  if (S.memoryEnabled) url.searchParams.set('memory', '1');
+  else url.searchParams.delete('memory');
   history.replaceState(null, '', url);
+  $('#memoryToggle').textContent = S.memoryEnabled ? 'Memory on' : 'Memory off';
+  $('#memoryToggle').setAttribute('aria-pressed', String(S.memoryEnabled));
+  $('#memoryToggle').disabled = !sim.caps.memory;
+  $('#memoryToggle').title = sim.caps.memory
+    ? 'Experimental recurrent memory. Switching starts a new world with the same seed.'
+    : 'Memory mode needs the current real WASM simulation; it is unavailable with mock data.';
+  $('#memoryPanel').hidden = !S.memoryEnabled;
+  $('#memoryInspectBtn').disabled = true;
   // Opening line, shown immediately (§1.1 item 5).
   S.feed.add(S.engine.opening(S.cfg.initialCount));
   S.limiter.force(performance.now());
@@ -306,6 +324,26 @@ function setupUi() {
   $('#playBtn').addEventListener('click', togglePause);
   for (const b of document.querySelectorAll('.speed')) b.addEventListener('click', () => setSpeed(Number(b.dataset.speed)));
   $('#newSeedBtn').addEventListener('click', () => startRun(randomSeed()));
+  $('#memoryToggle').addEventListener('click', () => {
+    if (!S.sim.caps.memory) return;
+    const enabled = !S.memoryEnabled;
+    const seed = S.sim.seed;
+    try {
+      S.sim.init(memoryOverlay(S.baseConfigText, enabled), seed);
+      S.memoryEnabled = enabled;
+      startRun(seed, true);
+      toast(enabled ? 'Experimental memory enabled. New world, same seed; recurrent links evolve in offspring.' : 'Memory disabled. New world, same seed.', 6000);
+      if (enabled && (mqPhone.matches || mqTablet.matches)) openSheet(true);
+    } catch (error) {
+      console.error(`${LOG} memory mode restart failed`, error);
+      toast('Could not change memory mode. Reload the page to restart safely.');
+    }
+  });
+  $('#memoryInspectBtn').addEventListener('click', () => {
+    const id = S.sim.memoryCreatureId();
+    if (id >= 0) select(id);
+    else toast('No living creature with recurrent links yet. Let a few generations pass.');
+  });
   $('#seedInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const s = parseSeed(e.target.value);
@@ -661,6 +699,13 @@ function sample(now) {
   const s = S.sim.stats();
   if (!s) return;
   S.lastStats = s;
+  if (S.memoryEnabled) {
+    const memory = memoryReadout(s);
+    $('#memoryCount').textContent = memory
+      ? `${fmtInt(memory.count)} / ${fmtInt(memory.population)} creatures have recurrent links (${memory.percent}%).`
+      : 'Waiting for a measured tick…';
+    $('#memoryInspectBtn').disabled = !memory || memory.count === 0;
+  }
   if (!$('#energyPanel').hidden) renderEnergy($('#energyBudget'), s);
   S.lastSampleTick = s.tick;
   S.colors.update(s.species.filter((x) => x.established), now);

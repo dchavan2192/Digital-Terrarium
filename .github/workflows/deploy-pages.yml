@@ -65,6 +65,7 @@ jobs:
         run: |
           node --experimental-default-type=module --test web/demo/tests/*.test.mjs
           node --experimental-default-type=module web/demo/tests/wasm-smoke.mjs
+          node --experimental-default-type=module web/demo/tests/memory-wasm-smoke.mjs
 
       - name: Optimize WASM (if wasm-opt available)
         run: |

@@ -1,0 +1,30 @@
+// Verify real evolved recurrent links, mode reset, and inspector navigation.
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { instantiateWasmBackend, createSim } from '../js/sim.js';
+import { memoryOverlay, recurrentEdgeCount } from '../js/memory.js';
+
+const bytes = await readFile(process.argv[2] || new URL('../terrarium.wasm', import.meta.url));
+const config = await readFile(new URL('../demo.toml', import.meta.url), 'utf8');
+const sim = createSim(await instantiateWasmBackend(bytes));
+sim.init(config, 42);
+assert.equal(sim.caps.memory, true);
+sim.step(1000);
+assert.equal(sim.memoryCreatureId(), -1);
+assert.equal(sim.stats().recurrent_brain_fraction, 0);
+const baseline = JSON.stringify(sim.stats());
+sim.init(memoryOverlay(config, false), 42);
+sim.step(1000);
+assert.equal(JSON.stringify(sim.stats()), baseline, 'explicit off preserves the original trajectory');
+sim.init(memoryOverlay(config, true), 42);
+assert.equal(sim.memoryCreatureId(), -1, 'founders have no recurrent links; these evolve in births');
+sim.step(1000);
+const id = sim.memoryCreatureId();
+assert.ok(id >= 0);
+assert.ok(recurrentEdgeCount(sim.inspect(id).brain) > 0, 'candidate really has an enabled memory edge');
+assert.ok(sim.stats().recurrent_brain_fraction > 0);
+sim.reset(42);
+assert.equal(sim.memoryCreatureId(), -1);
+sim.step(1000);
+assert.equal(sim.memoryCreatureId(), id, 'reset preserves the selected mode and seeded run');
+console.log(`Real memory demo smoke passed: tick ${sim.tick()}, recurrent creature #${id}, fraction ${sim.stats().recurrent_brain_fraction}`);

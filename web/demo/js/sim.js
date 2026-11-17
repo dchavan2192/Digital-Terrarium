@@ -147,6 +147,7 @@ export function wasmBackendFromExports(ex) {
     lastError: () => (has('tr_last_error_len') ? str(ex.tr_last_error_ptr(), ex.tr_last_error_len()) : ''),
     step: (n) => ex.tr_step(n),
     tick: () => (has('tr_tick_f64') ? ex.tr_tick_f64() : Number(ex.tr_tick())),
+    memoryCreatureId: () => (has('tr_memory_creature_id') ? ex.tr_memory_creature_id() : -1),
     frame: () => (has('tr_frame_ptr') ? view('frame', Float32Array, ex.tr_frame_ptr(), ex.tr_frame_len()) : null),
     creatureStride: () => ex.tr_creature_stride(),
     creaturesUpdate: () => ex.tr_creatures_update(),
@@ -470,6 +471,10 @@ export function createSim(backend) {
     inspect(id) {
       return normaliseInspect(backend.inspectJson(id), sim.config);
     },
+
+    memoryCreatureId() {
+      return typeof backend.memoryCreatureId === 'function' ? backend.memoryCreatureId() : -1;
+    },
   };
 
   function afterInit() {
@@ -490,6 +495,7 @@ export function createSim(backend) {
       biome: !!staticGrids.biome,
       droughts: c.droughtsEnabled,
       inspect: backend.has('tr_inspect_json'),
+      memory: backend.kind === 'wasm' && backend.has('tr_memory_creature_id'),
       deaths: backend.has('tr_deaths_count'),
       // ABI v1 gaps (SIM_WASM_ABI.md §10). UI that needs these stays hidden.
       shareFlags: false,

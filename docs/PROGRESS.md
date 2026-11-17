@@ -6,6 +6,13 @@
 
 ---
 
+## Demo and research council — 2026-11-17 UTC
+
+- Added optional **Memory on** demo mode (`demo/?seed=42&memory=1`), measured recurrent-creature count and an inspect button. Gold dotted brain edges retain previous-tick activations. Toggle restarts the same seed; reset/new seed retain mode, shared links carry mode. Recurrence arises through offspring mutation (demo-only probability 0.3), rather than being injected into founders. Experiment defaults remain off.
+- Real WASM smoke: seed 42, tick 1,000, living recurrent creature #583; recurrent fraction 0.8661417322834646. Explicit off exactly preserves baseline stats trajectory, and reset reproduces candidate ID. This verifies recurrence presence and navigation, not adaptive recall. Browser overlay remains food 0.002/cap 500; checked-in demo overlay synchronized with deployment source.
+- Validation: full workspace tests and all-target Clippy pass; 13 JS tests plus baseline and memory WASM smoke pass. New smoke runs in Pages deployment. Visual browser QA unavailable: computer-use permission is not granted, so layout has not been visually verified in this session.
+- Three separate literature paths and a cross-challenge round produced the [council decision](research/SCIENCE_COUNCIL_2026-11-17.md). Next is a bounded visible-task genetic acquisition pilot, then delayed retention with a single delay-end reset, then ecological information-payoff testing. No new long Pi experiment launched.
+
 ## Resumed — 2026-11-17 UTC: baseline completed, competence control
 
 - No incoming GitHub changes beyond saved `9d00b24`. Pi baseline completed at about 02:15 UTC; finalizer status `summarized`, guard `finished`, exit 0. All 10 seeds 100–109 survived 200k ticks, zero cap blocking; late mean 893.629 (SD 12.5436), post-burn-in minimum 620. All four fixed criteria pass. [Final report](results/CURRENT_BASELINE_RECHECK_2026-11-17.md), full JSON/plot and [raw-data release](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/current-baseline-recheck-2026-11-17).

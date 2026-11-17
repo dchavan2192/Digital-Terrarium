@@ -349,6 +349,21 @@ pub extern "C" fn tr_tick_f64() -> f64 {
     with_sim(0.0, |s| s.sim.tick as f64)
 }
 
+/// Lowest living ABI-visible creature id with an enabled recurrent brain edge.
+/// Returns -1 if none exists. Read-only: does not alter brain state or randomness.
+#[unsafe(no_mangle)]
+pub extern "C" fn tr_memory_creature_id() -> f64 {
+    with_sim(-1.0, |s| {
+        s.sim
+            .organisms
+            .iter()
+            .filter(|o| o.alive && o.id <= u64::from(u32::MAX) && o.brain.recurrent_count() > 0)
+            .map(|o| o.id)
+            .min()
+            .map_or(-1.0, |id| id as f64)
+    })
+}
+
 /// Seed of the running simulation (JS BigInt).
 #[unsafe(no_mangle)]
 pub extern "C" fn tr_seed() -> u64 {

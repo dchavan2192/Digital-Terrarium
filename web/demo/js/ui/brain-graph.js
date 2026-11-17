@@ -8,6 +8,8 @@
 // ticks) and inputs/hidden stay neutral. If a future ABI adds activations,
 // pass them via set(..., {activations}) and every node lights up.
 
+import { visibleBrainEdges } from '../memory.js';
+
 const GROUPS = [
   { name: 'Vision', match: (l) => l.startsWith('ray') },
   { name: 'Self', match: (l) => ['energy', 'heading', 'body_size'].includes(l) },
@@ -99,8 +101,7 @@ export function createBrainGraph(canvas, { compact = false } = {}) {
 
   function edgesToDraw() {
     const all = brain.edges.filter((e) => e.enabled !== false && pos.has(e.from) && pos.has(e.to));
-    if (!strongestOnly) return all;
-    return all.slice().sort((a, b) => Math.abs(b.effective_weight ?? b.weight) - Math.abs(a.effective_weight ?? a.weight)).slice(0, 30);
+    return visibleBrainEdges(all, strongestOnly);
   }
 
   function draw() {

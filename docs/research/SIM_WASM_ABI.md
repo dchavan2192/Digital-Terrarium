@@ -35,6 +35,7 @@ This doc is the contract for the Three.js front end (Phase 8, see `docs/research
 | `tr_last_error_ptr() -> *const u8`, `tr_last_error_len() -> u32` | UTF-8 message from the last failed init. Empty after a success. |
 | `tr_step(n: u32)` | Advances `n` ticks. See §3 for the batch semantics. |
 | `tr_tick() -> u64`, `tr_tick_f64() -> f64`, `tr_seed() -> u64` | |
+| `tr_memory_creature_id() -> f64` | Optional additive v1 export. Lowest living ID with an enabled recurrent edge, limited to the u32 inspector range; `-1` before init or if none. Read-only; no state/RNG changes. Presence does not establish useful recall. |
 | `tr_world_width() -> f32`, `tr_world_height() -> f32` | |
 
 Status codes: `0` OK, `-1` invalid UTF-8, `-2` config parse/validation error (the message says why), `-3` null pointer with len > 0, `-4` not initialised, `-5` unsupported config (brain inputs > 64 or outputs > 16).
@@ -350,6 +351,8 @@ setInterval(() => {                                    // ~1 Hz dashboard + even
 }, 1000);
 ```
 
-## 12. Export list (v1: 46 `tr_*` functions + `memory`)
+## 12. Original export list (v1: 46 `tr_*` functions + `memory`)
+
+The optional additive `tr_memory_creature_id` export is documented in §1. The original list below predates later observation exports; use capability detection for optional functions.
 
 `tr_abi_version, tr_alloc, tr_free, tr_init, tr_init_overlay, tr_reset, tr_last_error_ptr, tr_last_error_len, tr_step, tr_tick, tr_tick_f64, tr_seed, tr_world_width, tr_world_height, tr_frame_ptr, tr_frame_len, tr_creatures_update, tr_creature_count, tr_creatures_ptr, tr_creature_ids_ptr, tr_creature_stride, tr_deaths_count, tr_deaths_ptr, tr_death_ids_ptr, tr_death_stride, tr_grid_cols, tr_grid_rows, tr_grid_cell_size, tr_grid_update, tr_grid_ptr, tr_elevation_at, tr_droughts_update, tr_droughts_ptr, tr_drought_stride, tr_config_json, tr_config_ptr, tr_stats_json, tr_stats_ptr, tr_species_json, tr_species_ptr, tr_species_set_min_announce, tr_inspect_json, tr_inspect_ptr, tr_events_json, tr_events_ptr, tr_events_set_mask`, plus `__getrandom_custom`, an internal hook that always fails and must never be called.
