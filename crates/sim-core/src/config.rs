@@ -327,6 +327,11 @@ pub struct MutationConfig {
     /// aging rate, body size, preferred temperature, diet preference).
     #[serde(default = "default_trait_probability")]
     pub trait_probability: f64,
+    /// Step size for diet-preference mutations (± this range, uniform draw).
+    /// Larger values accelerate divergence along the algae/fruit niche axis.
+    /// Citation: Grant & Grant (2006): beak depth evolves ~0.1 SD/generation under selection
+    #[serde(default = "default_diet_mutation_step")]
+    pub diet_mutation_step: f64,
 }
 
 fn default_add_connection_probability() -> f64 {
@@ -343,6 +348,9 @@ fn default_prune_probability() -> f64 {
 }
 fn default_trait_probability() -> f64 {
     0.05
+}
+fn default_diet_mutation_step() -> f64 {
+    0.1
 }
 
 /// Gompertz-Makeham aging parameters.
@@ -434,12 +442,21 @@ fn default_transfer_efficiency() -> f64 {
 pub struct DensityPressureConfig {
     /// Extra energy cost per tick per nearby neighbor. 0.0 = disabled.
     pub cost_per_neighbor: f64,
+    /// Competition kernel width (MacArthur 1972, Chesson 2000).
+    /// When > 0, crowding cost weights each neighbor by diet similarity:
+    ///   weight_ij = exp(−(diet_i − diet_j)² / (2 · sigma²))
+    /// Same-niche neighbors impose full pressure; diet-distant neighbors impose less.
+    /// 0 = all neighbors compete equally (Allee behavior; backward-compatible default).
+    /// Recommended: 0.3 gives ~71% competitive suppression at Δdiet = 0.3.
+    #[serde(default)]
+    pub diet_competition_sigma: f64,
 }
 
 impl Default for DensityPressureConfig {
     fn default() -> Self {
         DensityPressureConfig {
             cost_per_neighbor: 0.0,
+            diet_competition_sigma: 0.0,
         }
     }
 }
@@ -542,6 +559,12 @@ pub struct FruitConfig {
     /// Fruit regrowth rate multiplier applied on top of the biome's normal rate.
     /// Fruit only appears inside biome zones (outside biomes: no fruit).
     pub biome_rate_multiplier: f64,
+    /// Efficiency drop per unit of diet distance from food type.
+    /// efficiency = 1.0 − diet_slope × |diet_distance|
+    /// 0.7 = moderate (generalist gets 65%); 1.0 = strict (generalist gets 50%).
+    /// Lower values reduce the fitness valley, slowing specialization.
+    /// Citation: Roughgarden (1976) "Resource Partitioning Among Competing Species"
+    pub diet_slope: f64,
 }
 
 impl Default for FruitConfig {
@@ -550,6 +573,7 @@ impl Default for FruitConfig {
             enabled: false,
             energy_per_fruit: 20.0,
             biome_rate_multiplier: 2.0,
+            diet_slope: 0.7,
         }
     }
 }

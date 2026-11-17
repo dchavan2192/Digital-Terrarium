@@ -1,0 +1,202 @@
+# Experiment A — Cooperation Phase Boundary
+#
+# Science question: At what transfer_efficiency does sharing behaviour cross from
+# individually costly (non-ESS) to collectively stable (kin-selected ESS)?
+#
+# Hamilton's rule predicts cooperation when rB > C, where:
+#   r = genetic relatedness (kin similarity)
+#   B = benefit to recipient
+#   C = cost to donor
+#
+# With energy-conserving sharing (transfer_efficiency <= 1), the only channel for
+# cooperation to be individually beneficial is if related organisms share in
+# high-relatedness clusters. We sweep transfer_efficiency from 0.5 to 1.0 to
+# find the critical threshold where sharing emerges.
+#
+# Design:
+#   - Sexual reproduction ON (maintains kin structure)
+#   - Sharing enabled with varying transfer_efficiency (run as sweep)
+#   - Track: share_frequency, mean_relatedness, population_stability
+#   - Compare trophic_level across conditions (cooperation vs predation)
+#
+# To run as sweep:
+#   cargo run -p sim-runner --release -- sweep \
+#     --config configs/experiments/experiment_a_cooperation.toml \
+#     --param sharing.transfer_efficiency \
+#     --values 0.5,0.6,0.7,0.8,0.9,1.0 \
+#     --seeds 5 --ticks 300000
+#
+# Citation: Hamilton (1964) "The Genetical Evolution of Social Behaviour"
+# Citation: Trivers (1971) "The Evolution of Reciprocal Altruism"
+# Citation: Nowak (2006) "Five Rules for the Evolution of Cooperation"
+
+[world]
+width = 1000.0
+height = 1000.0
+seed = 2000
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.008
+energy_per_food = 15.0
+
+[food.seasons]
+amplitude = 0.3
+period = 10000.0
+
+[food.droughts]
+spawn_rate = 0.0002
+duration = 3000
+radius = 150.0
+severity = 0.05
+max_active = 3
+
+[[food.biomes]]
+x = 250.0
+y = 250.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 750.0
+y = 750.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 500.0
+y = 500.0
+radius = 150.0
+regrowth_multiplier = 2.0
+
+[[food.biomes]]
+x = 750.0
+y = 250.0
+radius = 180.0
+regrowth_multiplier = 0.3
+
+[food.fruit]
+enabled = false          # Disabled: isolate cooperation from diet specialization
+
+[creature]
+initial_count = 300
+hard_cap = 2000
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 2000
+feeding_speed_factor = 0.5
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 60.0
+maximum = 200.0
+base_metabolism = 0.3
+movement_cost = 0.15
+brain_cost = 0.001
+connection_cost = 0.001
+activity_weight_cost = 0.0005
+
+[reproduction]
+threshold = 60.0
+parent_cost = 30.0
+child_energy = 30.0
+sexual = true
+mate_range = 15.0
+crossover_rate = 0.7
+fitness_bias = true
+mate_cost = 30.0
+mate_energy_fraction = 0.5
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+idle_attack_cost = 0.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.75
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+transfer_efficiency = 0.9    # SWEEP PARAMETER: vary 0.5 -> 1.0
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.02
+add_node_probability = 0.01
+toggle_probability = 0.01
+prune_probability = 0.02
+add_recurrent_probability = 0.0
+trait_probability = 0.05
+diet_mutation_step = 0.1
+
+[density_pressure]
+cost_per_neighbor = 0.01
+diet_competition_sigma = 0.0
+
+[speciation]
+dynamic = true
+fixed_threshold = 0.5
+sample_size = 50
+factor = 0.75
+min_threshold = 0.1
+max_threshold = 2.0
+
+[brain]
+inputs = 20
+hidden = 8
+outputs = 7
+
+[temperature]
+enabled = true
+cost_factor = 0.5
+
+[pheromones]
+enabled = true
+deposit_rate = 0.1
+decay_rate = 0.995
+max_level = 10.0
+
+[daynight]
+enabled = true
+period = 40.0
+
+[elevation]
+enabled = true
+slope_factor = 5.0
+octaves = 4
+seed = 7777
+
+[niche_construction]
+enabled = true
+deposit_rate = 0.05
+decay_rate = 0.999
+max_level = 1.0
+regrowth_bonus = 0.5
+energy_cost = 0.5
+activation_threshold = 0.2
+
+[epigenetics]
+enabled = true
+stress_repro_fraction = 0.25
+methylation_rate = 0.005
+demethylation_rate = 0.001
+inheritance_noise = 0.02
+brain_update_interval = 1
+
+[activity_tracking]
+enabled = true
+window_size = 100
+lineage_window = 1000
+hash_version = 2

@@ -333,6 +333,9 @@ struct Action {
     construct: f64,
     alive: bool,
     neighbor_count: u32,
+    /// Competition-kernel-weighted neighbor sum: Σ exp(−Δdiet²/(2σ²)).
+    /// Equal to `neighbor_count` when `diet_competition_sigma = 0` (Allee behavior).
+    diet_crowding: f64,
     brain_activity: f64,
 }
 
@@ -348,6 +351,7 @@ impl Default for Action {
             construct: 0.0,
             alive: false,
             neighbor_count: 0,
+            diet_crowding: 0.0,
             brain_activity: 0.0,
         }
     }
@@ -496,10 +500,12 @@ impl Simulation {
         let brain_cost_per_connection = self.config.energy.connection_cost;
         let activity_weight_cost = self.config.energy.activity_weight_cost;
         let density_cost_per_neighbor = self.config.density_pressure.cost_per_neighbor;
+        let diet_competition_sigma = self.config.density_pressure.diet_competition_sigma;
         let temp_enabled = self.config.temperature.enabled;
         let temp_cost_factor = self.config.temperature.cost_factor;
         let fruit_enabled = self.config.food.fruit.enabled;
         let energy_per_fruit = self.config.food.fruit.energy_per_fruit;
+        let diet_slope = self.config.food.fruit.diet_slope;
         let epigenetics_enabled = self.config.epigenetics.enabled;
         // Stress = reserves far below what is needed to breed (see EpigeneticsConfig).
         let epigenetics_stress_energy = self.config.epigenetic_stress_energy();
@@ -624,17 +630,25 @@ impl Simulation {
                 // Check creatures — dot-product ray test (no atan2)
                 // Also accumulate nearby signals and track nearest creature for kin recognition
                 // Count neighbors for density pressure — Allee (1931)
+                // Competition kernel: weight by diet similarity — MacArthur (1972), Chesson (2000)
                 let range_sq = vision_range * vision_range;
                 let mut signal_sum = 0.0f64;
                 let mut signal_weight = 0.0f64;
                 let mut nearest_dist_sq = f64::MAX;
                 let mut nearest_hue = -1.0f64; // sentinel: no creature found
                 let mut neighbor_count: u32 = 0;
+                let mut diet_crowding_sum: f64 = 0.0;
+                let diet_i = organisms[i].genome.diet_preference;
                 spatial_grid.for_each_nearby(ox, oy, |ni| {
                     if ni == i || !organisms[ni].alive {
                         return;
                     }
                     neighbor_count += 1;
+                    if diet_competition_sigma > 0.0 {
+                        let d_diet = (diet_i - organisms[ni].genome.diet_preference).abs();
+                        let denom = 2.0 * diet_competition_sigma * diet_competition_sigma;
+                        diet_crowding_sum += crate::math::exp(-d_diet * d_diet / denom);
+                    }
                     let dx = wraparound_delta(ox, organisms[ni].pos_x, world_w);
                     let dy = wraparound_delta(oy, organisms[ni].pos_y, world_h);
                     let dist_sq = dx * dx + dy * dy;
@@ -777,6 +791,11 @@ impl Simulation {
                     construct: output.construct,
                     alive: true,
                     neighbor_count,
+                    diet_crowding: if diet_competition_sigma > 0.0 {
+                        diet_crowding_sum
+                    } else {
+                        neighbor_count as f64
+                    },
                     brain_activity,
                 }
             })
@@ -908,7 +927,7 @@ impl Simulation {
                 let algae = self.food_grid.eat_at(org.pos_x, org.pos_y, 1.0);
                 let algae_efficiency = if fruit_enabled {
                     // 0=algae specialist, 1=fruit specialist
-                    1.0 - 0.7 * org.genome.diet_preference
+                    (1.0 - diet_slope * org.genome.diet_preference).max(0.0)
                 } else {
                     1.0
                 };
@@ -917,7 +936,8 @@ impl Simulation {
                 // Eat fruit if enabled
                 let fruit_energy = if fruit_enabled {
                     let fruit = self.food_grid.eat_fruit_at(org.pos_x, org.pos_y, 1.0);
-                    let fruit_efficiency = 1.0 - 0.7 * (1.0 - org.genome.diet_preference);
+                    let fruit_efficiency =
+                        (1.0 - diet_slope * (1.0 - org.genome.diet_preference)).max(0.0);
                     fruit * energy_per_fruit * fruit_efficiency
                 } else {
                     0.0
@@ -936,6 +956,7 @@ impl Simulation {
 
             // Metabolize — Kleiber's law: metabolism scales as body_size^0.75
             // Density pressure: crowding adds per-neighbor cost — Allee (1931)
+            // Competition kernel weights by diet similarity — MacArthur (1972), Chesson (2000)
             // Temperature mismatch: extra cost when local temp deviates from preference
             // Citation: Bergmann (1847), Allen (1877) — thermoregulation drives adaptation
             let movement_cost = movement_cost_factor * actual_speed * actual_speed;
@@ -945,7 +966,7 @@ impl Simulation {
                 + brain_cost_per_connection * org.brain.connection_count() as f64
                 + activity_weight_cost * action.brain_activity;
             let size_metabolism = base_metabolism * crate::math::powf(body_size, 0.75);
-            let crowding_cost = density_cost_per_neighbor * action.neighbor_count as f64;
+            let crowding_cost = density_cost_per_neighbor * action.diet_crowding;
             let temp_cost = if temp_enabled {
                 // Temperature = y/height: 0=north/cold, 1=south/warm
                 let local_temp = org.pos_y / world_h;

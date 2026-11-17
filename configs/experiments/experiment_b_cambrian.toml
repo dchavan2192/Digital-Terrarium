@@ -1,0 +1,194 @@
+# Experiment B — Cambrian Transition
+#
+# Science question: Does a resource pulse + predation unlock trigger an
+# ecological phase transition analogous to the Cambrian explosion?
+#
+# Hypothesis: Pre-Cambrian epoch (food-limited, no predation) → sudden
+# resource pulse + predation unlocked → rapid diversification (↑ species
+# count, ↑ brain complexity, ↑ trophic levels) within ~50k ticks.
+#
+# Design:
+#   Phase 1 (ticks 0-200k): Low food, no predation, evolve baseline prey
+#   Phase 2 (ticks 200k+): Triple food regrowth, enable predation
+#   Measure: species_count, mean_connections, mean_trophic_level before/after
+#
+# This run is Phase 1 (pre-Cambrian). Run with --ticks 200000, export
+# checkpoint, then resume with experiment_b_cambrian_phase2.toml.
+#
+# Citation: Butterfield (2007) "Macroevolution and macroecology through deep time"
+# Citation: Marshall (2006) "Explaining the Cambrian Explosion of Animals"
+# Citation: Benton & Emerson (2007) "How did life become so diverse?"
+
+[world]
+width = 1000.0
+height = 1000.0
+seed = 3000
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.004          # Half baseline — pre-Cambrian scarcity
+energy_per_food = 15.0
+
+[food.seasons]
+amplitude = 0.1                # Low seasonality in pre-Cambrian epoch
+period = 10000.0
+
+[food.droughts]
+spawn_rate = 0.0001            # Rare droughts in stable pre-Cambrian
+duration = 2000
+radius = 100.0
+severity = 0.05
+max_active = 2
+
+[[food.biomes]]
+x = 250.0
+y = 250.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 750.0
+y = 750.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 500.0
+y = 500.0
+radius = 150.0
+regrowth_multiplier = 2.0
+
+[[food.biomes]]
+x = 750.0
+y = 250.0
+radius = 180.0
+regrowth_multiplier = 0.3
+
+[food.fruit]
+enabled = true
+energy_per_fruit = 20.0
+biome_rate_multiplier = 2.0
+diet_slope = 0.7
+
+[creature]
+initial_count = 300
+hard_cap = 1500               # Lower cap in pre-Cambrian scarcity
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 2000
+feeding_speed_factor = 0.5
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 60.0
+maximum = 200.0
+base_metabolism = 0.3
+movement_cost = 0.15
+brain_cost = 0.001
+connection_cost = 0.001
+activity_weight_cost = 0.0005
+
+[reproduction]
+threshold = 60.0
+parent_cost = 30.0
+child_energy = 30.0
+sexual = true
+mate_range = 15.0
+crossover_rate = 0.7
+fitness_bias = true
+mate_cost = 30.0
+mate_energy_fraction = 0.5
+
+[combat]
+attack_range = 8.0
+attack_cost = 999.0            # PRE-CAMBRIAN: predation disabled (prohibitive cost)
+idle_attack_cost = 0.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.75
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+transfer_efficiency = 0.9
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.02
+add_node_probability = 0.01
+toggle_probability = 0.01
+prune_probability = 0.02
+add_recurrent_probability = 0.0
+trait_probability = 0.05
+diet_mutation_step = 0.1
+
+[density_pressure]
+cost_per_neighbor = 0.01
+diet_competition_sigma = 0.3   # Enable competition kernel for niche coexistence
+
+[speciation]
+dynamic = true
+fixed_threshold = 0.5
+sample_size = 50
+factor = 0.75
+min_threshold = 0.1
+max_threshold = 2.0
+
+[brain]
+inputs = 20
+hidden = 8
+outputs = 7
+
+[temperature]
+enabled = true
+cost_factor = 0.5
+
+[pheromones]
+enabled = true
+deposit_rate = 0.1
+decay_rate = 0.995
+max_level = 10.0
+
+[daynight]
+enabled = true
+period = 40.0
+
+[elevation]
+enabled = true
+slope_factor = 5.0
+octaves = 4
+seed = 7777
+
+[niche_construction]
+enabled = true
+deposit_rate = 0.05
+decay_rate = 0.999
+max_level = 1.0
+regrowth_bonus = 0.5
+energy_cost = 0.5
+activation_threshold = 0.2
+
+[epigenetics]
+enabled = true
+stress_repro_fraction = 0.25
+methylation_rate = 0.005
+demethylation_rate = 0.001
+inheritance_noise = 0.02
+brain_update_interval = 1
+
+[activity_tracking]
+enabled = true
+window_size = 100
+lineage_window = 1000
+hash_version = 2

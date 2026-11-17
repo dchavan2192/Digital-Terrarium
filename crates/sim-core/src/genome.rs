@@ -391,7 +391,8 @@ impl Genome {
         // 10. Mutate diet preference — Grant & Grant (2006): character displacement
         // Resource partitioning between algae and fruit specialists drives speciation
         if rng.r#gen::<f64>() < mcfg.trait_probability {
-            child.diet_preference += rng.gen_range(-0.1..0.1);
+            let step = mcfg.diet_mutation_step;
+            child.diet_preference += rng.gen_range(-step..step);
             child.diet_preference = child.diet_preference.clamp(0.0, 1.0);
         }
 

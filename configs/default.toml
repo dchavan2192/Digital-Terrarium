@@ -144,6 +144,7 @@ prune_probability = 0.02           # Delete one edge (was 0.04: a built-in drift
 # without the mechanism. Not yet switched on by default; see docs/research/MEMORY_DESIGN.md.
 add_recurrent_probability = 0.0    # Chance per birth of adding one recurrent connection
 trait_probability = 0.05           # Per-trait chance to mutate each scalar trait
+diet_mutation_step = 0.1           # ± step for diet-preference mutations (Grant & Grant 2006)
 
 [density_pressure]
 # Population density pressure: crowding increases metabolism.
@@ -151,6 +152,12 @@ trait_probability = 0.05           # Per-trait chance to mutate each scalar trai
 # Models negative density dependence / interference competition.
 # Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
 cost_per_neighbor = 0.01
+# Competition kernel — diet-similarity-weighted crowding (MacArthur 1972, Chesson 2000).
+# When > 0, same-niche organisms impose full competitive pressure while diet-distant
+# organisms impose less: weight_ij = exp(−Δdiet² / (2·sigma²)).
+# This is the stabilizing mechanism for coexistence of diet specialists.
+# 0 = all neighbors compete equally (Allee only; default for backward compatibility).
+diet_competition_sigma = 0.0
 
 [speciation]
 # Dynamic speciation threshold: compute from population genome variance
@@ -187,6 +194,11 @@ outputs = 7             # turn, speed, eat, attack, signal, share, construct
 enabled = true
 energy_per_fruit = 20.0        # Energy per unit fruit (before diet efficiency)
 biome_rate_multiplier = 2.0    # Fruit regrowth = biome_rate × 2.0 (rich but limited)
+# Diet efficiency slope: efficiency = 1.0 - diet_slope * |diet_distance_from_food_type|
+# 0.7 = moderate (generalist gets 65% of either food); 1.0 = strict (generalist: 50%)
+# Higher slope deepens the fitness valley, forcing stronger specialization.
+# Citation: Roughgarden (1976) "Resource Partitioning Among Competing Species"
+diet_slope = 0.7
 
 [temperature]
 enabled = true
