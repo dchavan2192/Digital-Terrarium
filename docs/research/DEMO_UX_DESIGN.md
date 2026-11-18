@@ -602,6 +602,12 @@ Note for docs: CLAUDE.md still says 15 inputs / 6 outputs. Current config is **1
 
 ---
 
+## Task lab: saved native evaluation replay
+
+The optional **Task lab** toolbar button opens a keyboard-accessible native dialog, separate from the live ecology. It replays saved native visible-cue evaluations for all nine declared final training champions across seven frozen cases and both cues, including partial and unsuccessful searches. A separate cohort exposes three fixed manufactured controls. Select cohort, policy, case and cue; play, step, restart or scrub exact saved movement poses. The display reports recorded choice, first-contact tick and two-cue correctness. Goal labels and path overlays are replay annotations, not additional policy inputs.
+
+`analysis/export_visible_task_demo.py` deterministically derives `web/demo/data/visible-task.json` from the three archived robustness result files. It retains source SHA-256 identities and exact poses, goal geometry and outcomes; it runs no policy evaluations. The 190 KB payload loads only when the dialog opens. The page links the evaluation plan, results/controls and replay provenance. Labels explicitly say prerecorded native evaluation and visible cue; a memory benefit is not established. Opening the lab changes no engine configuration or live-world defaults. On phones, a two-row header keeps the toolbar controls available.
+
 ## References (design and visualisation)
 
 - Victor, B. (2011). *Explorable Explanations*. worrydream.com/ExplorableExplanations

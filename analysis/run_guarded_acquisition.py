@@ -110,7 +110,7 @@ def thermal_snapshot(sensor):
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--batch', type=Path, required=True)
-    p.add_argument('--task', choices=('acquire-visible', 'validate-visible'),
+    p.add_argument('--task', choices=('acquire-visible', 'validate-visible', 'ecology-long'),
                    default='acquire-visible')
     p.add_argument('--wall-seconds', type=float, default=1800)
     p.add_argument('--guard-stale-seconds', type=float, default=20)
@@ -124,16 +124,36 @@ def parse_args(argv=None):
                 'poll_seconds', 'terminate_grace_seconds'):
         if not math.isfinite(getattr(args, key)) or getattr(args, key) <= 0:
             p.error(f'{key} must be finite and positive')
-    if args.poll_seconds > 1 or args.wall_seconds > 1800:
-        p.error('poll interval must be <=1 and wall budget <=1800 seconds')
+    maximum_wall = 21600 if args.task == 'ecology-long' else 1800
+    if args.poll_seconds > 1 or args.wall_seconds > maximum_wall:
+        p.error(f'poll interval must be <=1 and wall budget <={maximum_wall} seconds')
     args.batch = args.batch.resolve()
     required = ['sim-runner', 'pi_thermal_guard.py']
-    required += (['visible_acquisition.toml', 'delayed_choice.toml']
-                 if args.task == 'acquire-visible' else ['visible_validation.toml'])
+    required += {'acquire-visible': ['visible_acquisition.toml', 'delayed_choice.toml'],
+                 'validate-visible': ['visible_validation.toml'],
+                 'ecology-long': ['base.toml', 'job.json']}[args.task]
     if not args.batch.is_dir() or any(not (args.batch / name).is_file() or (args.batch / name).is_symlink() for name in required):
         p.error('batch must contain the pinned runner, task inputs and thermal guard')
     if not os.access(args.batch / 'sim-runner', os.X_OK):
         p.error('pinned sim-runner must be executable')
+    args.job = None
+    if args.task == 'ecology-long':
+        if (args.batch / 'job.json').stat().st_size > 4096:
+            p.error('long ecology job exceeds 4 KiB')
+        try:
+            args.job = json.loads((args.batch / 'job.json').read_text())
+            expected = {'seed', 'recurrence_probability', 'ticks', 'log_interval',
+                        'checkpoint_every', 'export_genomes_every'}
+            if (not isinstance(args.job, dict) or set(args.job) != expected
+                    or type(args.job['seed']) is not int or args.job['seed'] not in range(4000, 4004)
+                    or type(args.job['recurrence_probability']) not in (int, float)
+                    or args.job['recurrence_probability'] not in (0, .3)
+                    or any(type(args.job[key]) is not int or args.job[key] != value
+                           for key, value in [('ticks', 500000), ('log_interval', 1000),
+                                              ('checkpoint_every', 50000), ('export_genomes_every', 500000)])):
+                raise ValueError('job differs from frozen long recurrence protocol')
+        except (OSError, ValueError, KeyError) as error:
+            p.error(str(error))
     if args.task == 'validate-visible':
         source = args.batch / 'input'
         if not source.is_dir() or source.is_symlink():
@@ -189,6 +209,15 @@ def run_fresh(args):
                       '--session', str(batch / 'input'),
                       '--suite', str(batch / 'visible_validation.toml'),
                       '--output', str(batch / 'runs')]
+    elif args.task == 'ecology-long':
+        job = args.job
+        runner_cmd = [str(batch / 'sim-runner'), '--config', str(batch / 'base.toml'),
+                      '--seed', str(job['seed']), '--set',
+                      f"mutation.add_recurrent_probability={job['recurrence_probability']}",
+                      '--ticks', str(job['ticks']), '--log-interval', str(job['log_interval']),
+                      '--checkpoint-every', str(job['checkpoint_every']),
+                      '--export-genomes-every', str(job['export_genomes_every']),
+                      '--output', str(batch / 'runs')]
     guard_cmd = [sys.executable, str(batch / 'pi_thermal_guard.py'), '--batch', str(batch),
                  '--high', '75', '--low', '65', '--poll', '5', '--sensor', str(args.sensor),
                  '--output', str(guard_dir)]
@@ -199,7 +228,7 @@ def run_fresh(args):
                     wall_seconds=args.wall_seconds, wall_includes_startup_and_cooling=True,
                     wall_watchdog_scope=('guard startup, cooling and active acquisition; terminal cleanup separately bounded'
                                          if args.task == 'acquire-visible' else
-                                         'guard startup, cooling and active validation; terminal cleanup separately bounded'),
+                                         f'guard startup, cooling and active {args.task}; terminal cleanup separately bounded'),
                     post_runner_guard_wait_seconds=12,
                     guard_stale_seconds=args.guard_stale_seconds,
                     startup_seconds=args.startup_seconds, poll_seconds=args.poll_seconds,
@@ -208,6 +237,7 @@ def run_fresh(args):
                     telemetry_interval_seconds=5,
                     completion_scope='process supervision only; scientific artifact audit remains separate',
                     task=args.task,
+                    runner_rss_limit_bytes=2 * 1024**3 if args.task == 'ecology-long' else None,
                     sha256=args.input_sha256)
     (batch / 'supervisor_manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     stopped = False
@@ -286,6 +316,24 @@ def run_fresh(args):
                     save()
                     exit_code = 0 if state['state'] == 'completed' else 1
                     break
+                if runner is not None and args.task == 'ecology-long':
+                    try:
+                        rss_text = Path(f'/proc/{runner.pid}/status').read_text()
+                        rss = int(next(line.split()[1] for line in rss_text.splitlines()
+                                       if line.startswith('VmRSS:'))) * 1024
+                        state['runner_rss_bytes'] = rss
+                        if rss > manifest['runner_rss_limit_bytes']:
+                            state['runner_exit_code'] = terminate_owned(runner, args.terminate_grace_seconds)
+                            state.update(state='technical_resource_limit', reason='runner RSS exceeded 2 GiB')
+                            (batch / 'status').write_text('failed\n')
+                            terminate_owned(guard, args.terminate_grace_seconds)
+                            save()
+                            exit_code = 125
+                            break
+                    except (OSError, ValueError, StopIteration):
+                        if runner.poll() is None:
+                            fail_paused('cannot verify long-run RSS; runner left paused')
+                            break
                 data, error = guard_status(guard_dir / 'status.json', guard, batch,
                                            guard_launched, args.guard_stale_seconds)
                 if data is None:

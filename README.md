@@ -6,6 +6,8 @@
 
 Watch a creature, inspect its brain, follow its lineage, or run controlled experiments headlessly. The Rust engine powers both the browser demo and the experimental runner.
 
+Open **Task lab** in the demo to replay saved native visible-cue evaluations: all nine training-selected policies, seven cases, both cues and fixed reference controls. Choose a policy/case and scrub its recorded movement. These replays are separate from the live ecosystem and do not establish useful memory. [Report and provenance](docs/results/VISIBLE_VALIDATION_2026-11-17.md).
+
 > **Research question:** Which ecological conditions favor adaptive behavior, costly neural processing, and different forms of inheritance?
 
 ## What is implemented

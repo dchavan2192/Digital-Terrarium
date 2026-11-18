@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/task-lab.css">
   <script type="importmap">
   {
     "imports": {
@@ -31,6 +32,7 @@
       </a>
       <p class="hero">An evolving ecosystem: up to <span id="heroCap">500</span> creatures with neural-network brains compete for food, hunt, share and evolve, live in your browser.</p>
       <div class="hdr-actions">
+        <button class="btn btn-sm" id="taskLabBtn" type="button" aria-haspopup="dialog" aria-controls="taskLab">Task lab</button>
         <button class="btn btn-sm memory-toggle" id="memoryToggle" type="button" aria-pressed="false" aria-describedby="memoryHelp" title="Switch experimental recurrent memory. Starts a new world with the same seed.">Memory off</button>
         <span class="sr-only" id="memoryHelp">Switching starts a new world. Memory links can evolve in offspring; their benefit has not been established.</span>
         <span class="badge" id="mockBadge" hidden title="terrarium.wasm could not be loaded, so a JS stand-in with fake data is running. See the console.">Mock data</span>
@@ -219,7 +221,41 @@
     </div>
   </div>
 
+  <dialog class="task-lab" id="taskLab" aria-labelledby="taskTitle" aria-describedby="taskIntro">
+    <header class="task-head">
+      <div><p class="task-eyebrow">Saved science · visible-cue task</p><h2 id="taskTitle">Task lab</h2></div>
+      <button class="btn btn-sm" id="taskClose" type="button">Close</button>
+    </header>
+    <p class="task-intro" id="taskIntro">Prerecorded native task evaluations, separate from the live ecosystem. Replay all 9 training-selected champions across 7 cases and both cues, including partial responses. The cue stays visible; a memory benefit has not been established.</p>
+    <p class="task-note" id="taskStatus" role="status">Loading saved evaluations…</p>
+    <div id="taskBody" hidden>
+      <div class="task-selectors">
+        <label>Search cohort<select id="taskCohort"></select></label>
+        <label>Policy<select id="taskPolicy"></select></label>
+        <label>Evaluation case<select id="taskCase"></select></label>
+        <label>Visible cue<select id="taskCue"><option value="-1">−1 → right goal</option><option value="1">+1 → left goal</option></select></label>
+      </div>
+      <svg class="task-arena" id="taskArena" role="img" aria-label="Recorded movement trajectory"></svg>
+      <p class="task-note">The task uses identical goal discs; L/R labels are replay annotations. Gold shows the replayed path and heading; dotted grey shows the full saved path. These are movement ticks after release.</p>
+      <div class="task-playback">
+        <button class="btn btn-sm" id="taskPlay" type="button">Play replay</button>
+        <button class="btn btn-sm" id="taskStep" type="button">Next tick</button>
+        <button class="btn btn-sm" id="taskRestart" type="button">Restart</button>
+      </div>
+      <label class="task-scrubber"><span id="taskTickRead">Movement tick 0</span><input id="taskTick" type="range" min="0" max="20" value="0" step="1" aria-label="Recorded movement tick"></label>
+      <p class="task-outcome" id="taskOutcome" role="status"></p>
+      <p class="task-note" id="taskScore"></p>
+      <p class="task-note" id="taskInitial"></p>
+      <p class="task-note" id="taskPolicyNote"></p>
+    </div>
+    <nav class="task-links" aria-label="Task evaluation evidence">
+      <a href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/VISIBLE_VALIDATION_2026-11-17.md" target="_blank" rel="noopener">Results &amp; controls</a>
+      <a href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/VISIBLE_VALIDATION_PLAN_2026-11-17.md" target="_blank" rel="noopener">Frozen evaluation plan</a>
+      <a href="data/visible-task.json" target="_blank" rel="noopener">Replay data &amp; source hashes</a>
+    </nav>
+  </dialog>
   <noscript><p class="noscript">This demo needs JavaScript and WebGL. The classic viewer is at <a href="../classic.html">classic.html</a>.</p></noscript>
+  <script type="module" src="js/task-lab.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
