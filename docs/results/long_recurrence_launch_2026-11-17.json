@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "status": "active_progress_snapshot_not_results",
+  "operations_revision": "fa0cd99783ecba28a1a59d8045c55bee38921ad2",
+  "pi_batch": "/home/pi/Digital-Terrarium/output/long_recurrence/baseline_long_20261118T023800Z",
+  "campaign": {
+    "schema_version": 1,
+    "task": "baseline_long_recurrence_pressure",
+    "prepared_utc": "2026-11-18T02:36:56.674218+00:00",
+    "engine_revision": "b40ae9c15ef5f90f17e7e2bbbc286c1c19c0b88c",
+    "source_dirty": false,
+    "binary_sha256": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63",
+    "base_sha256": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+    "worker_sha256": "0f0d0953b5feedb951b949729adc7d5504ce3506dca5445f9bc5eb99edc729ae",
+    "wall_seconds_per_job": 21600,
+    "total_active_wall_seconds": 172800,
+    "bounded_cleanup_seconds_per_job": 20,
+    "minimum_free_disk_bytes": 21474836480,
+    "minimum_available_ram_bytes": 3221225472,
+    "runner_rss_limit_bytes": 2147483648,
+    "checkpoint_byte_limit": 268435456,
+    "jobs": [
+      {
+        "name": "job_00_seed_4000_rate_0",
+        "job": {
+          "seed": 4000,
+          "recurrence_probability": 0,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "54c8c08508dcca2b7fe9cb5627d45149fa58be6a739207b75e563656c017e1e7",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      },
+      {
+        "name": "job_01_seed_4000_rate_0.3",
+        "job": {
+          "seed": 4000,
+          "recurrence_probability": 0.3,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "d3aec3a63f5f1c07686c82a4f026baf7bed551d8d352fd8da7f2e63ce2405964",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      },
+      {
+        "name": "job_02_seed_4001_rate_0.3",
+        "job": {
+          "seed": 4001,
+          "recurrence_probability": 0.3,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "0b41769d8581851281b90111092c6ddea45b9c04ae9647e9827c0866b1a78f5f",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      },
+      {
+        "name": "job_03_seed_4001_rate_0",
+        "job": {
+          "seed": 4001,
+          "recurrence_probability": 0,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "b65b1d9757131dbab7fc7692444e6b9792346bcff54663244902ff1a5e69bff3",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      },
+      {
+        "name": "job_04_seed_4002_rate_0",
+        "job": {
+          "seed": 4002,
+          "recurrence_probability": 0,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "214045832bf715bddcb563b86706c8fda323105677065a31b6b1925d29566dc2",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      },
+      {
+        "name": "job_05_seed_4002_rate_0.3",
+        "job": {
+          "seed": 4002,
+          "recurrence_probability": 0.3,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "ce3bcd41da949f3c4675223e9db727d1bf008ffa04cd386a02f93ccae0facee9",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      },
+      {
+        "name": "job_06_seed_4003_rate_0.3",
+        "job": {
+          "seed": 4003,
+          "recurrence_probability": 0.3,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "2dd8a29ef81b85eb36de8b26d65ce6c16180b4dc87addab10550f1151455fe5a",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      },
+      {
+        "name": "job_07_seed_4003_rate_0",
+        "job": {
+          "seed": 4003,
+          "recurrence_probability": 0,
+          "ticks": 500000,
+          "log_interval": 1000,
+          "checkpoint_every": 50000,
+          "export_genomes_every": 500000
+        },
+        "sha256": {
+          "base.toml": "bcfd543bc75ed4127389c17c24e6282a8e735c96a903d0a55abd6e0fd165079d",
+          "job.json": "0fa613c59116c94af954f2743ebb24b16ee35eaa98c04c82a7b02ce6aab4b132",
+          "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+          "run_guarded_acquisition.py": "79cc58bfdefb45c83c3005e4f4594787e830a3ea3eb550838095b3d2d7a5d425",
+          "sim-runner": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63"
+        }
+      }
+    ],
+    "interpretation": "Structural/demographic diagnostic; not memory benefit or selection-versus-drift."
+  },
+  "campaign_sha256": "affe324bd70131705b4c8f6e0d10e63158d955435e9ce71462519ac2a8403c0d",
+  "worker": {
+    "state": "running",
+    "started_utc": "2026-11-18T02:37:47.519056+00:00",
+    "worker_pid": 38495,
+    "current_job": "job_00_seed_4000_rate_0",
+    "supervisor_pid": 38497,
+    "completed_jobs": []
+  },
+  "first_supervisor": {
+    "state": "running",
+    "started_utc": "2026-11-18T02:37:47.570100+00:00",
+    "guard_pid": 38498,
+    "runner_pid": 38500,
+    "runner_exit_code": null,
+    "runner_left_paused": false,
+    "reason": null,
+    "updated_utc": "2026-11-18T02:39:56.979556+00:00",
+    "elapsed_wall_seconds": 129.4094906350365,
+    "guard_state": "monitoring",
+    "runner_rss_bytes": 23199744
+  },
+  "first_guard": {
+    "state": "monitoring",
+    "updated_utc": "2026-11-18T02:39:52Z",
+    "guard_pid": 38498,
+    "batch": "/home/pi/Digital-Terrarium/output/long_recurrence/baseline_long_20261118T023800Z/job_00_seed_4000_rate_0",
+    "executable": "/home/pi/Digital-Terrarium/output/long_recurrence/baseline_long_20261118T023800Z/job_00_seed_4000_rate_0/sim-runner",
+    "temperature_c": 66.65,
+    "sensor": "/sys/class/thermal/thermal_zone0/temp",
+    "high_c": 75.0,
+    "low_c": 65.0,
+    "poll_seconds": 5.0,
+    "running_matches": 1,
+    "paused": []
+  },
+  "first_session_source": {
+    "source_revision": "b40ae9c15ef5f90f17e7e2bbbc286c1c19c0b88c",
+    "source_dirty": "false",
+    "core_build_id": "297edc68fb18e05e",
+    "requested_ticks": 500000,
+    "starting_tick": 0,
+    "status": "running"
+  },
+  "latest_complete_logged_tick": 10000,
+  "live_demo": {
+    "sha": "fa0cd99783ecba28a1a59d8045c55bee38921ad2",
+    "url": "https://dchavan2192.github.io/Digital-Terrarium/demo/",
+    "payload_sha256": "f904a5986577187335220f9ffb33c7b491c00c94a79d13c2694de998e39b2f4e",
+    "visual_qa": "unavailable"
+  }
+}
