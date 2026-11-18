@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "batch": "output/visible-validation/robustness_20261118T020500Z",
+  "checks": {
+    "frozen_summary_hashes": 9,
+    "pinned_and_source_hashes": 57,
+    "policy_case_rows": 63,
+    "reconstructed_trials": 504,
+    "movement_frames": 6636,
+    "equivalent_baseline_control_trials": 18,
+    "total_trials_covered": 522
+  },
+  "result_sha256": {
+    "original/runs/session_1794967428992114319_38325_0/result.json": "20f1517293f5020dc283303f9755763e5cd5365fd6985e5d1a0b6bf91fcb6eb6",
+    "terminal_only/runs/session_1794967434202699891_38329_0/result.json": "101b85a960f01c7de31a33bcd52f55772f25178f107cd1f3080f4cdcd256cfb6",
+    "terminal_progress/runs/session_1794967439410622457_38333_0/result.json": "c85cc73b0189847565d1bfd39edd158366b54bed2b1bcd0efdfa5a065702056a"
+  },
+  "aggregate": [
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 2,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 3,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 1,
+      "wrong": 2,
+      "timeout": 3
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 1,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 1,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 5
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 2,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 4
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "policies": 3,
+      "both_correct": 2,
+      "correct": 5,
+      "wrong": 0,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "policies": 3,
+      "both_correct": 1,
+      "correct": 4,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "policies": 3,
+      "both_correct": 2,
+      "correct": 5,
+      "wrong": 0,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 4
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 1,
+      "timeout": 3
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 1,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 1,
+      "timeout": 3
+    }
+  ],
+  "limits": "Archived actions and geometry only; no neural/sensor reconstruction, new experiment, independent population replication, or continuous thermal proof."
+}

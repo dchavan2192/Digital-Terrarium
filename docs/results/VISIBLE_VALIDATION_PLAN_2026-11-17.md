@@ -29,3 +29,7 @@ Report all cases and both cues: correctness, wrong-goal contacts, timeouts, firs
 5. Design fresh-seed repeatability with a stated precision target before confirmatory acquisition or delayed-memory selection. This saved-policy diagnostic cannot establish fresh-run acquisition, adaptive memory, lifetime learning or ecological benefit.
 
 The separate `science/diet-competition-kernel` branch remains unmerged pending its documented validation fixes. Demo and ecological defaults are unchanged by this harness.
+
+## Post-execution interpretation clarification
+
+The frozen offsets were executed unchanged. The near `(3,3)` case preserves the original center bearing, changing distance and apparent angular size; the other three relative cases change distance and bearing together. The earlier general wording about relative cases should not be read as saying that every case changes center bearing. See the separate final report for outcomes; this clarification changes no prospective condition or endpoint.

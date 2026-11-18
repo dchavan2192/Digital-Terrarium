@@ -1,6 +1,6 @@
 # Results register
 
-Updated: 2026-11-17 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
+Updated: 2026-11-18 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
 
 ## Established scientific results for the corrected current model
 
@@ -20,9 +20,13 @@ Each accepted entry must contain:
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
 
+## Registered saved-policy diagnostic: EXP-2026-11-17-VISIBLE-ROBUSTNESS
+
+[Frozen seven-case report](results/VISIBLE_VALIDATION_2026-11-17.md): all nine archived training champions exactly reproduce original-case trials. Progress-trained full competence is2/3 at reference,1/3 at−45° and2/3 at+45°; no policy in any cohort solves both cues in any of four changed relative geometries. Fixed manufactured references solve every case. Clean evaluator b40ae9c, prospective suite and operational commit09226d3 precede new-case outcomes; all source hashes,63 policy/case combinations and522 total trials retained and independently audited. This establishes brittle transfer for these saved policies, not fresh-seed acquisition efficacy, memory or ecological benefit. All partials are retained and the original cohort stays separate from the paired comparison. The used suite is no longer an untouched validation set.
+
 ## Registered paired engineering pilot: EXP-2026-11-17-PROGRESS-TIEBREAK
 
-[Completed method comparison](results/TERMINAL_PROGRESS_COMPARISON_2026-11-17.md): with matched founders at three fresh seed labels, the opt-in terminal-progress tiebreak acquired both fixed visible training responses in 2/3 searches versus 0/3 terminal-only controls. All six searches/9,984 candidate evaluations are retained; one treatment remains partial. Clean source 72f7c5b, identical binaries and per-seed founders verified, independent geometry/ranking audit passed. This is small-n training-only feasibility, not confirmatory efficacy, held-out transfer, memory, lifetime learning or ecological adaptation. Several contacts occur at horizon tick20; robustness remains unmeasured. Full provenance, curves, hashes and all-arm raw archive are linked in the report.
+[Completed method comparison](results/TERMINAL_PROGRESS_COMPARISON_2026-11-17.md): with matched founders at three fresh seed labels, the opt-in terminal-progress tiebreak acquired both fixed visible training responses in 2/3 searches versus 0/3 terminal-only controls. All six searches/9,984 candidate evaluations are retained; one treatment remains partial. Clean source 72f7c5b, identical binaries and per-seed founders verified, independent geometry/ranking audit passed. This is small-n training-only feasibility, not confirmatory efficacy, held-out transfer, memory, lifetime learning or ecological adaptation. Several contacts occur at horizon tick20; the subsequent saved-policy diagnostic above limits geometry robustness. Full provenance, curves, hashes and all-arm raw archive are linked in the report.
 
 ## Registered engineering feasibility pilot: EXP-2026-11-17-VISIBLE-ACQUISITION
 

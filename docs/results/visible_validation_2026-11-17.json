@@ -1,0 +1,3808 @@
+{
+  "schema_version": 1,
+  "campaign": {
+    "schema_version": 1,
+    "evaluator_revision": "b40ae9c15ef5f90f17e7e2bbbc286c1c19c0b88c",
+    "binary_sha256": "05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63",
+    "cohorts": [
+      {
+        "cohort": "original",
+        "source": "/home/pi/Digital-Terrarium/output/acquisition/pilot_20261117T163705Z/runs/session_1794933573406315818_37169_0",
+        "source_manifest": {
+          "arena": {
+            "blank_delay": 5,
+            "body": 0.0,
+            "cue_ticks": 1,
+            "cue_weight": 5.0,
+            "energy": 0.5,
+            "food": 0.0,
+            "goal_left_x": -4.0,
+            "goal_left_y": 4.0,
+            "goal_radius": 1.5,
+            "goal_right_x": 4.0,
+            "goal_right_y": 4.0,
+            "horizon": 20,
+            "kin": 0.0,
+            "light": 1.0,
+            "max_speed": 1.0,
+            "max_turn": 0.19634954084936207,
+            "niche": 0.0,
+            "pheromone": 0.0,
+            "ray_count": 5,
+            "ray_fov": 2.094,
+            "ray_range": 12.0,
+            "recurrent_weight": 5.0,
+            "speed_bias": 2.0,
+            "start_heading": 1.5707963267948966,
+            "start_x": 0.0,
+            "start_y": 0.0,
+            "temperature": 0.5,
+            "turn_bias": 2.0
+          },
+          "arena_path": "/home/pi/Digital-Terrarium/output/acquisition/pilot_20261117T163705Z/delayed_choice.toml",
+          "build_profile": "release",
+          "champion_rule": "best member of final population by training score then lowest ID; fixed budget, no early stopping",
+          "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+          "core_build": "297edc68fb18e05e",
+          "embedded_founder_defaults": {
+            "activity_tracking": {
+              "enabled": true,
+              "hash_version": 2,
+              "lineage_window": 1000,
+              "window_size": 100
+            },
+            "aging": {
+              "aging_rate": 0.002,
+              "extrinsic_mortality": 0.0001,
+              "initial_senescence": 1e-05
+            },
+            "brain": {
+              "hidden": 8,
+              "inputs": 20,
+              "outputs": 7
+            },
+            "combat": {
+              "attack_cost": 5.0,
+              "attack_damage": 20.0,
+              "attack_range": 8.0,
+              "energy_transfer_ratio": 0.75,
+              "idle_attack_cost": 0.0
+            },
+            "creature": {
+              "body_radius": 3.0,
+              "feeding_speed_factor": 0.5,
+              "hard_cap": 2000,
+              "initial_count": 300,
+              "max_age": 2000,
+              "max_speed": 2.0,
+              "max_turn": 0.2,
+              "vision": {
+                "fov": 2.094,
+                "range": 60.0,
+                "ray_count": 5
+              }
+            },
+            "daynight": {
+              "enabled": true,
+              "period": 40.0
+            },
+            "density_pressure": {
+              "cost_per_neighbor": 0.01
+            },
+            "elevation": {
+              "enabled": true,
+              "octaves": 4,
+              "seed": 7777,
+              "slope_factor": 5.0
+            },
+            "energy": {
+              "activity_weight_cost": 0.0005,
+              "base_metabolism": 0.3,
+              "brain_cost": 0.001,
+              "connection_cost": 0.001,
+              "maximum": 200.0,
+              "movement_cost": 0.15,
+              "starting": 60.0
+            },
+            "epigenetics": {
+              "brain_update_interval": 1,
+              "demethylation_rate": 0.001,
+              "enabled": true,
+              "inheritance_noise": 0.02,
+              "methylation_rate": 0.005,
+              "stress_repro_fraction": 0.25
+            },
+            "food": {
+              "biomes": [
+                {
+                  "radius": 200.0,
+                  "regrowth_multiplier": 3.0,
+                  "x": 250.0,
+                  "y": 250.0
+                },
+                {
+                  "radius": 200.0,
+                  "regrowth_multiplier": 3.0,
+                  "x": 750.0,
+                  "y": 750.0
+                },
+                {
+                  "radius": 150.0,
+                  "regrowth_multiplier": 2.0,
+                  "x": 500.0,
+                  "y": 500.0
+                },
+                {
+                  "radius": 180.0,
+                  "regrowth_multiplier": 0.3,
+                  "x": 750.0,
+                  "y": 250.0
+                }
+              ],
+              "cell_size": 10.0,
+              "droughts": {
+                "duration": 3000,
+                "max_active": 3,
+                "radius": 150.0,
+                "schedule_seed": null,
+                "severity": 0.05,
+                "spawn_rate": 0.0002
+              },
+              "energy_per_food": 15.0,
+              "fruit": {
+                "biome_rate_multiplier": 2.0,
+                "enabled": true,
+                "energy_per_fruit": 20.0
+              },
+              "max_per_cell": 1.0,
+              "regrowth_rate": 0.008,
+              "seasons": {
+                "amplitude": 0.3,
+                "period": 10000.0
+              }
+            },
+            "mutation": {
+              "add_connection_probability": 0.02,
+              "add_node_probability": 0.01,
+              "add_recurrent_probability": 0.0,
+              "prune_probability": 0.02,
+              "toggle_probability": 0.01,
+              "trait_probability": 0.05,
+              "weight_probability": 0.1,
+              "weight_step": 0.2
+            },
+            "niche_construction": {
+              "activation_threshold": 0.2,
+              "decay_rate": 0.999,
+              "deposit_rate": 0.05,
+              "enabled": true,
+              "energy_cost": 0.5,
+              "max_level": 1.0,
+              "regrowth_bonus": 0.5
+            },
+            "pheromones": {
+              "decay_rate": 0.995,
+              "deposit_rate": 0.1,
+              "enabled": true,
+              "max_level": 10.0
+            },
+            "reproduction": {
+              "child_energy": 30.0,
+              "crossover_rate": 0.7,
+              "fitness_bias": true,
+              "mate_cost": 30.0,
+              "mate_energy_fraction": 0.5,
+              "mate_range": 15.0,
+              "parent_cost": 30.0,
+              "sexual": true,
+              "threshold": 60.0
+            },
+            "sharing": {
+              "share_amount": 5.0,
+              "share_range": 10.0,
+              "transfer_efficiency": 0.9
+            },
+            "speciation": {
+              "dynamic": true,
+              "factor": 0.75,
+              "fixed_threshold": 0.5,
+              "max_threshold": 2.0,
+              "min_threshold": 0.1,
+              "sample_size": 50
+            },
+            "temperature": {
+              "cost_factor": 0.5,
+              "enabled": true
+            },
+            "world": {
+              "height": 1000.0,
+              "seed": 42,
+              "width": 1000.0
+            }
+          },
+          "execution": "serial; no ecology or Rayon pool",
+          "fitness": "number correct across cues [-1,+1]; terminal first contact only; wrong/timeout zero",
+          "founders": "Genome::random with declared dimensions/mutation; no injected reference weights",
+          "interpretation": "engineering feasibility pilot; genetic optimization across generations, not memory, within-life learning, ecological adaptation or generalization",
+          "phenotype": "20-style arena inputs (dimensions in arena), declared hidden, seven outputs; methylation zero and fixed; no body scaling, metabolism, energy selection or lifetime updates; neutral hue drift from native reproduce retained",
+          "protocol": {
+            "elites": 8,
+            "generations": 25,
+            "hidden": 8,
+            "mutation": {
+              "add_connection_probability": 0.0,
+              "add_node_probability": 0.0,
+              "add_recurrent_probability": 0.0,
+              "prune_probability": 0.0,
+              "toggle_probability": 0.0,
+              "trait_probability": 0.0,
+              "weight_probability": 0.1,
+              "weight_step": 0.2
+            },
+            "population": 64,
+            "seeds": [
+              2000,
+              2001,
+              2002
+            ],
+            "tournament": 3
+          },
+          "protocol_path": "/home/pi/Digital-Terrarium/output/acquisition/pilot_20261117T163705Z/visible_acquisition.toml",
+          "rng": "ChaCha8Rng seed_from_u64; fixed-width random_index",
+          "schema_version": 1,
+          "selection": "asexual elitism; tournament with replacement; descending correct then ascending persistent candidate ID; no crossover/speciation",
+          "source_dirty": "false",
+          "source_revision": "5504a20746bfe0dfcff54b95546324c02db1058d",
+          "status": "started",
+          "target": "aarch64-unknown-linux-gnu",
+          "task": "visible_cue_genetic_acquisition",
+          "total_evaluations": 4992,
+          "unit": "independent founder-population seed; cues/candidates/generations are not independent replicates",
+          "validation": "none; champion trials replay training conditions only; not a held-out evaluation"
+        },
+        "source_sha256": {
+          "manifest.json": "490ab63396e581ba30d22937652692cce5508ab591e13b5372530f9b6eacf831",
+          "summary.json": "72c160fc88c0d182226289899928b4fddc9e489f660a2e3693830f3fc07d7fbe",
+          "seed_2000/summary.json": "7904b7ae7bd8af5bb0fa4780cd100b82627c956237fdc1e6fe2191a13cdda373",
+          "seed_2000/final_population.json": "8104ed76b74ed87249de90734bc50d23b01c389fe12d72a9c407d7a33a9aa78d",
+          "seed_2001/summary.json": "fb8ab37be7c69d74d9889bccbaad07202e2cc4303b8ebffd83f5e4e575d8404d",
+          "seed_2001/final_population.json": "14b36e1cb179f8953a98a97e04bf74572b93c3b3b040d37a55ac9117ad0cad19",
+          "seed_2002/summary.json": "ab7bd01ee89163211cd43ea4e0c3f078942ca33f5ef0f8d08e6eda7c0b79d68f",
+          "seed_2002/final_population.json": "19e0a538cf1d1df1017ad05bbeab155022d260f3f8dd17d82079a5066a59e83d"
+        },
+        "seeds": [
+          2000,
+          2001,
+          2002
+        ]
+      },
+      {
+        "cohort": "terminal_only",
+        "source": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/runs/session_1794949602917027560_37741_0",
+        "source_manifest": {
+          "arena": {
+            "blank_delay": 5,
+            "body": 0.0,
+            "cue_ticks": 1,
+            "cue_weight": 5.0,
+            "energy": 0.5,
+            "food": 0.0,
+            "goal_left_x": -4.0,
+            "goal_left_y": 4.0,
+            "goal_radius": 1.5,
+            "goal_right_x": 4.0,
+            "goal_right_y": 4.0,
+            "horizon": 20,
+            "kin": 0.0,
+            "light": 1.0,
+            "max_speed": 1.0,
+            "max_turn": 0.19634954084936207,
+            "niche": 0.0,
+            "pheromone": 0.0,
+            "ray_count": 5,
+            "ray_fov": 2.094,
+            "ray_range": 12.0,
+            "recurrent_weight": 5.0,
+            "speed_bias": 2.0,
+            "start_heading": 1.5707963267948966,
+            "start_x": 0.0,
+            "start_y": 0.0,
+            "temperature": 0.5,
+            "turn_bias": 2.0
+          },
+          "arena_path": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/delayed_choice.toml",
+          "build_profile": "release",
+          "champion_rule": "best member of final population by training score then lowest ID; fixed budget, no early stopping",
+          "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+          "core_build": "297edc68fb18e05e",
+          "embedded_founder_defaults": {
+            "activity_tracking": {
+              "enabled": true,
+              "hash_version": 2,
+              "lineage_window": 1000,
+              "window_size": 100
+            },
+            "aging": {
+              "aging_rate": 0.002,
+              "extrinsic_mortality": 0.0001,
+              "initial_senescence": 1e-05
+            },
+            "brain": {
+              "hidden": 8,
+              "inputs": 20,
+              "outputs": 7
+            },
+            "combat": {
+              "attack_cost": 5.0,
+              "attack_damage": 20.0,
+              "attack_range": 8.0,
+              "energy_transfer_ratio": 0.75,
+              "idle_attack_cost": 0.0
+            },
+            "creature": {
+              "body_radius": 3.0,
+              "feeding_speed_factor": 0.5,
+              "hard_cap": 2000,
+              "initial_count": 300,
+              "max_age": 2000,
+              "max_speed": 2.0,
+              "max_turn": 0.2,
+              "vision": {
+                "fov": 2.094,
+                "range": 60.0,
+                "ray_count": 5
+              }
+            },
+            "daynight": {
+              "enabled": true,
+              "period": 40.0
+            },
+            "density_pressure": {
+              "cost_per_neighbor": 0.01
+            },
+            "elevation": {
+              "enabled": true,
+              "octaves": 4,
+              "seed": 7777,
+              "slope_factor": 5.0
+            },
+            "energy": {
+              "activity_weight_cost": 0.0005,
+              "base_metabolism": 0.3,
+              "brain_cost": 0.001,
+              "connection_cost": 0.001,
+              "maximum": 200.0,
+              "movement_cost": 0.15,
+              "starting": 60.0
+            },
+            "epigenetics": {
+              "brain_update_interval": 1,
+              "demethylation_rate": 0.001,
+              "enabled": true,
+              "inheritance_noise": 0.02,
+              "methylation_rate": 0.005,
+              "stress_repro_fraction": 0.25
+            },
+            "food": {
+              "biomes": [
+                {
+                  "radius": 200.0,
+                  "regrowth_multiplier": 3.0,
+                  "x": 250.0,
+                  "y": 250.0
+                },
+                {
+                  "radius": 200.0,
+                  "regrowth_multiplier": 3.0,
+                  "x": 750.0,
+                  "y": 750.0
+                },
+                {
+                  "radius": 150.0,
+                  "regrowth_multiplier": 2.0,
+                  "x": 500.0,
+                  "y": 500.0
+                },
+                {
+                  "radius": 180.0,
+                  "regrowth_multiplier": 0.3,
+                  "x": 750.0,
+                  "y": 250.0
+                }
+              ],
+              "cell_size": 10.0,
+              "droughts": {
+                "duration": 3000,
+                "max_active": 3,
+                "radius": 150.0,
+                "schedule_seed": null,
+                "severity": 0.05,
+                "spawn_rate": 0.0002
+              },
+              "energy_per_food": 15.0,
+              "fruit": {
+                "biome_rate_multiplier": 2.0,
+                "enabled": true,
+                "energy_per_fruit": 20.0
+              },
+              "max_per_cell": 1.0,
+              "regrowth_rate": 0.008,
+              "seasons": {
+                "amplitude": 0.3,
+                "period": 10000.0
+              }
+            },
+            "mutation": {
+              "add_connection_probability": 0.02,
+              "add_node_probability": 0.01,
+              "add_recurrent_probability": 0.0,
+              "prune_probability": 0.02,
+              "toggle_probability": 0.01,
+              "trait_probability": 0.05,
+              "weight_probability": 0.1,
+              "weight_step": 0.2
+            },
+            "niche_construction": {
+              "activation_threshold": 0.2,
+              "decay_rate": 0.999,
+              "deposit_rate": 0.05,
+              "enabled": true,
+              "energy_cost": 0.5,
+              "max_level": 1.0,
+              "regrowth_bonus": 0.5
+            },
+            "pheromones": {
+              "decay_rate": 0.995,
+              "deposit_rate": 0.1,
+              "enabled": true,
+              "max_level": 10.0
+            },
+            "reproduction": {
+              "child_energy": 30.0,
+              "crossover_rate": 0.7,
+              "fitness_bias": true,
+              "mate_cost": 30.0,
+              "mate_energy_fraction": 0.5,
+              "mate_range": 15.0,
+              "parent_cost": 30.0,
+              "sexual": true,
+              "threshold": 60.0
+            },
+            "sharing": {
+              "share_amount": 5.0,
+              "share_range": 10.0,
+              "transfer_efficiency": 0.9
+            },
+            "speciation": {
+              "dynamic": true,
+              "factor": 0.75,
+              "fixed_threshold": 0.5,
+              "max_threshold": 2.0,
+              "min_threshold": 0.1,
+              "sample_size": 50
+            },
+            "temperature": {
+              "cost_factor": 0.5,
+              "enabled": true
+            },
+            "world": {
+              "height": 1000.0,
+              "seed": 42,
+              "width": 1000.0
+            }
+          },
+          "execution": "serial; no ecology or Rayon pool",
+          "fitness": "number correct across cues [-1,+1]; terminal first contact only; wrong/timeout zero",
+          "founders": "Genome::random with declared dimensions/mutation; no injected reference weights",
+          "interpretation": "engineering feasibility pilot; genetic optimization across generations, not memory, within-life learning, ecological adaptation or generalization",
+          "phenotype": "20-style arena inputs (dimensions in arena), declared hidden, seven outputs; methylation zero and fixed; no body scaling, metabolism, energy selection or lifetime updates; neutral hue drift from native reproduce retained",
+          "protocol": {
+            "elites": 8,
+            "fitness": "terminal_only",
+            "generations": 25,
+            "hidden": 8,
+            "mutation": {
+              "add_connection_probability": 0.0,
+              "add_node_probability": 0.0,
+              "add_recurrent_probability": 0.0,
+              "prune_probability": 0.0,
+              "toggle_probability": 0.0,
+              "trait_probability": 0.0,
+              "weight_probability": 0.1,
+              "weight_step": 0.2
+            },
+            "population": 64,
+            "seeds": [
+              2100,
+              2101,
+              2102
+            ],
+            "tournament": 3
+          },
+          "protocol_path": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_only/visible_acquisition.toml",
+          "rng": "ChaCha8Rng seed_from_u64; fixed-width random_index",
+          "schema_version": 1,
+          "selection": "asexual elitism; tournament with replacement; descending correct then ascending persistent candidate ID; no crossover/speciation",
+          "source_dirty": "false",
+          "source_revision": "72f7c5b32119e57dddb062e957543ada6e2db53d",
+          "status": "started",
+          "target": "aarch64-unknown-linux-gnu",
+          "task": "visible_cue_genetic_acquisition",
+          "total_evaluations": 4992,
+          "unit": "independent founder-population seed; cues/candidates/generations are not independent replicates",
+          "validation": "none; champion trials replay training conditions only; not a held-out evaluation"
+        },
+        "source_sha256": {
+          "manifest.json": "10716b3cfa91c1b13d041ae8505da503b5fba9259b4f70cfbfde008e6ab5de65",
+          "summary.json": "94f2c37997fbfedc2cec8131af458c8793cf12a47c507679412c18c78e14a043",
+          "seed_2100/summary.json": "e3728bd0f1eb372d9939d7033f598dfec900eaad25e1cb773c5138bab7e3ecb3",
+          "seed_2100/final_population.json": "0c1b4e35598982f59e1361315198db0bfc1df760721702de102aeafd0c46e748",
+          "seed_2101/summary.json": "73b347b14b4c83fc8f69a1b5213075257cf2fff7a89fdc50472a2966559f83c9",
+          "seed_2101/final_population.json": "480be8df407992f6313443d64e66e35ce14197ea7d2361085193142b9a810f24",
+          "seed_2102/summary.json": "1881904ff05be72d6ac83d25673f8b5c2b2c99a5b2fc91dbd6ffa2865064ef26",
+          "seed_2102/final_population.json": "971f295c67360705193c6b740bf8811315c2bc0139393a8a1e811258f3576b9a"
+        },
+        "seeds": [
+          2100,
+          2101,
+          2102
+        ]
+      },
+      {
+        "cohort": "terminal_progress",
+        "source": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/runs/session_1794949608116550471_37747_0",
+        "source_manifest": {
+          "arena": {
+            "blank_delay": 5,
+            "body": 0.0,
+            "cue_ticks": 1,
+            "cue_weight": 5.0,
+            "energy": 0.5,
+            "food": 0.0,
+            "goal_left_x": -4.0,
+            "goal_left_y": 4.0,
+            "goal_radius": 1.5,
+            "goal_right_x": 4.0,
+            "goal_right_y": 4.0,
+            "horizon": 20,
+            "kin": 0.0,
+            "light": 1.0,
+            "max_speed": 1.0,
+            "max_turn": 0.19634954084936207,
+            "niche": 0.0,
+            "pheromone": 0.0,
+            "ray_count": 5,
+            "ray_fov": 2.094,
+            "ray_range": 12.0,
+            "recurrent_weight": 5.0,
+            "speed_bias": 2.0,
+            "start_heading": 1.5707963267948966,
+            "start_x": 0.0,
+            "start_y": 0.0,
+            "temperature": 0.5,
+            "turn_bias": 2.0
+          },
+          "arena_path": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/delayed_choice.toml",
+          "build_profile": "release",
+          "champion_rule": "best final population member by correct count, terminal progress, then ID; fixed budget, no early stopping",
+          "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+          "core_build": "297edc68fb18e05e",
+          "embedded_founder_defaults": {
+            "activity_tracking": {
+              "enabled": true,
+              "hash_version": 2,
+              "lineage_window": 1000,
+              "window_size": 100
+            },
+            "aging": {
+              "aging_rate": 0.002,
+              "extrinsic_mortality": 0.0001,
+              "initial_senescence": 1e-05
+            },
+            "brain": {
+              "hidden": 8,
+              "inputs": 20,
+              "outputs": 7
+            },
+            "combat": {
+              "attack_cost": 5.0,
+              "attack_damage": 20.0,
+              "attack_range": 8.0,
+              "energy_transfer_ratio": 0.75,
+              "idle_attack_cost": 0.0
+            },
+            "creature": {
+              "body_radius": 3.0,
+              "feeding_speed_factor": 0.5,
+              "hard_cap": 2000,
+              "initial_count": 300,
+              "max_age": 2000,
+              "max_speed": 2.0,
+              "max_turn": 0.2,
+              "vision": {
+                "fov": 2.094,
+                "range": 60.0,
+                "ray_count": 5
+              }
+            },
+            "daynight": {
+              "enabled": true,
+              "period": 40.0
+            },
+            "density_pressure": {
+              "cost_per_neighbor": 0.01
+            },
+            "elevation": {
+              "enabled": true,
+              "octaves": 4,
+              "seed": 7777,
+              "slope_factor": 5.0
+            },
+            "energy": {
+              "activity_weight_cost": 0.0005,
+              "base_metabolism": 0.3,
+              "brain_cost": 0.001,
+              "connection_cost": 0.001,
+              "maximum": 200.0,
+              "movement_cost": 0.15,
+              "starting": 60.0
+            },
+            "epigenetics": {
+              "brain_update_interval": 1,
+              "demethylation_rate": 0.001,
+              "enabled": true,
+              "inheritance_noise": 0.02,
+              "methylation_rate": 0.005,
+              "stress_repro_fraction": 0.25
+            },
+            "food": {
+              "biomes": [
+                {
+                  "radius": 200.0,
+                  "regrowth_multiplier": 3.0,
+                  "x": 250.0,
+                  "y": 250.0
+                },
+                {
+                  "radius": 200.0,
+                  "regrowth_multiplier": 3.0,
+                  "x": 750.0,
+                  "y": 750.0
+                },
+                {
+                  "radius": 150.0,
+                  "regrowth_multiplier": 2.0,
+                  "x": 500.0,
+                  "y": 500.0
+                },
+                {
+                  "radius": 180.0,
+                  "regrowth_multiplier": 0.3,
+                  "x": 750.0,
+                  "y": 250.0
+                }
+              ],
+              "cell_size": 10.0,
+              "droughts": {
+                "duration": 3000,
+                "max_active": 3,
+                "radius": 150.0,
+                "schedule_seed": null,
+                "severity": 0.05,
+                "spawn_rate": 0.0002
+              },
+              "energy_per_food": 15.0,
+              "fruit": {
+                "biome_rate_multiplier": 2.0,
+                "enabled": true,
+                "energy_per_fruit": 20.0
+              },
+              "max_per_cell": 1.0,
+              "regrowth_rate": 0.008,
+              "seasons": {
+                "amplitude": 0.3,
+                "period": 10000.0
+              }
+            },
+            "mutation": {
+              "add_connection_probability": 0.02,
+              "add_node_probability": 0.01,
+              "add_recurrent_probability": 0.0,
+              "prune_probability": 0.02,
+              "toggle_probability": 0.01,
+              "trait_probability": 0.05,
+              "weight_probability": 0.1,
+              "weight_step": 0.2
+            },
+            "niche_construction": {
+              "activation_threshold": 0.2,
+              "decay_rate": 0.999,
+              "deposit_rate": 0.05,
+              "enabled": true,
+              "energy_cost": 0.5,
+              "max_level": 1.0,
+              "regrowth_bonus": 0.5
+            },
+            "pheromones": {
+              "decay_rate": 0.995,
+              "deposit_rate": 0.1,
+              "enabled": true,
+              "max_level": 10.0
+            },
+            "reproduction": {
+              "child_energy": 30.0,
+              "crossover_rate": 0.7,
+              "fitness_bias": true,
+              "mate_cost": 30.0,
+              "mate_energy_fraction": 0.5,
+              "mate_range": 15.0,
+              "parent_cost": 30.0,
+              "sexual": true,
+              "threshold": 60.0
+            },
+            "sharing": {
+              "share_amount": 5.0,
+              "share_range": 10.0,
+              "transfer_efficiency": 0.9
+            },
+            "speciation": {
+              "dynamic": true,
+              "factor": 0.75,
+              "fixed_threshold": 0.5,
+              "max_threshold": 2.0,
+              "min_threshold": 0.1,
+              "sample_size": 50
+            },
+            "temperature": {
+              "cost_factor": 0.5,
+              "enabled": true
+            },
+            "world": {
+              "height": 1000.0,
+              "seed": 42,
+              "width": 1000.0
+            }
+          },
+          "execution": "serial; no ecology or Rayon pool",
+          "fitness": "correct-count primary, then mean clipped terminal surface-distance progress toward assigned goal; teacher target consulted only after termination",
+          "founders": "Genome::random with declared dimensions/mutation; no injected reference weights",
+          "interpretation": "engineering feasibility pilot; genetic optimization across generations, not memory, within-life learning, ecological adaptation or generalization",
+          "phenotype": "20-style arena inputs (dimensions in arena), declared hidden, seven outputs; methylation zero and fixed; no body scaling, metabolism, energy selection or lifetime updates; neutral hue drift from native reproduce retained",
+          "progress_definition": "mean across cues of clamp((start_surface_distance-terminal_surface_distance)/start_surface_distance,0,1); confirmed correct contact=1; terminal means first contact or horizon, never closest approach",
+          "protocol": {
+            "elites": 8,
+            "fitness": "terminal_progress",
+            "generations": 25,
+            "hidden": 8,
+            "mutation": {
+              "add_connection_probability": 0.0,
+              "add_node_probability": 0.0,
+              "add_recurrent_probability": 0.0,
+              "prune_probability": 0.0,
+              "toggle_probability": 0.0,
+              "trait_probability": 0.0,
+              "weight_probability": 0.1,
+              "weight_step": 0.2
+            },
+            "population": 64,
+            "seeds": [
+              2100,
+              2101,
+              2102
+            ],
+            "tournament": 3
+          },
+          "protocol_path": "/home/pi/Digital-Terrarium/output/acquisition/progress_comparison_20261117T205542Z/terminal_progress/visible_acquisition.toml",
+          "rng": "ChaCha8Rng seed_from_u64; fixed-width random_index",
+          "schema_version": 1,
+          "selection": "asexual elitism; tournament with replacement; descending correct, descending terminal_progress, ascending persistent candidate ID; no crossover/speciation",
+          "source_dirty": "false",
+          "source_revision": "72f7c5b32119e57dddb062e957543ada6e2db53d",
+          "status": "started",
+          "target": "aarch64-unknown-linux-gnu",
+          "task": "visible_cue_genetic_acquisition",
+          "total_evaluations": 4992,
+          "unit": "independent founder-population seed; cues/candidates/generations are not independent replicates",
+          "validation": "none; champion trials replay training conditions only; not a held-out evaluation"
+        },
+        "source_sha256": {
+          "manifest.json": "2b0b82981bf5e04ff1c3c194590ebaa179b452248cc1f402e22f3d773e72ef70",
+          "summary.json": "d1ab597b27a057a110cc33ee9354fda89effe64853a2d056c1dd28bfbe845458",
+          "seed_2100/summary.json": "9826a8be7b838722daf3b1c6288531e570c17c81d73aa87258f2a874f0b2f045",
+          "seed_2100/final_population.json": "9dec4fc4d2fae7dff45990fc199466855983cc9e5c2946a6e4146d6b6dde174e",
+          "seed_2101/summary.json": "67f2da7b6a10449f10745ba21b1c39c1b2269d7d2e117d8c838f1300ba0f230f",
+          "seed_2101/final_population.json": "ca706d9963821e9e4b9fda62f64261ef81f1dfd81cf7dcc2d265264e8fa86c1d",
+          "seed_2102/summary.json": "f8cbb20adabcbe1d59dc4e8447486c4612b21658282eed571d85d18685e5b2c0",
+          "seed_2102/final_population.json": "20a309c63ac61c9a9d8d3339bdfaeb271bb96ab292fe8a04a3a8b9b16d7f7c33"
+        },
+        "seeds": [
+          2100,
+          2101,
+          2102
+        ]
+      }
+    ],
+    "execution_order": [
+      "original",
+      "terminal_only",
+      "terminal_progress"
+    ],
+    "wall_seconds_per_cohort": 1800,
+    "code_sha256": {
+      "analysis/run_visible_validation.py": "e7c1b35efa3e1b4a5b56ce34e7bd616fabbd90f9de9629f37c704e4ef66cb2b3",
+      "analysis/run_guarded_acquisition.py": "c439e95aa3c9a724e8d5c9064ee1b3021871c22174e7f174065ea5c406d5c5bd",
+      "analysis/summarize_visible_validation.py": "03d60966efb8752603949c87f4a6ff184876116d02258230bdeea9152098c9a3",
+      "analysis/pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+      "configs/visible_validation.toml": "595d8892befd21e25368fa9a0ce13ecdb62e4958e01e18ef8c3fedee9b4eff8a"
+    }
+  },
+  "result_sha256": {
+    "original/runs/session_1794967428992114319_38325_0/result.json": "20f1517293f5020dc283303f9755763e5cd5365fd6985e5d1a0b6bf91fcb6eb6",
+    "terminal_only/runs/session_1794967434202699891_38329_0/result.json": "101b85a960f01c7de31a33bcd52f55772f25178f107cd1f3080f4cdcd256cfb6",
+    "terminal_progress/runs/session_1794967439410622457_38333_0/result.json": "c85cc73b0189847565d1bfd39edd158366b54bed2b1bcd0efdfa5a065702056a"
+  },
+  "aggregate": [
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 2,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 3,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 1,
+      "wrong": 2,
+      "timeout": 3
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 1,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 1,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 5
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 2,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 2,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 4
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "policies": 3,
+      "both_correct": 2,
+      "correct": 5,
+      "wrong": 0,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "policies": 3,
+      "both_correct": 1,
+      "correct": 4,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "policies": 3,
+      "both_correct": 2,
+      "correct": 5,
+      "wrong": 0,
+      "timeout": 1
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 4
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 1,
+      "timeout": 3
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 3,
+      "wrong": 1,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "policies": 3,
+      "both_correct": 0,
+      "correct": 2,
+      "wrong": 1,
+      "timeout": 3
+    }
+  ],
+  "policies": [
+    {
+      "cohort": "original",
+      "seed": 2000,
+      "champion_id": 117,
+      "case": "training_reference",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2000,
+      "champion_id": 117,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 14
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2000,
+      "champion_id": 117,
+      "case": "rotation_plus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2000,
+      "champion_id": 117,
+      "case": "near",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2000,
+      "champion_id": 117,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2000,
+      "champion_id": 117,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 11
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 9
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2000,
+      "champion_id": 117,
+      "case": "wide",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2001,
+      "champion_id": 17,
+      "case": "training_reference",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 16
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2001,
+      "champion_id": 17,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 16
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2001,
+      "champion_id": 17,
+      "case": "rotation_plus_45",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 15
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2001,
+      "champion_id": 17,
+      "case": "near",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 12
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 12
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2001,
+      "champion_id": 17,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 15
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2001,
+      "champion_id": 17,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 10
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 10
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2001,
+      "champion_id": 17,
+      "case": "wide",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 18
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 18
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2002,
+      "champion_id": 3,
+      "case": "training_reference",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 15
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 17
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2002,
+      "champion_id": 3,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 15
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 16
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2002,
+      "champion_id": 3,
+      "case": "rotation_plus_45",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 15
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 16
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2002,
+      "champion_id": 3,
+      "case": "near",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 11
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 12
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2002,
+      "champion_id": 3,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 14
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 16
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2002,
+      "champion_id": 3,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 10
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 11
+        }
+      ]
+    },
+    {
+      "cohort": "original",
+      "seed": 2002,
+      "champion_id": 3,
+      "case": "wide",
+      "correct": 0,
+      "wrong": 1,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2100,
+      "champion_id": 423,
+      "case": "training_reference",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 16
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 14
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2100,
+      "champion_id": 423,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 16
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 14
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2100,
+      "champion_id": 423,
+      "case": "rotation_plus_45",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 15
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2100,
+      "champion_id": 423,
+      "case": "near",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2100,
+      "champion_id": 423,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 18
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2100,
+      "champion_id": 423,
+      "case": "narrow",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2100,
+      "champion_id": 423,
+      "case": "wide",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 16
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 14
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2101,
+      "champion_id": 182,
+      "case": "training_reference",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2101,
+      "champion_id": 182,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 12
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2101,
+      "champion_id": 182,
+      "case": "rotation_plus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2101,
+      "champion_id": 182,
+      "case": "near",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2101,
+      "champion_id": 182,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 13
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 16
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2101,
+      "champion_id": 182,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 8
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 11
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2101,
+      "champion_id": 182,
+      "case": "wide",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2102,
+      "champion_id": 0,
+      "case": "training_reference",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 17
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2102,
+      "champion_id": 0,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 17
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2102,
+      "champion_id": 0,
+      "case": "rotation_plus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 17
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2102,
+      "champion_id": 0,
+      "case": "near",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2102,
+      "champion_id": 0,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 18
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2102,
+      "champion_id": 0,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "left",
+          "reward": 0,
+          "movement_ticks": 13
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 11
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_only",
+      "seed": 2102,
+      "champion_id": 0,
+      "case": "wide",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2100,
+      "champion_id": 381,
+      "case": "training_reference",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0,
+      "both_correct": true,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2100,
+      "champion_id": 381,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 19
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2100,
+      "champion_id": 381,
+      "case": "rotation_plus_45",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0,
+      "both_correct": true,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 19
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2100,
+      "champion_id": 381,
+      "case": "near",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 16
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2100,
+      "champion_id": 381,
+      "case": "far_forward",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2100,
+      "champion_id": 381,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2100,
+      "champion_id": 381,
+      "case": "wide",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2101,
+      "champion_id": 94,
+      "case": "training_reference",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 11
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2101,
+      "champion_id": 94,
+      "case": "rotation_minus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 11
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2101,
+      "champion_id": 94,
+      "case": "rotation_plus_45",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 11
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2101,
+      "champion_id": 94,
+      "case": "near",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2101,
+      "champion_id": 94,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 13
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2101,
+      "champion_id": 94,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 8
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 8
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2101,
+      "champion_id": 94,
+      "case": "wide",
+      "correct": 1,
+      "wrong": 1,
+      "timeout": 0,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 13
+        },
+        {
+          "cue": 1,
+          "choice": "right",
+          "reward": 0,
+          "movement_ticks": 13
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2102,
+      "champion_id": 818,
+      "case": "training_reference",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0,
+      "both_correct": true,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2102,
+      "champion_id": 818,
+      "case": "rotation_minus_45",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0,
+      "both_correct": true,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 14
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2102,
+      "champion_id": 818,
+      "case": "rotation_plus_45",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0,
+      "both_correct": true,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2102,
+      "champion_id": 818,
+      "case": "near",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 16
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2102,
+      "champion_id": 818,
+      "case": "far_forward",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 16
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2102,
+      "champion_id": 818,
+      "case": "narrow",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "right",
+          "reward": 1,
+          "movement_ticks": 14
+        },
+        {
+          "cue": 1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        }
+      ]
+    },
+    {
+      "cohort": "terminal_progress",
+      "seed": 2102,
+      "champion_id": 818,
+      "case": "wide",
+      "correct": 1,
+      "wrong": 0,
+      "timeout": 1,
+      "both_correct": false,
+      "trials": [
+        {
+          "cue": -1,
+          "choice": "timeout",
+          "reward": 0,
+          "movement_ticks": 20
+        },
+        {
+          "cue": 1,
+          "choice": "left",
+          "reward": 1,
+          "movement_ticks": 15
+        }
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "training_reference",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_minus_45",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "rotation_plus_45",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "near",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "far_forward",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "narrow",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "original",
+      "case": "wide",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "training_reference",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_minus_45",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "rotation_plus_45",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "near",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "far_forward",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "narrow",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_only",
+      "case": "wide",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "training_reference",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_minus_45",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "rotation_plus_45",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "near",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "far_forward",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "narrow",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "controller": "manufactured_feed_forward",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "controller": "manufactured_feed_forward",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "controller": "manufactured_recurrent",
+      "condition": "intact",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "controller": "manufactured_recurrent",
+      "condition": "same_network_state_cleared",
+      "correct": 2,
+      "wrong": 0,
+      "timeout": 0
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "controller": "cue_independent",
+      "condition": "intact",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    },
+    {
+      "cohort": "terminal_progress",
+      "case": "wide",
+      "controller": "cue_independent",
+      "condition": "same_network_state_cleared",
+      "correct": 0,
+      "wrong": 0,
+      "timeout": 2
+    }
+  ],
+  "operational": [
+    {
+      "cohort": "original",
+      "supervisor": {
+        "state": "completed",
+        "started_utc": "2026-11-18T02:03:48.326093+00:00",
+        "guard_pid": 38323,
+        "runner_pid": 38325,
+        "runner_exit_code": 0,
+        "runner_left_paused": false,
+        "reason": null,
+        "updated_utc": "2026-11-18T02:03:53.452650+00:00",
+        "elapsed_wall_seconds": 5.126566688995808,
+        "guard_state": "monitoring",
+        "guard_exit_code": 0,
+        "ended_utc": "2026-11-18T02:03:53.452629+00:00",
+        "supervisor_exit_code": 0
+      },
+      "final_guard": {
+        "state": "finished",
+        "updated_utc": "2026-11-18T02:03:53Z",
+        "guard_pid": 38323,
+        "batch": "/home/pi/Digital-Terrarium/output/visible_validation/robustness_20261118T020500Z/original",
+        "executable": "/home/pi/Digital-Terrarium/output/visible_validation/robustness_20261118T020500Z/original/sim-runner",
+        "temperature_c": 55.1,
+        "sensor": "/sys/class/thermal/thermal_zone0/temp",
+        "high_c": 75.0,
+        "low_c": 65.0,
+        "poll_seconds": 5.0,
+        "running_matches": 0,
+        "paused": []
+      },
+      "evaluator": {
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "core_build": "297edc68fb18e05e",
+        "profile": "release",
+        "source_dirty": "false",
+        "source_revision": "b40ae9c15ef5f90f17e7e2bbbc286c1c19c0b88c",
+        "target": "aarch64-unknown-linux-gnu"
+      }
+    },
+    {
+      "cohort": "terminal_only",
+      "supervisor": {
+        "state": "completed",
+        "started_utc": "2026-11-18T02:03:53.534733+00:00",
+        "guard_pid": 38327,
+        "runner_pid": 38329,
+        "runner_exit_code": 0,
+        "runner_left_paused": false,
+        "reason": null,
+        "updated_utc": "2026-11-18T02:03:58.660540+00:00",
+        "elapsed_wall_seconds": 5.125818334054202,
+        "guard_state": "monitoring",
+        "guard_exit_code": 0,
+        "ended_utc": "2026-11-18T02:03:58.660525+00:00",
+        "supervisor_exit_code": 0
+      },
+      "final_guard": {
+        "state": "finished",
+        "updated_utc": "2026-11-18T02:03:58Z",
+        "guard_pid": 38327,
+        "batch": "/home/pi/Digital-Terrarium/output/visible_validation/robustness_20261118T020500Z/terminal_only",
+        "executable": "/home/pi/Digital-Terrarium/output/visible_validation/robustness_20261118T020500Z/terminal_only/sim-runner",
+        "temperature_c": 57.85,
+        "sensor": "/sys/class/thermal/thermal_zone0/temp",
+        "high_c": 75.0,
+        "low_c": 65.0,
+        "poll_seconds": 5.0,
+        "running_matches": 0,
+        "paused": []
+      },
+      "evaluator": {
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "core_build": "297edc68fb18e05e",
+        "profile": "release",
+        "source_dirty": "false",
+        "source_revision": "b40ae9c15ef5f90f17e7e2bbbc286c1c19c0b88c",
+        "target": "aarch64-unknown-linux-gnu"
+      }
+    },
+    {
+      "cohort": "terminal_progress",
+      "supervisor": {
+        "state": "completed",
+        "started_utc": "2026-11-18T02:03:58.741861+00:00",
+        "guard_pid": 38331,
+        "runner_pid": 38333,
+        "runner_exit_code": 0,
+        "runner_left_paused": false,
+        "reason": null,
+        "updated_utc": "2026-11-18T02:04:03.867809+00:00",
+        "elapsed_wall_seconds": 5.125959157012403,
+        "guard_state": "monitoring",
+        "guard_exit_code": 0,
+        "ended_utc": "2026-11-18T02:04:03.867793+00:00",
+        "supervisor_exit_code": 0
+      },
+      "final_guard": {
+        "state": "finished",
+        "updated_utc": "2026-11-18T02:04:03Z",
+        "guard_pid": 38331,
+        "batch": "/home/pi/Digital-Terrarium/output/visible_validation/robustness_20261118T020500Z/terminal_progress",
+        "executable": "/home/pi/Digital-Terrarium/output/visible_validation/robustness_20261118T020500Z/terminal_progress/sim-runner",
+        "temperature_c": 57.3,
+        "sensor": "/sys/class/thermal/thermal_zone0/temp",
+        "high_c": 75.0,
+        "low_c": 65.0,
+        "poll_seconds": 5.0,
+        "running_matches": 0,
+        "paused": []
+      },
+      "evaluator": {
+        "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+        "core_build": "297edc68fb18e05e",
+        "profile": "release",
+        "source_dirty": "false",
+        "source_revision": "b40ae9c15ef5f90f17e7e2bbbc286c1c19c0b88c",
+        "target": "aarch64-unknown-linux-gnu"
+      }
+    }
+  ],
+  "interpretation": "Saved training-selected policies only; original cohort separate. No fresh-run, memory or ecology inference."
+}

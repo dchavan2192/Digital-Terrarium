@@ -2,9 +2,18 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-17 UTC
+**Last updated**: 2026-11-18 UTC
 
 ---
+
+## Resumed development — completed saved-policy robustness diagnostic, 2026-11-18 UTC
+
+- Owner resumed after the usage-limit stop. GitHub had no incoming source changes; Pi idle at53.2°C. Clean evaluator `b40ae9c` built in an isolated worktree with one Cargo worker; pinned binary SHA-256 `05e6fe23121818fb897332a53f314da11e2ea98fed6f61cfe52d607009833e63`. Old checkout/binaries/checkpoints preserved.
+- Added committed guarded validation launch/audit path at `09226d3` before outcomes. All nine Pi champion-summary hashes matched the frozen source list before launch. Executed original, terminal-only and terminal-progress serially under unchanged seven-case suite; no selection, retuning or search extension. [Final report](results/VISIBLE_VALIDATION_2026-11-17.md), [JSON](results/visible_validation_2026-11-17.json), all-policy figure and [raw archive](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-validation-2026-11-17) preserve all63 policy/case combinations. All95 archived payload files verified against their SHA-256 inventory.
+- **Finding:** progress policies reproduce2/3 full training successes, retain1/3 at−45° and2/3 at+45°, but0/3 solve both cues in each of the four changed relative geometries. Neither other cohort solves both cues on any case. Fixed manufactured feed-forward/recurrent references solve every case. Visible competence is brittle in these saved policies; this is not fresh-seed confirmation or a memory result. Near preserves center bearing while changing distance/apparent size.
+- Baseline replay and all feed-forward intact/reset trajectories match exactly. Independent audit verified source hashes, outcomes, motion/contact accounting and clean guard completion, covering all522 trials. Final auditor tests: three pure plus three installed-dataset checks pass; nine supervisor and ten thermal tests pass. Rust remains the unchanged171-test validated evaluator. Figure visually checked.
+- Pi batch `output/visible_validation/robustness_20261118T020500Z`, mirrored locally at `output/visible-validation/`. All supervisors/guards exit0 in about5.13seconds each; final readings55.1/57.85/57.3°C, no remaining paused or matching runner. Sparse telemetry is not continuous thermal/throttling assurance. Post-run Pi idle58.7°C. No additional experiment active.
+- **Next:** preserve the negative transfer result; specify a fresh competence-acquisition intervention using varied training conditions and fresh validation conditions. The used suite is now diagnostic data, not an untouched test set. Diagnose trajectories before changing the objective; fresh-seed repeatability needs a precision target. Keep delayed-memory selection/ecological claims gated. Demo/defaults unchanged; diet-competition branch unmerged.
 
 ## Usage-limit stopping point — saved-policy validation harness, 2026-11-17
 

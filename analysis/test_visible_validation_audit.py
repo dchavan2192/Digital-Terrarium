@@ -1,5 +1,9 @@
 """Data-independent checks for balanced-cue accounting and exact replay stripping."""
 import unittest
+from copy import deepcopy
+from pathlib import Path
+from unittest.mock import patch
+import summarize_visible_validation as audit_module
 from summarize_visible_validation import trial_counts, strip_progress
 
 
@@ -34,6 +38,50 @@ class ValidationAuditTests(unittest.TestCase):
         stripped = strip_progress(source)
         self.assertEqual(stripped['intact'], self.fixture())
         self.assertIn('terminal_progress', source['intact']['trials'][0])
+
+
+DATASET = Path(__file__).resolve().parents[1] / 'output/visible-validation/robustness_20261118T020500Z'
+
+
+@unittest.skipUnless(DATASET.is_dir(), 'archived diagnostic is not installed')
+class DatasetAuditTests(unittest.TestCase):
+    def test_complete_cohort_and_case_denominators(self):
+        result = audit_module.audit(DATASET)
+        self.assertEqual(len(result['policies']), 63)
+        self.assertEqual(len(result['aggregate']), 21)
+        self.assertEqual(len(result['controls']), 126)
+
+    def test_missing_case_or_changed_baseline_is_rejected(self):
+        real_read = audit_module.read
+        for mutation in ('missing', 'baseline'):
+            def altered(path):
+                data = real_read(path)
+                if path.name == 'result.json':
+                    data = deepcopy(data)
+                    if mutation == 'missing':
+                        data['policies'][0]['cases'].pop()
+                    else:
+                        data['policies'][0]['cases'][0]['evaluation']['intact']['mean_reward'] = .125
+                return data
+            with patch.object(audit_module, 'read', side_effect=altered):
+                with self.assertRaises(ValueError):
+                    audit_module.audit(DATASET)
+
+    def test_changed_fingerprint_or_unfinished_guard_is_rejected(self):
+        real_read = audit_module.read
+        for mutation in ('fingerprint', 'guard'):
+            def altered(path):
+                data = real_read(path)
+                if mutation == 'fingerprint' and path.name == 'result.json':
+                    data = deepcopy(data)
+                    data['source']['input_files'][0]['bytes'] += 1
+                if mutation == 'guard' and path == DATASET / 'original/thermal_guard/status.json':
+                    data = deepcopy(data)
+                    data['state'] = 'monitoring'
+                return data
+            with patch.object(audit_module, 'read', side_effect=altered):
+                with self.assertRaises(ValueError):
+                    audit_module.audit(DATASET)
 
 
 if __name__ == '__main__':

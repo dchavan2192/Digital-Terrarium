@@ -9,6 +9,7 @@ from pathlib import Path
 CASES = ['training_reference', 'rotation_minus_45', 'rotation_plus_45',
          'near', 'far_forward', 'narrow', 'wide']
 COHORTS = ['original', 'terminal_only', 'terminal_progress']
+SUITE_SHA256 = '595d8892befd21e25368fa9a0ce13ecdb62e4958e01e18ef8c3fedee9b4eff8a'
 
 
 def require(condition, reason):
@@ -75,6 +76,7 @@ def audit(batch):
                 'supervisor task/watchdog mismatch')
         for name, digest in manifest['sha256'].items():
             require(sha(child / name) == digest, f'pinned input changed: {label}/{name}')
+        require(manifest['sha256']['visible_validation.toml'] == SUITE_SHA256, 'frozen suite mismatch')
         require(manifest['sha256']['sim-runner'] == campaign['binary_sha256'], 'binary mismatch')
         for name, digest in cohort['source_sha256'].items():
             require(sha(child / 'input' / name) == digest, 'source-copy identity changed')
@@ -129,6 +131,8 @@ def audit(batch):
                     controls.append(dict(cohort=label, case=case['case'], controller=name,
                                          condition=condition, **trial_counts(case[name][condition], horizon)))
         guard = read(child / 'thermal_guard/status.json')
+        require(guard['state'] == 'finished' and guard['running_matches'] == 0
+                and guard['paused'] == [], 'guard left active/paused processes')
         operational.append(dict(cohort=label, supervisor=state, final_guard=guard,
                                 evaluator=evaluator))
     aggregate = []
