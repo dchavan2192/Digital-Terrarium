@@ -6,6 +6,49 @@
 
 ---
 
+## Completed — ALIFE 2027 science sprint, 2026-11-18 UTC
+
+Automated runs paused at owner request. Four commits landed on `main`; all pass `cargo fmt`, `cargo clippy -D warnings`, and `cargo test -p sim-core`. Automated scheduled task "Terrarium Environment Systems Dev" is now **disabled**.
+
+### What shipped
+
+**Commit `38c8ba0` — Configurable diet slope + MacArthur competition kernel**
+- Added `food.fruit.diet_slope` config (default 1.0 → genuine 50% generalist fitness valley vs old 65%)
+- Implemented MacArthur (1972) competition kernel: crowding cost ×`exp(-(Δdiet)²/(2σ²))`, σ = `food.fruit.diet_competition_sigma`; niche separation now relieves crowding pressure
+- Doubled diet trait mutation probability and step size so specialists can emerge on experiment timescales
+- Experiment config `configs/experiments/diet_radiation.toml` created
+
+**Commit `ab9008e` — Five ALIFE 2027 experiment configs**
+- `configs/experiments/cambrian_transition.toml` — pre-Cambrian epoch then resource pulse + predation unlock
+- `configs/experiments/cooperation_phase_boundary.toml` — sweep transfer_efficiency 0.5→1.0
+- `configs/experiments/drought_coexistence.toml` — intermediate disturbance hypothesis (Connell 1978)
+- `configs/experiments/predation_arms_race.toml` — track mean_connections vs predation pressure
+- Updated `diet_radiation.toml` with diet_competition_sigma sweep values 0.0/0.2/0.3/0.6
+
+**Commit `0d1be66` — R* resource competition (Tilman 1982)**
+- Food consumption now scales with diet efficiency: specialists draw fewer resources per unit energy gained, enabling genuine competitive exclusion by resource exhaustion
+- Added `mean_diet_preference` and `diet_variance` to `TickStats`; high variance = character displacement signal
+- Fixed dead `config.fruit` path — `FruitConfig.enabled` now defaults to `true` in TOML when `[food.fruit]` is present
+
+**Commit `6a8bcaa` — Neutral shadow model for OEE measurement (Bedau, Snyder & Packard 1998)**
+- `activity.rs`: Fixed presence-based tracking (was count-weighted, now +=1 per window per Bedau eq.1). Added `median_extant_activity` (Channon 2003 M(t)) which is resistant to inflation by persistent topologies.
+- `shadow.rs` (new): `ShadowPopulation` mirrors the real population's demographic events (births, deaths, mutation operator) but selects parents and victims at random rather than by fitness. Uses ChaCha8 stream 2 so the main RNG is bit-identical whether shadow is on or off.
+- `sim.rs`: `shadow_population`, `shadow_novel_traits`, `shadow_active_traits`, `shadow_mean_cumulative_activity`, `shadow_median_extant_activity` exported in `TickStats`. Enable with `activity_tracking.shadow = true`.
+- 14 new tests (11 unit + 3 integration). Verified: shadow_does_not_perturb_main_run, shadow_population_tracks_real, shadow_is_deterministic.
+
+### Scientific meaning
+
+Before this sprint: OEE claims were scientifically unjustifiable — growing `mean_cumulative_activity` can't be distinguished from neutral drift without a null model. With the shadow model, `mean_cumulative_activity > shadow_mean_cumulative_activity` is evidence for genuine selection-driven open-ended evolution, enabling a Class 4b claim under Channon's (2003) ALife test framework.
+
+### Next priorities (when runs resume)
+
+1. **Run diet radiation experiment** (`configs/experiments/diet_radiation.toml`) — does the MacArthur kernel produce stable bimodal diet distribution? Use `sim-runner sweep` on the Pi.
+2. **Enable shadow in experiment configs** — set `activity_tracking.shadow = true` in experiment TOMLs so each run produces shadow_* columns in CSV for comparison.
+3. **sim-runner CSV output** — currently doesn't emit shadow_* columns; add them before ALIFE 2027 experiments so analysis scripts can compare real vs shadow activity automatically.
+4. **OEE shadow design doc** — `docs/research/OEE_SHADOW_DESIGN.md` describes the full ablation experiment; run once diet radiation is stable.
+
+---
+
 ## Continued development — long-run auditor ready, 2026-11-18
 
 - Checked the Pi first: five of eight prescribed worlds completed, `job_05_seed_4002_rate_0.3` active, two unstarted. No main-branch updates or local edits at resumption. Preserved the pinned queue and all outputs; no restart, new simulation, engine/default/demo change or protocol adjustment.
