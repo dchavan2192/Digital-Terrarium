@@ -6,6 +6,14 @@
 
 ---
 
+## Continued development — long-run auditor ready, 2026-11-18
+
+- Checked the Pi first: five of eight prescribed worlds completed, `job_05_seed_4002_rate_0.3` active, two unstarted. No main-branch updates or local edits at resumption. Preserved the pinned queue and all outputs; no restart, new simulation, engine/default/demo change or protocol adjustment.
+- Added `analysis/summarize_long_recurrence.py` and [analysis/collection handoff](research/LONG_RECURRENCE_ANALYSIS.md). Strict source/base/whole-config/input and terminal-export checks pass on all five completed worlds in the mirrored observation. The explicit incomplete snapshot retains8slots/4pairs:5completed,1active,2unstarted; it is not a final result. Generated progress JSON stays under ignored `output/long-recurrence/`, with no partial scientific claim added to the results register.
+- Analysis preserves exact51/126-observation early/late windows, inclusive cumulative-event arithmetic, late-minus-early metrics, sampled population/cap pressure and all arm/pair missingness. Biological extinction is distinct from technical failure; post-extinction living edge means are null, while pre-action activity keeps its different timing. Live prefixes and partial trailing CSV records are labeled explicitly. SHA-256 inventory records bytes actually consumed; non-atomic multi-file snapshot limits are documented.
+- Two independent agent reviews informed counter/window, status, export and snapshot-integrity checks. All14 synthetic auditor tests pass, including full8-world completion, extinct/active/failed/unstarted retention, source/config/export/CSV corruption, impossible counters/queue ordering and consumed-byte hashes. CI now runs them. No actual biological outcomes were used to revise frozen endpoints.
+- Latest live check2026-11-18 14:21:42UTC (09:21:42Eastern): worker38495, supervisor47393, guard47394, runner47396; guard `monitoring`, one matching runner,72.7°C, no pause at that snapshot, throttle flags0xe0000 with no active low bits. Use refreshed state files for current identity. The campaign is still running; do not start another simulation. After all jobs terminate, refresh complete artifacts and run the auditor against all eight jobs before any report or archive. Current Task lab remains deployed fromfa0cd99.
+
 ## ACTIVE long Pi campaign and live Task lab — verified 2026-11-18 02:39 UTC
 
 - **Do not start a second simulation or rerun this queue.** Long study is active at `/home/pi/Digital-Terrarium/output/long_recurrence/baseline_long_20261118T023800Z`. Worker38495, first supervisor38497, guard38498, runner38500; use current state files for identity rather than assuming these PIDs remain valid. Eight frozen jobs, seed4000/rate0 first; completed-jobs list currently empty. [Frozen plan](results/BASELINE_RECURRENCE_LONG_PLAN_2026-11-17.md), [launch/provenance snapshot](results/long_recurrence_launch_2026-11-17.json).
