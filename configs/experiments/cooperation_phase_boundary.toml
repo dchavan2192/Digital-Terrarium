@@ -1,0 +1,213 @@
+# Experiment D: Cooperation Phase Boundary
+#
+# HYPOTHESIS: Cooperation transitions from absent to universal at a sharp critical point
+# in cost-benefit space — a phase transition analogous to Ising ferromagnetism.
+# Hamilton's rule predicts cooperation when rB > C. Here B = share_amount ×
+# transfer_efficiency (recipient benefit), C = share_amount (donor cost),
+# r = kin_similarity (relatedness). Cooperation should vanish when transfer_efficiency
+# falls below the critical value where rB ≈ C.
+#
+# BACKGROUND: The v2 "87% cooperation" finding was confounded by an energy-creation bug
+# (transfer_efficiency was implicitly >1, violating conservation). With the corrected
+# model (efficiency ≤ 1, enforced by Config::validate), Hamilton's rB > C is harder to
+# satisfy. Finding the exact critical efficiency where cooperation collapses — and showing
+# it matches the theoretical prediction — would be a rigorous, publishable ALife result.
+# No other embodied ALife system has demonstrated a quantitative match to Hamilton's
+# equation in evolved neural agents under strict energy conservation.
+#
+# SWEEP: sharing.transfer_efficiency in {0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0}
+#   0.5  → donor pays 1.0, recipient gets 0.5; thermodynamically lossy sharing
+#   0.9  → current default; kin selection should be active near this value
+#   1.0  → energy-conserving (donor's loss = recipient's gain exactly)
+#
+# MEASUREMENT: cooperation_rate and kin_share_ratio at tick 500k.
+# A sigmoidal transition in cooperation_rate vs transfer_efficiency would match
+# thermodynamic phase transition theory. The inflection point = estimated critical η*.
+#
+# PREDICTION: If r̄ ≈ 0.3 (mean kin similarity) and share_amount = 5.0,
+# Hamilton predicts cooperation when: transfer_efficiency > C/B = 1/r̄ ≈ 0.33.
+# We expect cooperation to emerge around η* ≈ 0.5–0.7 and reach saturation at η = 0.9.
+#
+# Citation: Hamilton (1964) "The Genetical Evolution of Social Behaviour" J Theor Biol
+# Citation: Trivers (1971) "The Evolution of Reciprocal Altruism" Q Rev Biol
+# Citation: Nowak (2006) "Five Rules for the Evolution of Cooperation" Science
+# Citation: Axelrod & Hamilton (1981) "The Evolution of Cooperation" Science
+#
+# Run: cargo run -p sim-runner --release -- sweep \
+#       --config configs/experiments/cooperation_phase_boundary.toml \
+#       --param sharing.transfer_efficiency \
+#       --values 0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0 \
+#       --seeds 10 --ticks 500000
+
+[world]
+width = 1000.0
+height = 1000.0
+seed = 42
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.008
+energy_per_food = 15.0
+
+[food.seasons]
+amplitude = 0.3
+period = 10000.0
+
+[food.droughts]
+spawn_rate = 0.0002
+duration = 3000
+radius = 150.0
+severity = 0.05
+max_active = 3
+
+[[food.biomes]]
+x = 250.0
+y = 250.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 750.0
+y = 750.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 500.0
+y = 500.0
+radius = 150.0
+regrowth_multiplier = 2.0
+
+[[food.biomes]]
+x = 750.0
+y = 250.0
+radius = 180.0
+regrowth_multiplier = 0.3
+
+[food.fruit]
+enabled = true
+energy_per_fruit = 20.0
+biome_rate_multiplier = 2.0
+diet_slope = 1.0
+diet_mutation_step = 0.2
+diet_mutation_probability = 0.1
+
+[creature]
+initial_count = 300
+hard_cap = 2000
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 2000
+feeding_speed_factor = 0.5
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 60.0
+maximum = 200.0
+base_metabolism = 0.3
+movement_cost = 0.15
+brain_cost = 0.001
+connection_cost = 0.001
+activity_weight_cost = 0.0005
+
+[reproduction]
+threshold = 60.0
+parent_cost = 30.0
+child_energy = 30.0
+sexual = true
+mate_range = 15.0
+crossover_rate = 0.7
+fitness_bias = true
+mate_cost = 30.0
+mate_energy_fraction = 0.5
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+idle_attack_cost = 0.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.75
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+# transfer_efficiency swept from 0.5 to 1.0 — the phase boundary variable
+transfer_efficiency = 0.9
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.02
+add_node_probability = 0.01
+toggle_probability = 0.01
+prune_probability = 0.02
+add_recurrent_probability = 0.0
+trait_probability = 0.05
+
+[density_pressure]
+cost_per_neighbor = 0.01
+diet_competition_sigma = 0.3
+
+[speciation]
+dynamic = true
+fixed_threshold = 0.5
+sample_size = 50
+factor = 0.75
+min_threshold = 0.1
+max_threshold = 2.0
+
+[brain]
+inputs = 20
+hidden = 8
+outputs = 7
+
+[temperature]
+enabled = true
+cost_factor = 0.5
+
+[pheromones]
+enabled = true
+deposit_rate = 0.5
+decay_rate = 0.95
+
+[daynight]
+enabled = true
+period = 10000.0
+min_light = 0.2
+
+[elevation]
+enabled = true
+max_slope_penalty = 0.5
+noise_scale = 400.0
+noise_amplitude = 1.0
+
+[niche_construction]
+enabled = true
+deposit_rate = 0.1
+decay_rate = 0.98
+regrowth_bonus = 0.5
+activation_threshold = 0.2
+
+[epigenetics]
+enabled = true
+methylation_rate = 0.1
+demethylation_rate = 0.05
+stress_repro_fraction = 0.25
+epimutation_noise = 0.01
+
+[activity_tracking]
+enabled = true
+window_size = 1000
+lineage_window = 1000
+hash_version = 2

@@ -1,0 +1,233 @@
+# Experiment E: Cambrian Transition — Neural Complexity Under Predation Pressure
+#
+# HYPOTHESIS: Enabling predation mid-simulation triggers a step-change increase in
+# neural complexity (mean_connections, mean_hidden_nodes) in prey lineages, analogous
+# to the Cambrian explosion where the emergence of predators drove rapid eye and
+# sensory complexity evolution.
+#
+# DESIGN: Three arms, each 400k ticks, 10 seeds each = 30 runs:
+#
+#   Arm A (Cambrian): predation disabled (transfer_ratio=0.0, attack_cost=999) for
+#     first 200k ticks, then enabled (ratio=0.75, cost=5.0) for final 200k ticks.
+#     Implemented by running two sequential configs with checkpoint resume.
+#     This arm uses combat.energy_transfer_ratio=0.0 as the sweep variable.
+#
+#   Arm B (Always-on predation): energy_transfer_ratio=0.75 throughout (positive control)
+#
+#   Arm C (No predation): energy_transfer_ratio=0.0 throughout (null baseline)
+#
+# SWEEP: This config sweeps energy_transfer_ratio in {0.0, 0.75} over 400k ticks.
+# For the Cambrian arm (pre-switch + post-switch), run both phases separately:
+#   Phase 1: 200k ticks, ratio=0.0, save checkpoint
+#   Phase 2: 200k ticks, resume checkpoint with ratio=0.75
+#
+# MEASUREMENT: mean_connections, mean_hidden_nodes, mean_brain_entropy, mean_brain_activity
+#   at ticks 50k, 100k, 150k, 200k (pre-switch) and 250k, 300k, 350k, 400k (post-switch).
+#   The critical test: Does Arm A show higher mean_connections post-200k than Arm C?
+#   And does the increase begin within 20k ticks of predation enabling?
+#
+# PREDICTION: Arms race dynamics (Dawkins & Krebs 1979) predict that prey evolve
+# sensory/cognitive complexity in response to predator pressure. The "expensive tissue"
+# hypothesis (Aiello & Wheeler 1995) predicts larger brains when survival advantage
+# exceeds the metabolic cost. Expected effect: +10-25% mean_connections in Arm A
+# post-switch relative to Arm C, with significant increase starting at tick 220k-240k.
+#
+# NOVELTY: No published ALife/NEAT system has demonstrated a Cambrian-style neural
+# complexity transition driven by ecology. Polyworld (Yaeger) had predation but fixed
+# topologies. Avida has no ecology. This would be a first.
+#
+# Citation: Aiello & Wheeler (1995) "The expensive-tissue hypothesis" Curr Anthropol
+# Citation: Dawkins & Krebs (1979) "Arms races between and within species" Proc R Soc B
+# Citation: Parker (1979) "Arms races in evolution" Phil Trans R Soc
+# Citation: Laughlin et al. (1998) "The metabolic cost of neural information" Nature Neurosci
+#
+# Phase 1 run command (pre-Cambrian, 200k ticks):
+#   cargo run -p sim-runner --release -- run \
+#     --config configs/experiments/cambrian_transition.toml \
+#     --set combat.energy_transfer_ratio=0.0 --set combat.attack_cost=999.0 \
+#     --ticks 200000 --checkpoint-every 200000 --output output/cambrian_phase1
+#
+# Phase 2 run command (Cambrian explosion, resume + predation ON):
+#   cargo run -p sim-runner --release -- run \
+#     --resume output/cambrian_phase1/.../checkpoint.bin \
+#     --set combat.energy_transfer_ratio=0.75 --set combat.attack_cost=5.0 \
+#     --ticks 200000 --output output/cambrian_phase2
+#
+# Full sweep (always-on vs no-predation baseline, 400k ticks each):
+#   cargo run -p sim-runner --release -- sweep \
+#     --config configs/experiments/cambrian_transition.toml \
+#     --param combat.energy_transfer_ratio \
+#     --values 0.0,0.75 --seeds 10 --ticks 400000
+
+[world]
+width = 1000.0
+height = 1000.0
+seed = 42
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.008
+energy_per_food = 15.0
+
+[food.seasons]
+amplitude = 0.3
+period = 10000.0
+
+[food.droughts]
+spawn_rate = 0.0002
+duration = 3000
+radius = 150.0
+severity = 0.05
+max_active = 3
+
+[[food.biomes]]
+x = 250.0
+y = 250.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 750.0
+y = 750.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 500.0
+y = 500.0
+radius = 150.0
+regrowth_multiplier = 2.0
+
+[[food.biomes]]
+x = 750.0
+y = 250.0
+radius = 180.0
+regrowth_multiplier = 0.3
+
+[food.fruit]
+enabled = true
+energy_per_fruit = 20.0
+biome_rate_multiplier = 2.0
+diet_slope = 1.0
+diet_mutation_step = 0.2
+diet_mutation_probability = 0.1
+
+[creature]
+initial_count = 300
+hard_cap = 2000
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 2000
+feeding_speed_factor = 0.5
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 60.0
+maximum = 200.0
+base_metabolism = 0.3
+movement_cost = 0.15
+brain_cost = 0.001
+connection_cost = 0.001
+activity_weight_cost = 0.0005
+
+[reproduction]
+threshold = 60.0
+parent_cost = 30.0
+child_energy = 30.0
+sexual = true
+mate_range = 15.0
+crossover_rate = 0.7
+fitness_bias = true
+mate_cost = 30.0
+mate_energy_fraction = 0.5
+
+[combat]
+attack_range = 8.0
+# energy_transfer_ratio swept 0.0 vs 0.75 (and overridden per phase in Cambrian arm)
+attack_cost = 5.0
+idle_attack_cost = 0.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.75
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+transfer_efficiency = 0.9
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.02
+add_node_probability = 0.01
+toggle_probability = 0.01
+prune_probability = 0.02
+add_recurrent_probability = 0.0
+trait_probability = 0.05
+
+[density_pressure]
+cost_per_neighbor = 0.01
+diet_competition_sigma = 0.3
+
+[speciation]
+dynamic = true
+fixed_threshold = 0.5
+sample_size = 50
+factor = 0.75
+min_threshold = 0.1
+max_threshold = 2.0
+
+[brain]
+inputs = 20
+hidden = 8
+outputs = 7
+
+[temperature]
+enabled = true
+cost_factor = 0.5
+
+[pheromones]
+enabled = true
+deposit_rate = 0.5
+decay_rate = 0.95
+
+[daynight]
+enabled = true
+period = 10000.0
+min_light = 0.2
+
+[elevation]
+enabled = true
+max_slope_penalty = 0.5
+noise_scale = 400.0
+noise_amplitude = 1.0
+
+[niche_construction]
+enabled = true
+deposit_rate = 0.1
+decay_rate = 0.98
+regrowth_bonus = 0.5
+activation_threshold = 0.2
+
+[epigenetics]
+enabled = true
+methylation_rate = 0.1
+demethylation_rate = 0.05
+stress_repro_fraction = 0.25
+epimutation_noise = 0.01
+
+[activity_tracking]
+enabled = true
+window_size = 1000
+lineage_window = 1000
+hash_version = 2

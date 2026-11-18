@@ -6,15 +6,17 @@
 # peak. We also test whether the MacArthur kernel amplifies this effect by allowing
 # more diet-distinct coexistence during disturbance refugia.
 #
-# SWEEP: food.droughts.spawn_rate in {0.0, 0.00005, 0.0002, 0.001, 0.005}
+# SWEEP: food.droughts.spawn_rate in {0.0, 0.00005, 0.0002, 0.001}
 #   0.0     → no droughts (control; competitive exclusion baseline)
 #   0.00005 → ~1 per 20k ticks (rare disturbance)
 #   0.0002  → default (~1 per 5k ticks, moderate)
-#   0.001   → ~1 per 1k ticks (frequent)
-#   0.005   → ~1 per 200 ticks (very frequent, population stress)
+#   0.001   → ~1 per 1k ticks (frequent; at duration=3000 produces ~3 overlapping droughts max)
+# NOTE: 0.005 removed — at duration=3000 it creates 10+ simultaneous droughts, causing
+# total ecosystem collapse rather than the intermediate-disturbance inverted-U we seek.
 #
-# MEASUREMENT: mean_species_count, lineage_diversity, mean_diet_preference std_dev
-# in the final 100k ticks. Expect an inverted-U relationship with spawn_rate.
+# MEASUREMENT: mean_species_count, lineage_diversity, diet_variance (new: std_dev of
+# diet_preference, tracks bimodality / character displacement) in the final 100k ticks.
+# Expect an inverted-U relationship with spawn_rate.
 #
 # Citation: Connell (1978) "Diversity in tropical rain forests and coral reefs"
 # Citation: Holling (1973) "Resilience and stability of ecological systems"
@@ -23,7 +25,7 @@
 # Run: cargo run -p sim-runner --release -- sweep \
 #       --config configs/experiments/drought_coexistence.toml \
 #       --param food.droughts.spawn_rate \
-#       --values 0.0,0.00005,0.0002,0.001,0.005 --seeds 10 --ticks 500000
+#       --values 0.0,0.00005,0.0002,0.001 --seeds 10 --ticks 500000
 
 [world]
 width = 1000.0

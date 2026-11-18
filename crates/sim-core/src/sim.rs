@@ -249,6 +249,16 @@ pub struct TickStats {
     pub mean_recurrent_connections: f64,
     /// Share of living creatures whose brain has at least one recurrent connection.
     pub recurrent_brain_fraction: f64,
+    /// Mean diet_preference across the population [0=algae specialist, 1=fruit specialist].
+    /// Tracks whether the population is diverging along the diet axis.
+    /// Citation: Grant & Grant (2006); Schluter (2000) "Ecology of Adaptive Radiation"
+    pub mean_diet_preference: f64,
+    /// Standard deviation of diet_preference — measures bimodality / adaptive radiation.
+    /// High variance = character displacement; low variance = single generalist peak.
+    pub diet_variance: f64,
+    /// Mean number of hidden neurons per brain (excludes fixed input/output nodes).
+    /// Tracks how neural complexity evolves under different selection pressures.
+    pub mean_hidden_nodes: f64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -929,11 +939,13 @@ impl Simulation {
             org.pos_y = wrap_coord(org.pos_y + sin_h * actual_speed, world_h);
 
             // Eat — algae (base food) + optional fruit layer
-            // Diet efficiency: specialists get ~100% from their food, generalists ~65%
+            // R* resource competition (Tilman 1982): specialists consume proportional to
+            // their efficiency, so a fruit specialist (algae_efficiency=0) removes nothing
+            // from the algae pool. This creates genuine niche separation by resource
+            // exhaustion — specialists have lower R* for their own resource.
+            // Citation: Tilman, D. (1982) "Resource Competition and Community Structure"
             // Citation: Grant & Grant (2006) Darwin's finches character displacement
             if action.eat > 0.0 {
-                // Eat algae
-                let algae = self.food_grid.eat_at(org.pos_x, org.pos_y, 1.0);
                 let algae_efficiency = if fruit_enabled {
                     // diet_slope=1.0: algae specialist (diet=0) gets 100%, generalist 50%,
                     // fruit specialist 0% (can't digest algae efficiently).
@@ -942,14 +954,21 @@ impl Simulation {
                 } else {
                     1.0
                 };
-                let algae_energy = algae * energy_per_food * algae_efficiency;
+                // Consume only as much algae as the organism can digest — specialists
+                // deplete their preferred resource; mismatched food passes uneaten.
+                let algae = self
+                    .food_grid
+                    .eat_at(org.pos_x, org.pos_y, algae_efficiency);
+                let algae_energy = algae * energy_per_food;
 
-                // Eat fruit if enabled
+                // Eat fruit if enabled — symmetric: algae specialists consume 0 fruit
                 let fruit_energy = if fruit_enabled {
-                    let fruit = self.food_grid.eat_fruit_at(org.pos_x, org.pos_y, 1.0);
                     let fruit_efficiency =
                         (1.0 - diet_slope * (1.0 - org.genome.diet_preference)).max(0.0);
-                    fruit * energy_per_fruit * fruit_efficiency
+                    let fruit = self
+                        .food_grid
+                        .eat_fruit_at(org.pos_x, org.pos_y, fruit_efficiency);
+                    fruit * energy_per_fruit
                 } else {
                     0.0
                 };
@@ -1886,9 +1905,31 @@ impl Simulation {
         } else {
             (0.0, 0.0)
         };
+
+        // Diet diversity — measures adaptive radiation along the diet axis.
+        // High diet_variance = bimodal population (two specialists); low = generalists.
+        // Citation: Grant & Grant (2006); Schluter (2000)
+        let (mean_diet_preference, diet_variance, mean_hidden_nodes) = if population > 0 {
+            let (sum_diet, sum_diet_sq, sum_hidden) =
+                self.organisms
+                    .iter()
+                    .fold((0.0f64, 0.0f64, 0.0f64), |(sd, sd2, sh), o| {
+                        let d = o.genome.diet_preference;
+                        (sd + d, sd2 + d * d, sh + o.brain.hidden as f64)
+                    });
+            let mean_d = sum_diet / population as f64;
+            let variance = (sum_diet_sq / population as f64) - (mean_d * mean_d);
+            (mean_d, variance.max(0.0), sum_hidden / population as f64)
+        } else {
+            (0.0, 0.0, 0.0)
+        };
+
         self.stats = TickStats {
             mean_recurrent_connections,
             recurrent_brain_fraction,
+            mean_diet_preference,
+            diet_variance,
+            mean_hidden_nodes,
             energy_before: ledger.before,
             energy_after: total_energy,
             energy_food_input: ledger.food_input,

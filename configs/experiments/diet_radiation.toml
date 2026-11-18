@@ -5,16 +5,23 @@
 # fruit-specialists. We expect two clusters in diet_preference space (near 0.0 and 1.0),
 # one or more species-level splits, and reduced species overlap in diet space over time.
 #
-# SWEEP: diet_competition_sigma in {0.0, 0.1, 0.3, 0.6}
+# SWEEP: diet_competition_sigma in {0.0, 0.2, 0.3, 0.6}
 #   sigma=0.0 → no kernel (everyone competes equally, control condition)
+#   sigma=0.2 → narrow niche width (strong between-specialist insulation)
 #   sigma=0.3 → default (moderate niche separation)
 #   sigma=0.6 → wide kernel (nearly all pairs compete equally, reduced stabilization)
+# NOTE: 0.1 replaced with 0.2 — too close to 0.0 to show a threshold effect.
 #
-# Citation: Grant & Grant (2006); MacArthur (1972); Chesson (2000)
+# MEASUREMENT: diet_variance (std_dev of diet_preference) measures bimodality.
+# High diet_variance = character displacement; mean_species_count measures splitting.
+# R* fix applied: specialists now consume only their efficient food from the grid,
+# enabling genuine resource competition by exhaustion (Tilman 1982).
+#
+# Citation: Grant & Grant (2006); MacArthur (1972); Chesson (2000); Tilman (1982)
 # Run: cargo run -p sim-runner --release -- sweep \
 #       --config configs/experiments/diet_radiation.toml \
 #       --param density_pressure.diet_competition_sigma \
-#       --values 0.0,0.1,0.3,0.6 --seeds 10 --ticks 500000
+#       --values 0.0,0.2,0.3,0.6 --seeds 10 --ticks 500000
 
 [world]
 width = 1000.0

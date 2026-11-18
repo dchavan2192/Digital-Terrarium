@@ -1093,3 +1093,34 @@ Mutation: 10% per weight, +/-0.2 step
 - **Pushed**: `f04f7e4` (ablation script + outline), `c4bbd95` (README OEE section)
 
 > **Caveat (added 2026-11-15, Session 14):** the Session 11–13 OEE numbers were computed BEFORE the Phase 7.5 fixes. Back then `mean_cumulative_activity` averaged over every topology ever seen (not extant ones), the topology hash was order-dependent, and fruit was silently disabled. There was also no neutral shadow model, so 'genuine OEE' is NOT yet established. Treat these numbers as preliminary and re-run them with the fixed code plus the shadow model.
+
+### Session 15 — Autonomous council (2026-11-18)
+
+**Council of advisors** (Ecologist, Engineer, Strategist): 3 parallel reviews identified critical issues.
+
+**Bug fixed — R* resource competition (Tilman 1982):** `eat_at` previously consumed 1.0 unit of food
+regardless of diet efficiency, so a fruit specialist depleted algae the algae specialist needed even
+while gaining zero energy. Fixed: `eat_at(pos, efficiency)` now scales consumption by diet efficiency,
+enabling true competitive exclusion by resource exhaustion. Specialists now have lower R* for their own
+resource. This was the missing piece for stable coexistence in the diet_radiation experiment.
+
+**New stats added to TickStats:** `mean_diet_preference`, `diet_variance` (std_dev of diet_preference —
+measures bimodality / character displacement), `mean_hidden_nodes` (hidden neuron count per brain,
+tracks neural evolution). These are essential for diet_radiation and predation_arms_race experiments.
+
+**Experiment configs updated:**
+- `diet_radiation.toml`: sweep 0.1 → 0.2 (better threshold resolution); R* fix note added
+- `drought_coexistence.toml`: removed 0.005 spawn_rate (too high — collapses ecosystem); capped at 0.001
+- `predation_arms_race.toml`: removed ratio=0.0 (predation dies instantly); extend to 1M ticks for significance
+
+**New experiment configs created:**
+- `configs/experiments/cooperation_phase_boundary.toml` — sweep transfer_efficiency 0.5→1.0 in 11 steps.
+  Tests Hamilton's rB > C phase transition: at what efficiency does cooperation emerge? Highest scientific
+  impact: would be first quantitative match to Hamilton's equation in NEAT agents under energy conservation.
+  Citation: Hamilton (1964), Nowak (2006).
+- `configs/experiments/cambrian_transition.toml` — disable predation 200k ticks, then enable it; measure
+  neural complexity step-change. Tests the Cambrian explosion hypothesis in NEAT agents. Citation:
+  Aiello & Wheeler (1995), Dawkins & Krebs (1979).
+
+**Comment updated:** config.rs FruitConfig docstring updated to reflect diet_slope=1.0 (50% generalist
+efficiency, not 65%) and R* consumption semantics.

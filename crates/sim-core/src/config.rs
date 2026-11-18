@@ -537,10 +537,13 @@ impl Default for TemperatureConfig {
 /// biome zones at a multiplied rate, creating a resource that only specialists
 /// can exploit efficiently. Each creature has an evolvable diet_preference gene.
 ///
-/// Digestion efficiency: energy * (1.0 - 0.7 * |food_type - diet_preference|)
-///   - Algae specialist (diet_preference=0): 100% algae, 30% fruit
-///   - Fruit specialist (diet_preference=1): 100% fruit, 30% algae
-///   - Generalist (diet_preference=0.5): 65% from either
+/// Digestion efficiency: energy * (1.0 - diet_slope * |food_type - diet_preference|)
+///   - Algae specialist (diet_preference=0): 100% algae, 0% fruit (at slope=1.0)
+///   - Fruit specialist (diet_preference=1): 100% fruit, 0% algae (at slope=1.0)
+///   - Generalist (diet_preference=0.5): 50% from either (slope=1.0 fitness valley)
+///
+/// R* consumption (Tilman 1982): organisms consume only what they can digest,
+/// so specialists leave the other food type for their counterpart specialists.
 ///
 /// This models character displacement and adaptive radiation, where population
 /// divergence along a resource axis reduces interspecific competition.

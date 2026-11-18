@@ -6,23 +6,27 @@
 # "big brain hypothesis" and validates that brain_cost constrains complexity without
 # eliminating adaptive intelligence.
 #
-# SWEEP: combat.energy_transfer_ratio in {0.0, 0.3, 0.75, 1.0}
-#   ratio=0.0 → no predation benefit (attackers gain nothing, predation dies out)
-#   ratio=0.3 → weak predation (some benefit, weak arms race)
+# SWEEP: combat.energy_transfer_ratio in {0.3, 0.75, 1.0}
+#   ratio=0.0 → REMOVED: attackers gain nothing, predation goes extinct in gen 2 — not an arms race
+#   ratio=0.3 → weak predation (some benefit, weak arms race; lowest viable predation)
 #   ratio=0.75 → default strong predation
 #   ratio=1.0 → maximum predation efficiency
 #
-# MEASUREMENT: mean_connections, mean_hidden_nodes, mean_brain_cost across species
-# over last 100k ticks. Expect significant positive correlation with ratio.
+# MEASUREMENT: mean_connections, mean_hidden_nodes, mean_brain_entropy over final 200k ticks.
+# IMPORTANT: Run 1M ticks minimum. Historical data (500k ticks) showed only 3.5% difference
+# in connections (206→199), not statistically significant. Brain evolution is slow; 1M ticks
+# gives 5-10 more generations of selective pressure to show a detectable signal.
+# Also track: diet_variance (isolate predation from diet specialization confound).
 #
 # Citation: Aiello & Wheeler (1995) "expensive tissue hypothesis"
 # Citation: Laughlin et al. (1998) "Energy limitation as a selective pressure on neural coding"
 # Citation: Lotka (1925), Volterra (1926) predator-prey dynamics
+# Citation: Dawkins & Krebs (1979) "Arms races between and within species"
 #
 # Run: cargo run -p sim-runner --release -- sweep \
 #       --config configs/experiments/predation_arms_race.toml \
 #       --param combat.energy_transfer_ratio \
-#       --values 0.0,0.3,0.75,1.0 --seeds 10 --ticks 500000
+#       --values 0.3,0.75,1.0 --seeds 10 --ticks 1000000
 
 [world]
 width = 1000.0
