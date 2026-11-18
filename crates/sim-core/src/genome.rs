@@ -307,6 +307,7 @@ impl Genome {
     pub fn reproduce(
         &self,
         mcfg: &MutationConfig,
+        fruit_config: &FruitConfig,
         innovations: &mut Innovations,
         rng: &mut impl Rng,
     ) -> Self {
@@ -389,9 +390,13 @@ impl Genome {
         }
 
         // 10. Mutate diet preference — Grant & Grant (2006): character displacement
-        // Resource partitioning between algae and fruit specialists drives speciation
-        if rng.r#gen::<f64>() < mcfg.trait_probability {
-            child.diet_preference += rng.gen_range(-0.1..0.1);
+        // Uses dedicated probability/step (both doubled vs trait defaults) so diet
+        // divergence can outrun neutral drift and reach stable specialist optima.
+        // Citation: Schluter (2000) "The Ecology of Adaptive Radiation"
+        let diet_step = fruit_config.diet_mutation_step;
+        let diet_prob = fruit_config.diet_mutation_probability;
+        if rng.r#gen::<f64>() < diet_prob {
+            child.diet_preference += rng.gen_range(-diet_step..diet_step);
             child.diet_preference = child.diet_preference.clamp(0.0, 1.0);
         }
 
@@ -729,6 +734,7 @@ impl Genome {
         parent_b: &Genome,
         a_is_fitter: bool,
         mcfg: &MutationConfig,
+        fruit_config: &FruitConfig,
         innovations: &mut Innovations,
         rng: &mut impl Rng,
     ) -> Self {
@@ -823,7 +829,7 @@ impl Genome {
         child.connections.sort_by_key(|c| c.key());
 
         // Apply standard mutations
-        child = child.reproduce(mcfg, innovations, rng);
+        child = child.reproduce(mcfg, fruit_config, innovations, rng);
 
         child
     }

@@ -105,11 +105,29 @@ fn crossover_recognises_homologous_innovations() {
     assert_eq!(b.split_connection(10, &mut innovations).unwrap(), shared);
     // split_connection appends genes; reproduce() restores the sorted order that
     // crossover's merge-join needs.
-    let a = a.reproduce(&config.mutation, &mut innovations, &mut rng);
-    let b = b.reproduce(&config.mutation, &mut innovations, &mut rng);
+    let a = a.reproduce(
+        &config.mutation,
+        &config.food.fruit,
+        &mut innovations,
+        &mut rng,
+    );
+    let b = b.reproduce(
+        &config.mutation,
+        &config.food.fruit,
+        &mut innovations,
+        &mut rng,
+    );
 
     // a is fitter: the child takes a's wiring, and the shared node appears once.
-    let child = Genome::crossover(&a, &b, true, &config.mutation, &mut innovations, &mut rng);
+    let child = Genome::crossover(
+        &a,
+        &b,
+        true,
+        &config.mutation,
+        &config.food.fruit,
+        &mut innovations,
+        &mut rng,
+    );
     assert_eq!(hidden_ids(&child), hidden_ids(&a));
     assert!(hidden_ids(&child).contains(&shared));
     assert!(!hidden_ids(&child).contains(&private_b));
@@ -127,7 +145,15 @@ fn crossover_recognises_homologous_innovations() {
     );
 
     // b is fitter: the child takes b's wiring, including b's private innovation.
-    let child = Genome::crossover(&a, &b, false, &config.mutation, &mut innovations, &mut rng);
+    let child = Genome::crossover(
+        &a,
+        &b,
+        false,
+        &config.mutation,
+        &config.food.fruit,
+        &mut innovations,
+        &mut rng,
+    );
     assert_eq!(hidden_ids(&child), hidden_ids(&b));
     // Every gene's endpoints exist, so the child builds a working brain.
     assert!(

@@ -115,8 +115,9 @@ fn feeding_records_harvest_and_overflow_separately() {
     s.organisms[0].energy = s.config.energy.maximum - 1.0;
     output(&mut s, 0, 2, 50.0);
     s.step();
-    let food = s.config.food.energy_per_food * 0.65;
-    let fruit = s.config.food.fruit.energy_per_fruit * 0.65;
+    // diet_preference=0.5 with diet_slope=1.0 → efficiency = 1.0 - 1.0*0.5 = 0.5
+    let food = s.config.food.energy_per_food * 0.5;
+    let fruit = s.config.food.fruit.energy_per_fruit * 0.5;
     close(s.stats.energy_food_input, food);
     close(s.stats.energy_fruit_input, fruit);
     close(s.stats.energy_cap_overflow, food + fruit - 1.0);
@@ -242,6 +243,7 @@ fn mixed_world_ledger_balances_across_ecological_events() {
 fn metabolic_and_construction_components_are_measured_independently() {
     let mut c = config(2);
     c.creature.max_speed = 1.0;
+    c.density_pressure.diet_competition_sigma = 0.0; // isolate base crowding, not diet kernel
     c.energy.base_metabolism = 0.3;
     c.energy.movement_cost = 0.2;
     c.energy.brain_cost = 0.001;

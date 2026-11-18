@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sim_core::Config;
 use sim_core::brain::MAX_NODES;
-use sim_core::config::MutationConfig;
+use sim_core::config::{FruitConfig, MutationConfig};
 use sim_core::genome::{Genome, Innovations};
 use std::collections::BTreeSet;
 use std::fs::{File, OpenOptions};
@@ -698,6 +698,7 @@ fn search(protocol: &Protocol, arena: &ArenaConfig, seed: u64, dir: &Path) -> Ru
                 terminal_progress: None,
                 genome: population[parent].genome.reproduce(
                     &protocol.mutation,
+                    &FruitConfig::default(),
                     &mut innovations,
                     &mut rng,
                 ),

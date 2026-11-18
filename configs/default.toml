@@ -148,9 +148,15 @@ trait_probability = 0.05           # Per-trait chance to mutate each scalar trai
 [density_pressure]
 # Population density pressure: crowding increases metabolism.
 # Each nearby creature (within vision range) adds this much to per-tick metabolic cost.
-# Models negative density dependence / interference competition.
+# When diet_competition_sigma > 0, crowding is weighted by diet similarity via a Gaussian
+# kernel: weight = exp(-(Δdiet)² / (2σ²)). Same-niche neighbors impose full pressure;
+# diet-distant neighbors less. MacArthur (1972) competition kernel / Chesson (2000)
+# stabilizing coexistence mechanism: niches that differ in diet interfere less.
 # Citation: Allee (1931) "Animal Aggregations: A Study in General Sociology"
+# Citation: MacArthur (1972) "Geographical Ecology"
+# Citation: Chesson (2000) Annual Review of Ecology and Systematics 31:343-366
 cost_per_neighbor = 0.01
+diet_competition_sigma = 0.3   # Niche width σ for competition kernel; 0 = off (all count equally)
 
 [speciation]
 # Dynamic speciation threshold: compute from population genome variance
@@ -187,6 +193,12 @@ outputs = 7             # turn, speed, eat, attack, signal, share, construct
 enabled = true
 energy_per_fruit = 20.0        # Energy per unit fruit (before diet efficiency)
 biome_rate_multiplier = 2.0    # Fruit regrowth = biome_rate × 2.0 (rich but limited)
+# diet_slope = 1.0: genuine fitness valley — generalists (diet=0.5) get 50% efficiency
+# from either food (was 65% at 0.7). Wrong-diet specialists get 0%. Forces specialization.
+# Citation: Grant & Grant (2006) "Evolution of Character Displacement in Darwin's Finches"
+diet_slope = 1.0               # 0.7 = old (65% generalist eff); 1.0 = forces specialization
+diet_mutation_step = 0.2       # Doubled from 0.1 for faster niche separation
+diet_mutation_probability = 0.1 # Doubled from trait_probability=0.05 for diet specifically
 
 [temperature]
 enabled = true

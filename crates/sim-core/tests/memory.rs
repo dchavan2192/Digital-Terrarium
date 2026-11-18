@@ -153,7 +153,15 @@ fn feed_forward_and_recurrent_genes_on_one_pair_are_distinct_and_inherited() {
     g.mutation_rate = 0.0;
     let mut innovations = Innovations::new(&config.brain);
     let mut rng = ChaCha8Rng::seed_from_u64(4);
-    let child = Genome::crossover(&g, &g, true, &mutation, &mut innovations, &mut rng);
+    let child = Genome::crossover(
+        &g,
+        &g,
+        true,
+        &mutation,
+        &config.food.fruit,
+        &mut innovations,
+        &mut rng,
+    );
     let keys = |x: &Genome| x.connections.iter().map(|c| c.key()).collect::<Vec<_>>();
     assert_eq!(keys(&child), keys(&g));
 
@@ -185,7 +193,7 @@ fn the_mutation_adds_valid_recurrent_genes_and_never_splits_them() {
     mutation.prune_probability = 0.0;
     let mut innovations = Innovations::new(&config.brain);
     for generation in 1..=20 {
-        g = g.reproduce(&mutation, &mut innovations, &mut rng);
+        g = g.reproduce(&mutation, &config.food.fruit, &mut innovations, &mut rng);
         let recurrent: Vec<_> = g.connections.iter().filter(|c| c.recurrent).collect();
         assert_eq!(
             recurrent.len(),

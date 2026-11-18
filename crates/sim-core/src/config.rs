@@ -428,18 +428,34 @@ fn default_transfer_efficiency() -> f64 {
 /// competition). At high local densities, organisms expend more energy
 /// competing for space and resources.
 ///
-/// Citation: Allee, W.C. (1931) "Animal Aggregations: A Study in General Sociology"
-/// University of Chicago Press
+/// When `diet_competition_sigma > 0`, crowding is weighted by diet similarity:
+///   weight = exp(-(Δdiet)² / (2σ²))
+/// so same-niche neighbors impose full pressure and diet-distant neighbors less.
+/// This is the MacArthur (1972) competition kernel / Chesson (2000) coexistence
+/// stabilizing mechanism: niches that differ in diet interfere less with each other.
+///
+/// Citation: Allee, W.C. (1931) "Animal Aggregations"
+/// Citation: MacArthur, R.H. (1972) "Geographical Ecology"
+/// Citation: Chesson, P. (2000) "Mechanisms of Maintenance of Species Diversity"
+///   Annual Review of Ecology and Systematics 31:343-366
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DensityPressureConfig {
     /// Extra energy cost per tick per nearby neighbor. 0.0 = disabled.
     pub cost_per_neighbor: f64,
+    /// Gaussian σ of the diet competition kernel. 0.0 = off (all neighbors count
+    /// equally regardless of diet). When enabled, same-diet neighbors impose full
+    /// pressure; a neighbor whose diet differs by 2σ imposes only 14% pressure.
+    /// MacArthur (1972): competing species can coexist when their niches are
+    /// sufficiently far apart (niche separation ≥ niche width σ).
+    #[serde(default)]
+    pub diet_competition_sigma: f64,
 }
 
 impl Default for DensityPressureConfig {
     fn default() -> Self {
         DensityPressureConfig {
             cost_per_neighbor: 0.0,
+            diet_competition_sigma: 0.0,
         }
     }
 }
@@ -542,6 +558,30 @@ pub struct FruitConfig {
     /// Fruit regrowth rate multiplier applied on top of the biome's normal rate.
     /// Fruit only appears inside biome zones (outside biomes: no fruit).
     pub biome_rate_multiplier: f64,
+    /// Steepness of the generalist penalty. With slope=s, a generalist (diet=0.5)
+    /// gets efficiency = 1 - s*0.5 from either food type. slope=0.7 → 65% (old);
+    /// slope=1.0 → 50%, a genuine fitness valley that forces specialization.
+    /// Citation: Grant & Grant (2006); Schluter (2000) "Ecology of Adaptive Radiation"
+    #[serde(default = "default_diet_slope")]
+    pub diet_slope: f64,
+    /// Step size for diet_preference mutation per offspring (uniform ±step).
+    /// Doubled from 0.1 to allow faster niche separation.
+    #[serde(default = "default_diet_mutation_step")]
+    pub diet_mutation_step: f64,
+    /// Per-offspring probability of a diet_preference mutation.
+    /// Independent of `mutation.trait_probability` so diet can evolve faster.
+    #[serde(default = "default_diet_mutation_probability")]
+    pub diet_mutation_probability: f64,
+}
+
+fn default_diet_slope() -> f64 {
+    1.0
+}
+fn default_diet_mutation_step() -> f64 {
+    0.2
+}
+fn default_diet_mutation_probability() -> f64 {
+    0.1
 }
 
 impl Default for FruitConfig {
@@ -550,6 +590,9 @@ impl Default for FruitConfig {
             enabled: false,
             energy_per_fruit: 20.0,
             biome_rate_multiplier: 2.0,
+            diet_slope: default_diet_slope(),
+            diet_mutation_step: default_diet_mutation_step(),
+            diet_mutation_probability: default_diet_mutation_probability(),
         }
     }
 }
@@ -890,6 +933,14 @@ impl Config {
                 "food.fruit.biome_rate_multiplier",
                 self.food.fruit.biome_rate_multiplier,
             ),
+            (
+                "density_pressure.diet_competition_sigma",
+                self.density_pressure.diet_competition_sigma,
+            ),
+            (
+                "food.fruit.diet_mutation_step",
+                self.food.fruit.diet_mutation_step,
+            ),
             ("creature.max_speed", self.creature.max_speed),
             ("creature.max_turn", self.creature.max_turn),
             ("energy.base_metabolism", self.energy.base_metabolism),
@@ -1026,6 +1077,11 @@ impl Config {
             (
                 "epigenetics.demethylation_rate",
                 self.epigenetics.demethylation_rate,
+            ),
+            ("food.fruit.diet_slope", self.food.fruit.diet_slope),
+            (
+                "food.fruit.diet_mutation_probability",
+                self.food.fruit.diet_mutation_probability,
             ),
         ] {
             if !(0.0..=1.0).contains(&value) {
