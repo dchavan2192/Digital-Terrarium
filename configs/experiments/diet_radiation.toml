@@ -1,0 +1,181 @@
+# Experiment A: Adaptive Radiation via Diet Specialization
+#
+# HYPOTHESIS: With a fitness valley (diet_slope=1.0) and MacArthur competition kernel,
+# populations will undergo character displacement and split into algae-specialists and
+# fruit-specialists. We expect two clusters in diet_preference space (near 0.0 and 1.0),
+# one or more species-level splits, and reduced species overlap in diet space over time.
+#
+# SWEEP: diet_competition_sigma in {0.0, 0.1, 0.3, 0.6}
+#   sigma=0.0 → no kernel (everyone competes equally, control condition)
+#   sigma=0.3 → default (moderate niche separation)
+#   sigma=0.6 → wide kernel (nearly all pairs compete equally, reduced stabilization)
+#
+# Citation: Grant & Grant (2006); MacArthur (1972); Chesson (2000)
+# Run: cargo run -p sim-runner --release -- sweep \
+#       --config configs/experiments/diet_radiation.toml \
+#       --param density_pressure.diet_competition_sigma \
+#       --values 0.0,0.1,0.3,0.6 --seeds 10 --ticks 500000
+
+[world]
+width = 1000.0
+height = 1000.0
+seed = 42
+
+[food]
+cell_size = 10.0
+max_per_cell = 1.0
+regrowth_rate = 0.008
+energy_per_food = 15.0
+
+[food.seasons]
+amplitude = 0.3
+period = 10000.0
+
+[food.droughts]
+spawn_rate = 0.0002
+duration = 3000
+radius = 150.0
+severity = 0.05
+max_active = 3
+
+[[food.biomes]]
+x = 250.0
+y = 250.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 750.0
+y = 750.0
+radius = 200.0
+regrowth_multiplier = 3.0
+
+[[food.biomes]]
+x = 500.0
+y = 500.0
+radius = 150.0
+regrowth_multiplier = 2.0
+
+[[food.biomes]]
+x = 750.0
+y = 250.0
+radius = 180.0
+regrowth_multiplier = 0.3
+
+[food.fruit]
+enabled = true
+energy_per_fruit = 20.0
+biome_rate_multiplier = 2.0
+diet_slope = 1.0
+diet_mutation_step = 0.2
+diet_mutation_probability = 0.1
+
+[creature]
+initial_count = 300
+hard_cap = 2000
+body_radius = 3.0
+max_speed = 2.0
+max_turn = 0.2
+max_age = 2000
+feeding_speed_factor = 0.5
+
+[creature.vision]
+ray_count = 5
+fov = 2.094
+range = 60.0
+
+[energy]
+starting = 60.0
+maximum = 200.0
+base_metabolism = 0.3
+movement_cost = 0.15
+brain_cost = 0.001
+connection_cost = 0.001
+activity_weight_cost = 0.0005
+
+[reproduction]
+threshold = 60.0
+parent_cost = 30.0
+child_energy = 30.0
+sexual = true
+mate_range = 15.0
+crossover_rate = 0.7
+fitness_bias = true
+mate_cost = 30.0
+mate_energy_fraction = 0.5
+
+[combat]
+attack_range = 8.0
+attack_cost = 5.0
+idle_attack_cost = 0.0
+attack_damage = 20.0
+energy_transfer_ratio = 0.75
+
+[sharing]
+share_range = 10.0
+share_amount = 5.0
+transfer_efficiency = 0.9
+
+[aging]
+extrinsic_mortality = 0.0001
+initial_senescence = 0.00001
+aging_rate = 0.002
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.02
+add_node_probability = 0.01
+toggle_probability = 0.01
+prune_probability = 0.02
+add_recurrent_probability = 0.0
+trait_probability = 0.05
+
+[density_pressure]
+cost_per_neighbor = 0.01
+diet_competition_sigma = 0.3   # SWEEP TARGET
+
+[speciation]
+dynamic = true
+fixed_threshold = 0.5
+sample_size = 50
+factor = 0.75
+min_threshold = 0.1
+max_threshold = 2.0
+
+[brain]
+inputs = 20
+hidden = 8
+outputs = 7
+
+[temperature]
+enabled = true
+cost_factor = 0.4
+
+[elevation]
+enabled = true
+max_height = 1.0
+slope_cost = 0.1
+
+[epigenetics]
+enabled = true
+methylation_rate = 0.05
+epimutation_noise = 0.01
+stress_repro_fraction = 0.25
+
+[niche_construction]
+enabled = true
+activation_threshold = 0.2
+deposit_rate = 0.05
+decay_rate = 0.01
+regrowth_bonus = 0.5
+energy_cost = 0.1
+
+[activity_tracking]
+window_size = 1000
+lineage_window = 1000
+
+[pheromone]
+enabled = true
+deposit_rate = 0.5
+decay_rate = 0.05
