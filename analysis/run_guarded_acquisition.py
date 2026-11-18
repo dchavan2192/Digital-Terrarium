@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Supervise one fresh pinned acquisition batch; never signal unrelated processes.
+"""Supervise one fresh pinned task batch; never signal unrelated processes.
 
 The active-command wall watchdog includes guard startup and thermal pauses.
 Terminal guard cleanup is separately bounded (12 seconds plus termination grace).
@@ -110,6 +110,8 @@ def thermal_snapshot(sensor):
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--batch', type=Path, required=True)
+    p.add_argument('--task', choices=('acquire-visible', 'validate-visible'),
+                   default='acquire-visible')
     p.add_argument('--wall-seconds', type=float, default=1800)
     p.add_argument('--guard-stale-seconds', type=float, default=20)
     p.add_argument('--startup-seconds', type=float, default=15,
@@ -125,11 +127,38 @@ def parse_args(argv=None):
     if args.poll_seconds > 1 or args.wall_seconds > 1800:
         p.error('poll interval must be <=1 and wall budget <=1800 seconds')
     args.batch = args.batch.resolve()
-    required = ['sim-runner', 'visible_acquisition.toml', 'delayed_choice.toml', 'pi_thermal_guard.py']
+    required = ['sim-runner', 'pi_thermal_guard.py']
+    required += (['visible_acquisition.toml', 'delayed_choice.toml']
+                 if args.task == 'acquire-visible' else ['visible_validation.toml'])
     if not args.batch.is_dir() or any(not (args.batch / name).is_file() or (args.batch / name).is_symlink() for name in required):
-        p.error('batch must contain the pinned runner, protocol, arena and thermal guard')
+        p.error('batch must contain the pinned runner, task inputs and thermal guard')
     if not os.access(args.batch / 'sim-runner', os.X_OK):
         p.error('pinned sim-runner must be executable')
+    if args.task == 'validate-visible':
+        source = args.batch / 'input'
+        if not source.is_dir() or source.is_symlink():
+            p.error('validation requires a nonsymlink input session directory')
+        for name in ('manifest.json', 'summary.json'):
+            if not (source / name).is_file():
+                p.error(f'validation input lacks {name}')
+        # Freeze every copied source file, not merely the selected champions.
+        # Bound reads and reject links before creating operational artifacts.
+        total = 0
+        for path in sorted(source.rglob('*')):
+            if path.is_symlink() or not (path.is_file() or path.is_dir()):
+                p.error('validation input must contain only regular files/directories')
+            if path.is_file():
+                required.append(str(path.relative_to(args.batch)))
+                total += path.stat().st_size
+                if len(required) > 4096 or total > 128 * 1024 * 1024:
+                    p.error('validation input exceeds 4096 files or 128 MiB')
+    args.input_sha256 = {}
+    for name in required:
+        digest = hashlib.sha256()
+        with (args.batch / name).open('rb') as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+                digest.update(chunk)
+        args.input_sha256[name] = digest.hexdigest()
     return args
 
 
@@ -155,6 +184,11 @@ def run_fresh(args):
     runner_cmd = [str(batch / 'sim-runner'), 'acquire-visible',
                   '--protocol', str(batch / 'visible_acquisition.toml'),
                   '--arena', str(batch / 'delayed_choice.toml'), '--output', str(batch / 'runs')]
+    if args.task == 'validate-visible':
+        runner_cmd = [str(batch / 'sim-runner'), 'validate-visible',
+                      '--session', str(batch / 'input'),
+                      '--suite', str(batch / 'visible_validation.toml'),
+                      '--output', str(batch / 'runs')]
     guard_cmd = [sys.executable, str(batch / 'pi_thermal_guard.py'), '--batch', str(batch),
                  '--high', '75', '--low', '65', '--poll', '5', '--sensor', str(args.sensor),
                  '--output', str(guard_dir)]
@@ -163,7 +197,9 @@ def run_fresh(args):
                     runner_command=runner_cmd, guard_command=guard_cmd,
                     environment_override={'RAYON_NUM_THREADS': '1'},
                     wall_seconds=args.wall_seconds, wall_includes_startup_and_cooling=True,
-                    wall_watchdog_scope='guard startup, cooling and active acquisition; terminal cleanup separately bounded',
+                    wall_watchdog_scope=('guard startup, cooling and active acquisition; terminal cleanup separately bounded'
+                                         if args.task == 'acquire-visible' else
+                                         'guard startup, cooling and active validation; terminal cleanup separately bounded'),
                     post_runner_guard_wait_seconds=12,
                     guard_stale_seconds=args.guard_stale_seconds,
                     startup_seconds=args.startup_seconds, poll_seconds=args.poll_seconds,
@@ -171,9 +207,8 @@ def run_fresh(args):
                     temperature_high_c=75, temperature_low_c=65, guard_poll_seconds=5,
                     telemetry_interval_seconds=5,
                     completion_scope='process supervision only; scientific artifact audit remains separate',
-                    sha256={name: hashlib.sha256((batch / name).read_bytes()).hexdigest()
-                            for name in ['sim-runner', 'visible_acquisition.toml',
-                                         'delayed_choice.toml', 'pi_thermal_guard.py']})
+                    task=args.task,
+                    sha256=args.input_sha256)
     (batch / 'supervisor_manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
     stopped = False
 

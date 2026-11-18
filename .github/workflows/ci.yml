@@ -24,6 +24,7 @@ jobs:
           python3 -m unittest discover -s analysis -p 'test_pi_thermal_guard.py'
           python3 -m unittest discover -s analysis -p 'test_guarded_acquisition.py'
           python3 -m unittest discover -s analysis -p 'test_progress_comparison.py'
+          python3 -m unittest discover -s analysis -p 'test_visible_validation_audit.py'
 
   check:
     name: Check & Clippy

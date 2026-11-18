@@ -1,5 +1,6 @@
 """Harmless direct-child supervisor fixtures; no Pi or simulation is used."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import signal
@@ -124,6 +125,44 @@ class SupervisorTests(unittest.TestCase):
         retry = self.run_supervisor()
         self.assertNotEqual(retry.returncode, 0)
         self.assertEqual((self.batch / 'supervisor_manifest.json').read_bytes(), old)
+
+    def test_validation_command_hashes_all_inputs_and_preserves_sources(self):
+        self.prepare()
+        source = self.batch / 'input'
+        source.mkdir()
+        for name in ('manifest.json', 'summary.json', 'extra.json'):
+            (source / name).write_text('{"fixture":true}\n')
+        suite = self.batch / 'visible_validation.toml'
+        suite.write_text('# inert fixture suite\n')
+        before = {p.name: p.read_bytes() for p in source.iterdir()}
+        result = subprocess.run(self.command() + ['--task', 'validate-visible'],
+                                capture_output=True, text=True, timeout=6)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        manifest = json.loads((self.batch / 'supervisor_manifest.json').read_text())
+        self.assertEqual(manifest['task'], 'validate-visible')
+        self.assertEqual(manifest['runner_command'], [str(self.batch / 'sim-runner'),
+                         'validate-visible', '--session', str(source), '--suite', str(suite),
+                         '--output', str(self.batch / 'runs')])
+        self.assertEqual(len(manifest['sha256']), 6)
+        for name, data in before.items():
+            self.assertEqual((source / name).read_bytes(), data)
+            self.assertEqual(manifest['sha256']['input/' + name], hashlib.sha256(data).hexdigest())
+
+    def test_validation_missing_or_linked_input_is_rejected_before_artifacts(self):
+        self.prepare()
+        (self.batch / 'visible_validation.toml').write_text('# inert\n')
+        command = self.command() + ['--task', 'validate-visible']
+        missing = subprocess.run(command, capture_output=True, timeout=3)
+        self.assertNotEqual(missing.returncode, 0)
+        source = self.batch / 'input'
+        source.mkdir()
+        (source / 'manifest.json').write_text('{}')
+        (source / 'summary.json').write_text('{}')
+        (source / 'linked').symlink_to(self.sensor)
+        linked = subprocess.run(command, capture_output=True, timeout=3)
+        self.assertNotEqual(linked.returncode, 0)
+        self.assertFalse((self.batch / 'supervisor_manifest.json').exists())
+        self.assertFalse((self.batch / 'runner.started').exists())
 
     def test_guard_failure_stops_only_owned_runner_and_preserves_it_paused(self):
         self.prepare(guard='guard_failure', runner='long')
