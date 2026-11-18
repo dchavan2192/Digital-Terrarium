@@ -78,6 +78,9 @@ pub struct Simulation {
     /// Open-ended evolution activity tracker.
     /// Citation: Bedau & Packard (1991), Dolson et al. (2019)
     activity_tracker: crate::activity::ActivityTracker,
+    /// Neutral shadow population for OEE measurement (Bedau, Snyder & Packard 1998).
+    /// None when `activity_tracking.shadow = false`.
+    shadow: Option<crate::shadow::ShadowPopulation>,
     /// Reusable per-tick buffer: organism already took part in a sexual mating this tick.
     mated_buf: Vec<bool>,
     /// Reusable per-tick buffer: this tick's brain activations, `MAX_NODES` per
@@ -259,6 +262,19 @@ pub struct TickStats {
     /// Mean number of hidden neurons per brain (excludes fixed input/output nodes).
     /// Tracks how neural complexity evolves under different selection pressures.
     pub mean_hidden_nodes: f64,
+    /// Median extant activity M(t) over currently alive topologies (Channon 2003).
+    pub median_extant_activity: f64,
+    // Shadow (neutral drift) OEE stats — None fields stay 0 when shadow is off.
+    /// Shadow population size (should equal `population`; nonzero when shadow enabled).
+    pub shadow_population: usize,
+    /// Shadow novel traits this window (null model for `novel_traits`).
+    pub shadow_novel_traits: u64,
+    /// Shadow active traits right now (null model for `active_traits`).
+    pub shadow_active_traits: u64,
+    /// Shadow mean cumulative activity Ā(t) (null model for `mean_cumulative_activity`).
+    pub shadow_mean_cumulative_activity: f64,
+    /// Shadow median extant activity M(t) (null model for `median_extant_activity`).
+    pub shadow_median_extant_activity: f64,
     /// Per-species breakdown with aggregate stats and trend.
     #[serde(skip)]
     pub species: Vec<SpeciesInfo>,
@@ -452,6 +468,18 @@ impl Simulation {
         let innovations = crate::genome::Innovations::new(&config.brain);
         let activity_tracker =
             crate::activity::ActivityTracker::new(config.activity_tracking.window_size);
+        let shadow = if config.activity_tracking.shadow && config.activity_tracking.enabled {
+            Some(crate::shadow::ShadowPopulation::new(
+                organisms.iter().map(|o| o.genome.clone()),
+                &config.activity_tracking,
+                &config.brain,
+                &config.mutation,
+                &config.food.fruit,
+                config.world.seed,
+            ))
+        } else {
+            None
+        };
 
         Simulation {
             config,
@@ -472,6 +500,7 @@ impl Simulation {
             species_history: Vec::new(),
             species_representatives: Vec::new(),
             activity_tracker,
+            shadow,
             mated_buf: Vec::with_capacity(cap),
             activations: Vec::new(),
             lineage_diversity_cached: 0,
@@ -1489,6 +1518,12 @@ impl Simulation {
         // Remove dead organisms to keep memory bounded
         self.organisms.retain(|o| o.alive);
 
+        // Mirror demographic events into the neutral shadow population (OEE null model).
+        // The shadow uses its own RNG stream and never touches self.rng.
+        if let Some(ref mut shadow) = self.shadow {
+            shadow.mirror(asexual_births, sexual_births, deaths);
+        }
+
         // 7. Droughts: stochastic localized food crashes
         // Citation: Holling (1973) "Resilience and Stability of Ecological Systems"
         // Citation: Connell (1978) intermediate disturbance hypothesis
@@ -1830,8 +1865,12 @@ impl Simulation {
                     )
                 }),
             );
+            if let Some(ref mut shadow) = self.shadow {
+                shadow.update_activity(self.tick);
+            }
         }
         let activity_stats = &self.activity_tracker.stats;
+        let shadow_stats_snapshot = self.shadow.as_ref().map(|s| (s.len(), s.stats().clone()));
 
         let max_generation = self
             .organisms
@@ -2000,6 +2039,20 @@ impl Simulation {
             total_cap_blocked_births: self.stats.total_cap_blocked_births + cap_blocked_births,
             founder_lineages,
             total_cumulative_activity: activity_stats.total_cumulative_activity,
+            median_extant_activity: activity_stats.median_extant_activity,
+            shadow_population: shadow_stats_snapshot.as_ref().map_or(0, |(len, _)| *len),
+            shadow_novel_traits: shadow_stats_snapshot
+                .as_ref()
+                .map_or(0, |(_, s)| s.novel_traits),
+            shadow_active_traits: shadow_stats_snapshot
+                .as_ref()
+                .map_or(0, |(_, s)| s.active_traits),
+            shadow_mean_cumulative_activity: shadow_stats_snapshot
+                .as_ref()
+                .map_or(0.0, |(_, s)| s.mean_cumulative_activity),
+            shadow_median_extant_activity: shadow_stats_snapshot
+                .as_ref()
+                .map_or(0.0, |(_, s)| s.median_extant_activity),
             mean_methylation: if self.config.epigenetics.enabled && population > 0 {
                 let (total_meth, total_conns) =
                     self.organisms

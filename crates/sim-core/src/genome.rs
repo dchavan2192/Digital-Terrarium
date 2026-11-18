@@ -176,8 +176,9 @@ pub struct Genome {
     pub preferred_temp: f64,
 
     /// Diet preference [0, 1]. 0 = algae specialist, 1 = fruit specialist.
-    /// Digestion efficiency: energy * (1.0 - 0.7 * |food_type - diet_preference|)
-    /// Specialists get ~100% from their food; generalists get ~65% from either.
+    /// Digestion efficiency: energy * (1 - diet_slope * |food_type - diet_preference|)
+    /// where diet_slope = config.food.fruit.diet_slope (default 1.0).
+    /// Specialists get ~100% from their food; generalists get 50% from either (diet_slope=1).
     /// Grant & Grant (2006): beak size in Darwin's finches is the textbook example.
     pub diet_preference: f64,
 }

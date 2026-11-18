@@ -2367,3 +2367,107 @@ fn birth_energy_creation_is_rejected() {
     assert_ne!(text, DEFAULT_CONFIG, "test must actually change the config");
     assert!(Config::parse(&text).is_err());
 }
+
+/// Enabling the shadow must not change any non-shadow TickStats field.
+///
+/// The shadow uses its own RNG stream and must never perturb the main simulation.
+/// This verifies the key safety property: same seed, same non-shadow stats.
+#[test]
+fn shadow_does_not_perturb_main_run() {
+    let shadow_off = DEFAULT_CONFIG.replace("shadow = false", "shadow = false"); // unchanged
+    let shadow_on = DEFAULT_CONFIG.replace("shadow = false", "shadow = true");
+    assert_ne!(shadow_on, shadow_off);
+
+    let mut cfg_off = Config::parse(&shadow_off).expect("shadow=false must parse");
+    cfg_off.world.seed = 7777;
+    cfg_off.creature.initial_count = 20;
+
+    let mut cfg_on = Config::parse(&shadow_on).expect("shadow=true must parse");
+    cfg_on.world.seed = 7777;
+    cfg_on.creature.initial_count = 20;
+
+    let mut sim_off = Simulation::new(cfg_off);
+    let mut sim_on = Simulation::new(cfg_on);
+
+    for _ in 0..500 {
+        sim_off.step();
+        sim_on.step();
+    }
+
+    // All non-shadow fields must be identical.
+    assert_eq!(
+        sim_off.stats.population, sim_on.stats.population,
+        "shadow must not change population"
+    );
+    assert_eq!(
+        sim_off.stats.total_births, sim_on.stats.total_births,
+        "shadow must not change births"
+    );
+    assert_eq!(
+        sim_off.stats.total_deaths, sim_on.stats.total_deaths,
+        "shadow must not change deaths"
+    );
+    assert!(
+        (sim_off.stats.mean_cumulative_activity - sim_on.stats.mean_cumulative_activity).abs()
+            < 1e-12,
+        "shadow must not change real activity stats"
+    );
+    // Shadow fields must be nonzero when enabled.
+    assert!(
+        sim_on.stats.shadow_population > 0,
+        "shadow_population must be populated when shadow=true"
+    );
+}
+
+/// The shadow population size must track the real population size every tick.
+#[test]
+fn shadow_population_tracks_real() {
+    let shadow_on = DEFAULT_CONFIG.replace("shadow = false", "shadow = true");
+    let mut cfg = Config::parse(&shadow_on).expect("shadow=true must parse");
+    cfg.world.seed = 1234;
+    cfg.creature.initial_count = 30;
+
+    let mut sim = Simulation::new(cfg);
+    for _ in 0..500 {
+        sim.step();
+        assert_eq!(
+            sim.stats.shadow_population, sim.stats.population,
+            "shadow population must equal real population at tick {}",
+            sim.stats.tick
+        );
+    }
+}
+
+/// Two runs with shadow=true and identical seed must produce identical shadow stats.
+#[test]
+fn shadow_is_deterministic() {
+    let shadow_on = DEFAULT_CONFIG.replace("shadow = false", "shadow = true");
+    let mut cfg_a = Config::parse(&shadow_on).expect("shadow=true must parse");
+    cfg_a.world.seed = 9999;
+    cfg_a.creature.initial_count = 25;
+
+    let cfg_b = cfg_a.clone();
+
+    let mut sim_a = Simulation::new(cfg_a);
+    let mut sim_b = Simulation::new(cfg_b);
+
+    for _ in 0..1000 {
+        sim_a.step();
+        sim_b.step();
+    }
+
+    assert_eq!(
+        sim_a.stats.shadow_novel_traits, sim_b.stats.shadow_novel_traits,
+        "shadow novel_traits must be deterministic"
+    );
+    assert_eq!(
+        sim_a.stats.shadow_active_traits, sim_b.stats.shadow_active_traits,
+        "shadow active_traits must be deterministic"
+    );
+    assert!(
+        (sim_a.stats.shadow_mean_cumulative_activity - sim_b.stats.shadow_mean_cumulative_activity)
+            .abs()
+            < 1e-12,
+        "shadow mean_cumulative_activity must be deterministic"
+    );
+}

@@ -721,8 +721,11 @@ impl Default for ElevationConfig {
 
 /// Open-ended evolution activity tracking — Bedau & Packard (1991), Dolson et al. (2019).
 ///
-/// Tracks structural novelty rate and cumulative activity D(t).
-/// If D(t) grows unboundedly, evolution is open-ended.
+/// Tracks structural novelty rate and presence-based cumulative activity.
+/// Compare the real run against the neutral shadow to test for genuine selection.
+///
+/// Citation: Bedau, Snyder & Packard (1998) "A Classification of Long-Term
+///   Evolutionary Dynamics" — the shadow is required to interpret activity stats.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ActivityTrackingConfig {
@@ -738,6 +741,22 @@ pub struct ActivityTrackingConfig {
     /// Topology-hash version: 2 = order-independent commutative hash (default),
     /// 1 = legacy order-dependent FNV chain (for comparing with old runs).
     pub hash_version: u32,
+    /// Enable the neutral shadow population (Bedau, Snyder & Packard 1998).
+    /// The shadow mirrors birth/death counts but selects parents/victims at random.
+    /// Shadow stats are compared against real stats to quantify evolutionary excess.
+    /// When false (default), all shadow_* TickStats fields are zero.
+    /// Requires `enabled = true`; `validate()` rejects shadow=true with enabled=false.
+    #[serde(default)]
+    pub shadow: bool,
+    /// ChaCha stream id for the shadow RNG. Must differ from stream 0 (main RNG)
+    /// and stream 1 (env/drought RNG). Default 2.
+    /// Citation: Bernstein (2008) "ChaCha, a variant of Salsa20"
+    #[serde(default = "default_shadow_stream")]
+    pub shadow_stream: u64,
+}
+
+fn default_shadow_stream() -> u64 {
+    2
 }
 
 /// Niche construction — organisms modify their local environment.
@@ -851,6 +870,8 @@ impl Default for ActivityTrackingConfig {
             window_size: 100,
             lineage_window: 1000,
             hash_version: 2,
+            shadow: false,
+            shadow_stream: default_shadow_stream(),
         }
     }
 }
@@ -1186,6 +1207,22 @@ impl Config {
                  energy than the prey loses); got {}",
                 self.combat.energy_transfer_ratio
             )));
+        }
+        if self.activity_tracking.shadow && !self.activity_tracking.enabled {
+            return Err(ConfigError::Invalid(
+                "activity_tracking.shadow = true requires activity_tracking.enabled = true".into(),
+            ));
+        }
+        if self.activity_tracking.shadow && self.activity_tracking.shadow_stream == 0 {
+            return Err(ConfigError::Invalid(
+                "activity_tracking.shadow_stream must not be 0 (reserved for the main RNG)".into(),
+            ));
+        }
+        if self.activity_tracking.shadow && self.activity_tracking.shadow_stream == 1 {
+            return Err(ConfigError::Invalid(
+                "activity_tracking.shadow_stream must not be 1 (reserved for the drought RNG)"
+                    .into(),
+            ));
         }
         if self.world.width <= 0.0 || self.world.height <= 0.0 {
             return Err(ConfigError::Invalid(

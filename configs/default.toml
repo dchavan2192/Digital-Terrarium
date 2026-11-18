@@ -284,3 +284,5 @@ enabled = true
 window_size = 100       # Ticks between activity snapshots
 lineage_window = 1000   # lineage_diversity = # of organisms alive 1 window ago with living descendants
 hash_version = 2        # Topology hash: 2 = order-independent (default), 1 = legacy order-dependent
+shadow = false          # Neutral shadow (OEE null model); set true to enable (Bedau et al. 1998)
+shadow_stream = 2       # ChaCha8 stream for shadow RNG (must not be 0 or 1)

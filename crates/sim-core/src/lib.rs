@@ -22,6 +22,7 @@ pub mod config;
 pub mod genome;
 pub mod math;
 pub mod organism;
+pub mod shadow;
 pub mod sim;
 pub mod view;
 pub mod world;
