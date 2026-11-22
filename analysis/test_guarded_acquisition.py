@@ -148,6 +148,24 @@ class SupervisorTests(unittest.TestCase):
             self.assertEqual((source / name).read_bytes(), data)
             self.assertEqual(manifest['sha256']['input/' + name], hashlib.sha256(data).hexdigest())
 
+    def test_diversity_command_keeps_same_owned_guard_and_bounded_budget(self):
+        self.prepare()
+        protocol = self.batch / 'visible_diversity.toml'
+        protocol.write_text('# inert process fixture, no policies evaluated\n')
+        result = subprocess.run(self.command() + ['--task', 'acquire-visible-diversity'],
+                                capture_output=True, text=True, timeout=6)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        manifest = json.loads((self.batch / 'supervisor_manifest.json').read_text())
+        self.assertEqual(manifest['runner_command'], [str(self.batch / 'sim-runner'),
+                         'acquire-visible-diversity', '--protocol', str(protocol),
+                         '--arena', str(self.batch / 'delayed_choice.toml'),
+                         '--output', str(self.batch / 'runs')])
+        self.assertEqual(set(manifest['sha256']), {'sim-runner', 'pi_thermal_guard.py',
+                         'visible_diversity.toml', 'delayed_choice.toml'})
+        self.assertEqual(manifest['environment_override'], {'RAYON_NUM_THREADS': '1'})
+        self.assertEqual(manifest['wall_seconds'], 4)
+        self.assertEqual(self.state()['guard_exit_code'], 0)
+
     def test_validation_missing_or_linked_input_is_rejected_before_artifacts(self):
         self.prepare()
         (self.batch / 'visible_validation.toml').write_text('# inert\n')

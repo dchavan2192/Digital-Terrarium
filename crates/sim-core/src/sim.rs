@@ -256,8 +256,8 @@ pub struct TickStats {
     /// Tracks whether the population is diverging along the diet axis.
     /// Citation: Grant & Grant (2006); Schluter (2000) "Ecology of Adaptive Radiation"
     pub mean_diet_preference: f64,
-    /// Standard deviation of diet_preference — measures bimodality / adaptive radiation.
-    /// High variance = character displacement; low variance = single generalist peak.
+    /// Population variance of diet_preference. Spread alone does not establish
+    /// bimodality, character displacement or adaptive radiation.
     pub diet_variance: f64,
     /// Mean number of hidden neurons per brain (excludes fixed input/output nodes).
     /// Tracks how neural complexity evolves under different selection pressures.

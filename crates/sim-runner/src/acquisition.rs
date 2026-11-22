@@ -647,6 +647,9 @@ fn search(protocol: &Protocol, arena: &ArenaConfig, seed: u64, dir: &Path) -> Ru
     config.brain.inputs = arena.input_count();
     config.brain.hidden = protocol.hidden;
     config.brain.outputs = 7;
+    // Ecological diet mutation has its own probability after the diet revision.
+    // This task's weight-only protocol disables that independent trait path too.
+    config.food.fruit.diet_mutation_probability = 0.0;
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     let mut innovations = Innovations::new(&config.brain);
     let mut population = Vec::with_capacity(protocol.population);
@@ -781,6 +784,7 @@ pub fn run(protocol_path: &Path, arena_path: &Path, output: &Path) -> RunResult<
         "selection":"asexual elitism; tournament with replacement; descending correct then ascending persistent candidate ID; no crossover/speciation",
         "founders":"Genome::random with declared dimensions/mutation; no injected reference weights",
         "embedded_founder_defaults":Config::parse(include_str!("../../../configs/default.toml")).map_err(|e|e.to_string())?,
+        "isolated_diet_mutation_probability":0.0,
         "phenotype":"20-style arena inputs (dimensions in arena), declared hidden, seven outputs; methylation zero and fixed; no body scaling, metabolism, energy selection or lifetime updates; neutral hue drift from native reproduce retained",
         "champion_rule":"best member of final population by training score then lowest ID; fixed budget, no early stopping",
         "validation":"none; champion trials replay training conditions only; not a held-out evaluation",

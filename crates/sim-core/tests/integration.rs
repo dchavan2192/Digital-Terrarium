@@ -2374,7 +2374,7 @@ fn birth_energy_creation_is_rejected() {
 /// This verifies the key safety property: same seed, same non-shadow stats.
 #[test]
 fn shadow_does_not_perturb_main_run() {
-    let shadow_off = DEFAULT_CONFIG.replace("shadow = false", "shadow = false"); // unchanged
+    let shadow_off = DEFAULT_CONFIG.to_owned();
     let shadow_on = DEFAULT_CONFIG.replace("shadow = false", "shadow = true");
     assert_ne!(shadow_on, shadow_off);
 

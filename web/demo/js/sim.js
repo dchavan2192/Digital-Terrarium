@@ -233,6 +233,11 @@ export function normaliseConfig(c = {}) {
     brainCost: num(full.energy?.brain_cost, 0.001),
     connectionCost: num(full.energy?.connection_cost, 0.001),
     activityCost: num(full.energy?.activity_weight_cost, 0),
+    activityTrackingEnabled: typeof full.activity_tracking?.enabled === 'boolean' ? full.activity_tracking.enabled : null,
+    activityWindowSize: num(full.activity_tracking?.window_size, NaN),
+    shadowEnabled: typeof full.activity_tracking?.shadow === 'boolean' ? full.activity_tracking.shadow : null,
+    dietCompetitionSigma: num(full.density_pressure?.diet_competition_sigma, NaN),
+    dietSlope: num(full.food?.fruit?.diet_slope, NaN),
     seed: num(c.seed, 0),
     raw: c,
   };
@@ -496,6 +501,7 @@ export function createSim(backend) {
       droughts: c.droughtsEnabled,
       inspect: backend.has('tr_inspect_json'),
       memory: backend.kind === 'wasm' && backend.has('tr_memory_creature_id'),
+      shadow: backend.kind === 'wasm' && typeof c.shadowEnabled === 'boolean',
       deaths: backend.has('tr_deaths_count'),
       // ABI v1 gaps (SIM_WASM_ABI.md §10). UI that needs these stays hidden.
       shareFlags: false,

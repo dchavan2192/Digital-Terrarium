@@ -1,0 +1,55 @@
+# Separate paired experiment family. Freeze exact inputs and code before launch.
+# a=lateral, b=forward. All cues remain visible during movement.
+version = 1
+population = 64
+generations = 25
+elites = 8
+tournament = 3
+seeds = [5000, 5001, 5002, 5003]
+hidden = 8
+
+[mutation]
+weight_probability = 0.1
+weight_step = 0.2
+add_connection_probability = 0.0
+add_node_probability = 0.0
+toggle_probability = 0.0
+prune_probability = 0.0
+add_recurrent_probability = 0.0
+trait_probability = 0.0
+
+# Training: fixed=three reference copies; varied=reference(4,4),near(3,3),narrow(2.5,4).
+# Six fresh held-out cases, used only after final training-champion selection.
+[[holdouts]]
+kind = "relative_goals"
+name = "geometry_forward_shift"
+lateral = 3.5
+forward = 5.0
+
+[[holdouts]]
+kind = "relative_goals"
+name = "geometry_wide_shift"
+lateral = 5.0
+forward = 3.5
+
+[[holdouts]]
+kind = "relative_goals"
+name = "geometry_near_narrow"
+lateral = 3.0
+forward = 4.5
+
+[[holdouts]]
+kind = "relative_goals"
+name = "geometry_far_diagonal"
+lateral = 4.5
+forward = 5.5
+
+[[holdouts]]
+kind = "rigid_rotation"
+name = "heading_minus30"
+radians = -0.5235987755982988
+
+[[holdouts]]
+kind = "rigid_rotation"
+name = "heading_plus30"
+radians = 0.5235987755982988

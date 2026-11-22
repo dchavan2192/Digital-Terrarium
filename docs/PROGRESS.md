@@ -2,9 +2,18 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-18 UTC
+**Last updated**: 2026-11-22 UTC
 
 ---
+
+## Reconciled development and audited completed campaign — 2026-11-22
+
+- Fetched/fast-forwarded GitHubf541b8a→2e28f08, preserving interrupted local diversity-pilot work. Incoming diet/resource/shadow changes are now reconciled with the isolated runner. The Pi campaign completed8/8 worlds onNov18; Pi idle54.3°C at resumption. [Completed report](results/BASELINE_RECURRENCE_LONG_2026-11-22.md), [full JSON](results/baseline_recurrence_long_2026-11-22.json), all-world figure and raw-data archive retain the frozenb40ae9c scope. Off/on late populations985.135/822.899 and enabled links187.512/441.254; no cap-blocked births. These are structural/demographic observations, not useful memory or validation of the new diet/shadow defaults.
+- Found/fixed upstream CI/Pages blockers: neutral-shadow random index draws used pointer-width-dependent ranges; all three now use the established fixed-width helper. Removed an upstream no-effect replacement flagged by Clippy. No checks were disabled. Clarified that finite activity above a demographic-conditional shadow does not by itself establish OEE; corrected the diet-variance documentation to match the actual variance formula. Earlier pinned baseline evidence is now labeled separately from newer defaults in README.
+- Completed `acquire-visible-diversity`: matched fresh seed pairs5000–5003, fixed-reference versus three-layout training, equal trial budgets, all eight training selections locked/fingerprinted before the six fresh held-out conditions. [Prospective plan](results/VISIBLE_DIVERSITY_PLAN_2026-11-18.md). Explicitly disable upstream's independent diet-mutation probability in both isolated weight-only searches; genealogy regression verifies final diets equal their founders. The owner authorized a validated one-off run while keeping schedules disabled; actual source/binary launch evidence follows after the clean build. No automation schedule was re-enabled.
+- Demo now has an Ecology tab with diet mean/variance, hidden neurons and real/neutral topology activity. Optional neutral comparison restarts the same seed and composes with memory mode across resets/new seeds/sharing; off/unknown/warm-up values stay unavailable. Saved Task lab has a visible evaluator-version boundary and links to the completed older-engine study. Live model metrics are not memory/intelligence/OEE scores.
+- Validation:184 workspace Rust tests pass, including the portability check; three diversity CLI tests pass after the genealogy regression. All-target Clippy/format pass.24 Node tests and real WASM baseline/memory/neutral smoke checks pass; native/WASM complete-state agreement measured with both memory+shadow on at ticks0,1,100,2000. New smoke runs in CI and Pages. Browser access is unavailable, so visual browser/mobile QA remains unverified; deployment must be verified by workflow and fetched artifact identity before claiming live publication.
+- Product/business review joined science/engineering agents: prioritize reproducible evidence and the bounded competence pilot over more ecological mechanisms. Primary audience is owner/research collaborators, with a clear visitor journey from live organism/brain to measured Ecology fields, saved success/failure and raw reports. No monetization assumption. Next milestone is an auditable all-pair pilot and working evidence links, regardless of outcome.
 
 ## Completed — ALIFE 2027 science sprint, 2026-11-18 UTC
 
@@ -38,7 +47,7 @@ Automated runs paused at owner request. Four commits landed on `main`; all pass 
 
 ### Scientific meaning
 
-Before this sprint: OEE claims were scientifically unjustifiable — growing `mean_cumulative_activity` can't be distinguished from neutral drift without a null model. With the shadow model, `mean_cumulative_activity > shadow_mean_cumulative_activity` is evidence for genuine selection-driven open-ended evolution, enabling a Class 4b claim under Channon's (2003) ALife test framework.
+The shadow supplies a demographic-conditional null comparison. Excess real activity over this shadow would be conditional finite-horizon evidence whose interpretation depends on validating the null and metrics. It does not by itself establish open-ended evolution, unbounded novelty or a Channon Class4b result. The earlier finite-run activity claims remain unestablished.
 
 ### Next priorities (when runs resume)
 

@@ -110,7 +110,8 @@ def thermal_snapshot(sensor):
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--batch', type=Path, required=True)
-    p.add_argument('--task', choices=('acquire-visible', 'validate-visible', 'ecology-long'),
+    p.add_argument('--task', choices=('acquire-visible', 'validate-visible', 'ecology-long',
+                                      'acquire-visible-diversity'),
                    default='acquire-visible')
     p.add_argument('--wall-seconds', type=float, default=1800)
     p.add_argument('--guard-stale-seconds', type=float, default=20)
@@ -130,6 +131,7 @@ def parse_args(argv=None):
     args.batch = args.batch.resolve()
     required = ['sim-runner', 'pi_thermal_guard.py']
     required += {'acquire-visible': ['visible_acquisition.toml', 'delayed_choice.toml'],
+                 'acquire-visible-diversity': ['visible_diversity.toml', 'delayed_choice.toml'],
                  'validate-visible': ['visible_validation.toml'],
                  'ecology-long': ['base.toml', 'job.json']}[args.task]
     if not args.batch.is_dir() or any(not (args.batch / name).is_file() or (args.batch / name).is_symlink() for name in required):
@@ -204,7 +206,11 @@ def run_fresh(args):
     runner_cmd = [str(batch / 'sim-runner'), 'acquire-visible',
                   '--protocol', str(batch / 'visible_acquisition.toml'),
                   '--arena', str(batch / 'delayed_choice.toml'), '--output', str(batch / 'runs')]
-    if args.task == 'validate-visible':
+    if args.task == 'acquire-visible-diversity':
+        runner_cmd = [str(batch / 'sim-runner'), 'acquire-visible-diversity',
+                      '--protocol', str(batch / 'visible_diversity.toml'),
+                      '--arena', str(batch / 'delayed_choice.toml'), '--output', str(batch / 'runs')]
+    elif args.task == 'validate-visible':
         runner_cmd = [str(batch / 'sim-runner'), 'validate-visible',
                       '--session', str(batch / 'input'),
                       '--suite', str(batch / 'visible_validation.toml'),

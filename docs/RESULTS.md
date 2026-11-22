@@ -1,6 +1,6 @@
 # Results register
 
-Updated: 2026-11-18 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
+Updated: 2026-11-22 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
 
 ## Established scientific results for the corrected current model
 
@@ -19,6 +19,10 @@ Each accepted entry must contain:
 7. A completed review distinguishing observation, causal interpretation, novelty, and untested extrapolation. A well-designed null result is eligible.
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
+
+## Registered exploratory diagnostic: EXP-2026-11-22-BASELINE-LONG-RECURRENCE
+
+[Completed long-run report](results/BASELINE_RECURRENCE_LONG_2026-11-22.md): all eight prescribed500k-tick worlds completed under pinned older engineb40ae9c (four pairs, add-recurrent probability0/.3, food.008/cap2000). Off/on late-window means: population985.135/822.899, enabled total links187.512/441.254, recurrent links0/233.563. Every pair has lower on-arm population, with zero cap-blocked births throughout all worlds. Full inputs, final expressed-brain counts, fixed windows and thermal records independently audited. This is structural/demographic evidence under asymmetric mutation pressure, not memory benefit, a causal neural-cost estimate, OEE or validation of the newer diet/shadow defaults. The report retains all worlds, exact windows, limitations and reproducible data.
 
 ## Registered saved-policy diagnostic: EXP-2026-11-17-VISIBLE-ROBUSTNESS
 

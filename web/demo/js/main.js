@@ -26,7 +26,8 @@ import { createInspector } from './ui/inspector.js';
 import { createTour, tourSeen } from './ui/tour.js';
 import { renderEnergy } from './ui/energy.js';
 import { icon, podSilhouette } from './ui/icons.js';
-import { memoryOverlay, memoryReadout, connectionBreakdown } from './memory.js';
+import { memoryReadout, connectionBreakdown } from './memory.js';
+import { demoModesOverlay, renderEcology } from './ecology-metrics.js';
 
 const LOG = '[terrarium]';
 const TICKS_PER_SEC = { 1: 15, 4: 60, 16: 240 }; // §3.7
@@ -82,6 +83,7 @@ const S = {
   lastStats: null,
   baseConfigText: '',
   memoryEnabled: false,
+  shadowEnabled: false,
   follow: { hold: 0, pose: { x: 0, y: 0, z: 0, heading: 0, simX: 0, simY: 0 } },
   deadId: -1,
   w: 1,
@@ -135,9 +137,10 @@ async function boot() {
   const { sim, error, configText } = await loadSim({ wasmUrl: 'terrarium.wasm', configUrl: 'demo.toml', seed, forceMock: params.has('mock') });
   S.sim = sim;
   S.baseConfigText = configText;
-  if (params.get('memory') === '1' && sim.caps.memory) {
-    sim.init(memoryOverlay(S.baseConfigText, true), seed);
-    S.memoryEnabled = true;
+  S.memoryEnabled = params.get('memory') === '1' && sim.caps.memory;
+  S.shadowEnabled = sim.config.shadowEnabled === true || (params.get('shadow') === '1' && sim.caps.shadow);
+  if (S.memoryEnabled || (S.shadowEnabled && sim.config.shadowEnabled !== true)) {
+    sim.init(demoModesOverlay(S.baseConfigText, S), seed);
   }
   S.cfg = sim.config;
   if (sim.kind === 'mock') {
@@ -238,6 +241,8 @@ function startRun(seed, first = false) {
   url.searchParams.set('seed', String(seed));
   if (S.memoryEnabled) url.searchParams.set('memory', '1');
   else url.searchParams.delete('memory');
+  if (S.shadowEnabled) url.searchParams.set('shadow', '1');
+  else url.searchParams.delete('shadow');
   history.replaceState(null, '', url);
   $('#memoryToggle').textContent = S.memoryEnabled ? 'Memory on' : 'Memory off';
   $('#memoryToggle').setAttribute('aria-pressed', String(S.memoryEnabled));
@@ -246,6 +251,9 @@ function startRun(seed, first = false) {
     ? 'Experimental recurrent memory. Switching starts a new world with the same seed.'
     : 'Memory mode needs the current real WASM simulation; it is unavailable with mock data.';
   $('#memoryPanel').hidden = !S.memoryEnabled;
+  $('#shadowToggle').textContent = S.sim.caps.shadow ? `Neutral comparison ${S.shadowEnabled ? 'on' : 'off'}` : 'Neutral comparison unavailable';
+  $('#shadowToggle').setAttribute('aria-pressed', String(S.shadowEnabled));
+  $('#shadowToggle').disabled = !S.sim.caps.shadow;
   $('#memoryInspectBtn').disabled = true;
   const recurrenceRate = S.cfg.raw?.config?.mutation?.add_recurrent_probability;
   $('#memoryMutation').textContent = Number.isFinite(recurrenceRate) && recurrenceRate >= 0 && recurrenceRate <= 1
@@ -333,7 +341,7 @@ function setupUi() {
     const enabled = !S.memoryEnabled;
     const seed = S.sim.seed;
     try {
-      S.sim.init(memoryOverlay(S.baseConfigText, enabled), seed);
+      S.sim.init(demoModesOverlay(S.baseConfigText, { memoryEnabled: enabled, shadowEnabled: S.shadowEnabled }), seed);
       S.memoryEnabled = enabled;
       startRun(seed, true);
       toast(enabled ? 'Experimental memory enabled. New world, same seed; recurrent links evolve in offspring.' : 'Memory disabled. New world, same seed.', 6000);
@@ -341,6 +349,20 @@ function setupUi() {
     } catch (error) {
       console.error(`${LOG} memory mode restart failed`, error);
       toast('Could not change memory mode. Reload the page to restart safely.');
+    }
+  });
+  $('#shadowToggle').addEventListener('click', () => {
+    if (!S.sim.caps.shadow) return;
+    const enabled = !S.shadowEnabled;
+    const seed = S.sim.seed;
+    try {
+      S.sim.init(demoModesOverlay(S.baseConfigText, { memoryEnabled: S.memoryEnabled, shadowEnabled: enabled }), seed);
+      S.shadowEnabled = enabled;
+      startRun(seed, true);
+      toast(`Neutral comparison ${enabled ? 'enabled' : 'disabled'}. New world, same seed; memory mode preserved.`, 5000);
+    } catch (error) {
+      console.error(`${LOG} neutral comparison restart failed`, error);
+      toast('Could not change the neutral comparison. Reload to restart safely.');
     }
   });
   $('#memoryInspectBtn').addEventListener('click', () => {
@@ -374,8 +396,8 @@ function setupUi() {
   S.dialSegs = ring.children;
 
   // tabs
-  const tabs = [$('#tabFeed'), $('#tabSpecies'), $('#tabEnergy')];
-  const panels = [$('#feedPanel'), $('#speciesPanel'), $('#energyPanel')];
+  const tabs = [$('#tabFeed'), $('#tabSpecies'), $('#tabEnergy'), $('#tabEcology')];
+  const panels = [$('#feedPanel'), $('#speciesPanel'), $('#energyPanel'), $('#ecologyPanel')];
   tabs.forEach((t, i) =>
     t.addEventListener('click', () => {
       tabs.forEach((x, j) => {
@@ -385,6 +407,7 @@ function setupUi() {
       });
       if (i === 1 && S.lastStats) S.speciesTab.update(S.lastStats.species, S.lastStats.tick);
       if (i === 2) renderEnergy($('#energyBudget'), S.lastStats);
+      if (i === 3) renderEcology($('#ecologyPanel'), S.lastStats, S.cfg, S.sim.kind);
       if (mqTablet.matches || mqPhone.matches) openSheet(true);
     }),
   );
@@ -529,7 +552,8 @@ function toggleSpeciesHighlight(id) {
 
 function onKey(e) {
   const tag = (e.target && e.target.tagName) || '';
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || S.tour.active) return;
+  // Focused controls keep their native keys (notably Space on mode buttons).
+  if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(tag) || S.tour.active) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   switch (e.key) {
     case ' ':
@@ -703,6 +727,7 @@ function sample(now) {
   const s = S.sim.stats();
   if (!s) return;
   S.lastStats = s;
+  if (!$('#ecologyPanel').hidden) renderEcology($('#ecologyPanel'), s, S.cfg, S.sim.kind);
   if (S.memoryEnabled) {
     const memory = s.tick > 0 ? memoryReadout(s) : null;
     const links = s.tick > 0 && s.population > 0 ? connectionBreakdown(s.mean_connections, s.mean_recurrent_connections) : null;

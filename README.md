@@ -8,6 +8,8 @@ Watch a creature, inspect its brain, follow its lineage, or run controlled exper
 
 Open **Task lab** in the demo to replay saved native visible-cue evaluations: all nine training-selected policies, seven cases, both cues and fixed reference controls. Choose a policy/case and scrub its recorded movement. These replays are separate from the live ecosystem and do not establish useful memory. [Report and provenance](docs/results/VISIBLE_VALIDATION_2026-11-17.md).
 
+The **Ecology** panel shows measured diet variance, hidden-neuron counts and topology activity. Its optional neutral comparison restarts the same seed and preserves memory mode; it is an experimental demographic-conditional reference, not an OEE or memory-benefit test.
+
 > **Research question:** Which ecological conditions favor adaptive behavior, costly neural processing, and different forms of inheritance?
 
 ## What is implemented
@@ -33,7 +35,7 @@ The [results register](docs/RESULTS.md) defines the evidence required before a n
 
 **Held-out engineering calibration:** all 30 runs across three food-regrowth rates survived 200,000 ticks with zero cap-blocked births. The predefined rule selected regrowth **0.008**, with mean late population **914** across ten runs (exploratory 95% CI: 884–944). The owner approved 0.008 and a population cap of 2,000 as the baseline for a current-engine recheck. These results characterize pinned source `2b1c837`, before recent engine changes; they do not establish memory benefits or current-engine equilibrium. [Report, plot and reproducible data](docs/results/PHASE9A_VALIDATION_2026-11-16.md).
 
-**Current-engine baseline recheck passed:** ten seeds reached 200,000 ticks at regrowth 0.008/cap 2,000 with zero cap-blocked births; mean late population 893.6 (exploratory 95% CI 884.7–902.6). This reuses calibration seeds and establishes the predefined finite-run engineering gate, not equilibrium or memory benefits. [Report and provenance](docs/results/CURRENT_BASELINE_RECHECK_2026-11-17.md).
+**Earlier pinned-engine baseline recheck passed:** ten seeds reached 200,000 ticks at regrowth 0.008/cap 2,000 with zero cap-blocked births; mean late population 893.6 (exploratory 95% CI 884.7–902.6). This reuses calibration seeds and establishes the predefined finite-run engineering gate for its pinned engine, not equilibrium or memory benefits. The newer diet/resource/shadow revisions need separate calibration. [Report and provenance](docs/results/CURRENT_BASELINE_RECHECK_2026-11-17.md).
 
 ## Architecture
 

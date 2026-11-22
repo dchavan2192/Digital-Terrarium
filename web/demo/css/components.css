@@ -95,6 +95,15 @@
 .memory-links dd { margin: 3px 0 0; font-size: var(--fs-14); color: var(--ink-1); }
 .memory-panel #memoryMutation { margin-bottom: 9px; }
 .memory-panel .memory-hint { margin-bottom: 0; color: var(--ink-3); }
+.ecology-readouts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.ecology-readouts dt { font-size: 11px; color: var(--ink-2); }
+.ecology-readouts dd { margin: 4px 0; font-size: 18px; color: var(--ink-1); }
+.ecology-panel h3 { font-size: 14px; margin: 18px 0 10px; }
+.ecology-activity { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 14px; }
+.ecology-activity caption { text-align: left; color: var(--ink-2); font-size: 11px; padding-bottom: 8px; }
+.ecology-activity th, .ecology-activity td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+.ecology-activity th:first-child { text-align: left; font-weight: 400; }
+.ecology-activity thead th { color: var(--ink-2); }
 
 /* ---------- KPI strip (§6.1) ---------- */
 .kpis {
@@ -355,17 +364,17 @@
 /* ---------- side panel: tabs, feed, species ---------- */
 .sheet-handle { justify-content: center; padding: 6px 0 2px; cursor: ns-resize; touch-action: none; }
 .sheet-handle i { width: 36px; height: 4px; border-radius: 2px; background: var(--line); }
-.tabs { display: flex; align-items: center; gap: 4px; padding: 8px 12px 0; border-bottom: 1px solid var(--line); flex: none; }
+.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 8px 6px 0; border-bottom: 1px solid var(--line); flex: none; }
 .tabs [role="tab"] {
-  padding: 8px 10px;
+  padding: 8px 6px;
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--ink-3);
-  font-size: var(--fs-12);
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   cursor: pointer;
 }
 .tabs [role="tab"][aria-selected="true"] { color: var(--ink-1); border-bottom-color: var(--accent); }

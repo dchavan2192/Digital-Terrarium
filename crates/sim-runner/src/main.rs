@@ -11,6 +11,7 @@
 mod acquisition;
 mod assay;
 mod delayed_choice;
+mod diverse_acquisition;
 mod exported_assay;
 mod movement_assay;
 mod run;
@@ -74,6 +75,15 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Paired fixed-versus-varied visible training with champion-only fresh holdouts.
+    AcquireVisibleDiversity {
+        #[arg(long, default_value = "configs/visible_diversity.toml")]
+        protocol: PathBuf,
+        #[arg(long, default_value = "configs/delayed_choice.toml")]
+        arena: PathBuf,
+        #[arg(long, default_value = "output/visible-diversity")]
+        output: PathBuf,
+    },
     /// Replay all training-selected champions on a frozen visible robustness suite.
     ValidateVisible {
         #[arg(long)]
@@ -251,6 +261,11 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::AcquireVisibleDiversity {
+            protocol,
+            arena,
+            output,
+        }) => diverse_acquisition::run(&protocol, &arena, &output),
         Some(Commands::ValidateVisible {
             session,
             suite,

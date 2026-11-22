@@ -2,8 +2,8 @@
 //!
 //! The neutral shadow mirrors the real simulation's demographic events (births and
 //! deaths) but selects parents and victims at **random** rather than by fitness.
-//! Comparing activity statistics between the real population and its shadow tests
-//! whether evolutionary dynamics exceed neutral drift.
+//! Comparing activity statistics supplies a demographic-conditional reference;
+//! a finite difference alone does not establish selection or open-ended evolution.
 //!
 //! Without a shadow there is no null hypothesis: even a population under pure
 //! stabilising selection will grow its `mean_cumulative_activity` monotonically,
@@ -34,6 +34,7 @@
 use crate::activity::{ActivityStats, ActivityTracker, topology_hash_versioned};
 use crate::config::{ActivityTrackingConfig, FruitConfig, MutationConfig};
 use crate::genome::{Genome, Innovations};
+use crate::math::random_index;
 use rand::Rng;
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;
@@ -42,7 +43,8 @@ use rand_chacha::ChaCha8Rng;
 ///
 /// The shadow mirrors the real population's demographic structure (size, birth count,
 /// death count, mutation operator) but selects parents and victims at random rather
-/// than by fitness. Activity statistics above the shadow represent genuine selection.
+/// than by fitness. Excess activity is conditional on this null's assumptions;
+/// it is not by itself evidence of open-ended evolution.
 ///
 /// Only genomes are stored (no brains, positions, or energy): reproduction calls
 /// `Genome::reproduce`/`Genome::crossover` unchanged, but `build_brain()` is never
@@ -128,7 +130,7 @@ impl ShadowPopulation {
             self.idx_buf[i] = i;
         }
         for k in 0..sample {
-            let j = k + self.rng.gen_range(0..(n0 - k));
+            let j = k + random_index(&mut self.rng, n0 - k);
             self.idx_buf.swap(k, j);
         }
 
@@ -154,7 +156,7 @@ impl ShadowPopulation {
             let p = self.idx_buf[parent_cursor.min(sample - 1)];
             parent_cursor += 1;
             // Pick a random mate (may be any index including parent)
-            let m_idx = self.rng.gen_range(0..n0);
+            let m_idx = random_index(&mut self.rng, n0);
             let a_is_fitter = self.rng.r#gen::<bool>();
             let child = Genome::crossover(
                 &self.genomes[p],
@@ -177,7 +179,7 @@ impl ShadowPopulation {
             if self.genomes.is_empty() {
                 break;
             }
-            let i = self.rng.gen_range(0..self.genomes.len());
+            let i = random_index(&mut self.rng, self.genomes.len());
             self.genomes.swap_remove(i);
         }
     }

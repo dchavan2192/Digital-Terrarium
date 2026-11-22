@@ -95,3 +95,11 @@ jobs:
           node web/demo/tests/conformance.mjs target/wasm32-unknown-unknown/release/sim_wasm.wasm memory-on.toml 42 0,1,100,2000 > wasm-memory.txt
           cat native-memory.txt
           diff native-memory.txt wasm-memory.txt
+      - name: Native and WASM agree with memory and neutral shadow enabled
+        run: |
+          python3 -c 'from pathlib import Path; p=Path("memory-on.toml"); s=p.read_text(); assert s.count("shadow = false") == 1; Path("memory-shadow-on.toml").write_text(s.replace("shadow = false", "shadow = true", 1))'
+          ./target/release/sim-runner fingerprint --config memory-shadow-on.toml --seed 42 --ticks 0,1,100,2000 | grep '^tick=' > native-shadow.txt
+          node web/demo/tests/conformance.mjs target/wasm32-unknown-unknown/release/sim_wasm.wasm memory-shadow-on.toml 42 0,1,100,2000 > wasm-shadow.txt
+          diff native-shadow.txt wasm-shadow.txt
+      - name: Actual demo neutral comparison and combined mode replay
+        run: node --experimental-default-type=module web/demo/tests/shadow-wasm-smoke.mjs target/wasm32-unknown-unknown/release/sim_wasm.wasm

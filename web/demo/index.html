@@ -104,6 +104,7 @@
         <button role="tab" id="tabFeed" aria-selected="true" aria-controls="feedPanel" type="button">What’s happening</button>
         <button role="tab" id="tabSpecies" aria-selected="false" aria-controls="speciesPanel" type="button" tabindex="-1">Species</button>
         <button role="tab" id="tabEnergy" aria-selected="false" aria-controls="energyPanel" type="button" tabindex="-1">Energy</button>
+        <button role="tab" id="tabEcology" aria-selected="false" aria-controls="ecologyPanel" type="button" tabindex="-1">Ecology</button>
         <button class="icon-btn sheet-close" id="sheetClose" type="button" aria-label="Close panel" data-icon="x"></button>
       </div>
       <section class="memory-panel" id="memoryPanel" aria-labelledby="memoryTitle" hidden>
@@ -138,6 +139,33 @@
         <p class="panel-hint">This tracks creatures’ reserves, including newborns and deaths. Food still growing in the ground is outside this budget. Sharing moves energy between creatures; it does not create it.</p>
       </section>
 
+      <section class="panel energy-panel ecology-panel" id="ecologyPanel" role="tabpanel" aria-labelledby="tabEcology" hidden>
+        <h2>Diet, brains &amp; a neutral comparison</h2>
+        <p class="panel-hint" data-ecology="measurement">Waiting for a measured tick…</p>
+        <dl class="ecology-readouts tnum">
+          <div><dt>Mean diet</dt><dd data-ecology="diet">–</dd></div>
+          <div><dt>Diet variance</dt><dd data-ecology="variance">–</dd></div>
+          <div><dt>Mean hidden neurons</dt><dd data-ecology="hidden">–</dd></div>
+        </dl>
+        <p class="panel-hint">Diet 0 = algae, 1 = fruit. Variance measures spread; it does not establish two diet groups or adaptive radiation. Hidden neurons exclude fixed input and output nodes.</p>
+        <p class="panel-hint" data-ecology="diet-settings"></p>
+        <h3>Topology activity</h3>
+        <button class="btn btn-sm memory-toggle" id="shadowToggle" type="button" aria-pressed="false" aria-describedby="shadowHelp">Neutral comparison off</button>
+        <p class="panel-hint" id="shadowHelp">Switching restarts the same seed and preserves memory mode. The experimental null adds a separate population with random parents and deaths matched in count to the real world. Differences are not proof of open-ended evolution.</p>
+        <table class="ecology-activity tnum">
+          <caption>Presence of brain topologies in sampled activity windows</caption>
+          <thead><tr><th scope="col">Measurement</th><th scope="col">Real</th><th scope="col">Neutral</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Active topologies</th><td data-ecology="real-active">–</td><td data-ecology="shadow-active">–</td></tr>
+            <tr><th scope="row">New this window</th><td data-ecology="real-novel">–</td><td data-ecology="shadow-novel">–</td></tr>
+            <tr><th scope="row">Mean cumulative activity</th><td data-ecology="real-mean">–</td><td data-ecology="shadow-mean">–</td></tr>
+          </tbody>
+        </table>
+        <p class="panel-hint">Real: <span data-ecology="real-state">Waiting…</span><br>Neutral: <span data-ecology="shadow-state">Off · not measured</span></p>
+        <p class="panel-hint" data-ecology="shadow-population"></p>
+        <p class="panel-hint">Cumulative activity counts presence across sampling windows for currently extant topologies. These are model measurements, not intelligence or useful-memory scores.</p>
+        <p class="panel-hint"><a href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/BASELINE_RECURRENCE_LONG_2026-11-22.md" target="_blank" rel="noopener">Completed recurrence study · older pinned engine, all eight worlds</a></p>
+      </section>
       <div class="inspector" id="inspector" role="dialog" aria-labelledby="inspTitle" hidden>
         <div class="insp-head">
           <h2 id="inspTitle">Creature</h2>
@@ -227,6 +255,7 @@
       <button class="btn btn-sm" id="taskClose" type="button">Close</button>
     </header>
     <p class="task-intro" id="taskIntro">Prerecorded native task evaluations, separate from the live ecosystem. Replay all 9 training-selected champions across 7 cases and both cues, including partial responses. The cue stays visible; a memory benefit has not been established.</p>
+    <p class="task-note" id="taskSource">Saved evaluator b40ae9c · visible cue · movement horizon 20. The live ecosystem uses its current build.</p>
     <p class="task-note" id="taskStatus" role="status">Loading saved evaluations…</p>
     <div id="taskBody" hidden>
       <div class="task-selectors">
