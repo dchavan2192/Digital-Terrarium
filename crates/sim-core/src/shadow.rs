@@ -126,8 +126,8 @@ impl ShadowPopulation {
         // the n0 pre-birth genomes. If more births than organisms, clamp.
         let sample = total_births.min(n0);
         self.idx_buf.resize(n0, 0);
-        for i in 0..n0 {
-            self.idx_buf[i] = i;
+        for (i, slot) in self.idx_buf.iter_mut().enumerate() {
+            *slot = i;
         }
         for k in 0..sample {
             let j = k + random_index(&mut self.rng, n0 - k);

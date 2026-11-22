@@ -22,8 +22,8 @@ export const TOUR_STEPS = [
   },
   {
     target: '#side',
-    title: 'Follow the story.',
-    body: 'The feed highlights changes in the world. Click a creature to inspect its brain, or open Energy to see a measured budget of food in and costs out.',
+    title: 'Start with energy.',
+    body: 'After this tour, use Pause, then open Energy. Compare food coming in with the costs of movement and upkeep in the latest sampled tick. Resume to watch the numbers change. These are measurements inside a designed model, not proof of intelligence.',
   },
 ];
 

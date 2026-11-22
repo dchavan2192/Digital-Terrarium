@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "status": "prepared_not_launched",
+  "prepared_utc": "2026-11-22T23:25:42.052222+00:00",
+  "source_revision": "c7324b6ba6d2c6a57523c83cad2575d7a8ee75be",
+  "source_dirty": false,
+  "source_root": "/home/pi/Digital-Terrarium/output/builds/diversity_c7324b6",
+  "batch": "/home/pi/Digital-Terrarium/output/visible_diversity/pilot_20261122T233000Z",
+  "artifacts_sha256": {
+    "delayed_choice.toml": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+    "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+    "run_guarded_acquisition.py": "2f08b9c443b917026203d17cc3fc75d6a5f6b0b229e139c085e9c65a1a58c7ec",
+    "sim-runner": "682bb415d26dd5009220e6b6a775d9a153e30b97d8c97055cf3c023c5e6df02b",
+    "visible_diversity.toml": "a009ba4ad6467850e1270504474766262a4f68dbec59d341251efc5dcd896c67"
+  },
+  "preparation_script_sha256": "c2e0a776e3f418c244e7fe71adfc66bfae6494d55058777f62f0d6ed6bed62aa",
+  "plan_sha256": "855a77c5aae214fb664f084693d08c2c06203c6f67df81ce3aa35522c53b590a",
+  "resources": {
+    "free_disk_bytes": 217072418816,
+    "available_ram_bytes": 8086192128,
+    "temperature_c": 57.3,
+    "throttled_output": "throttled=0xe0000"
+  },
+  "build": {
+    "workers": 1,
+    "offline": true,
+    "wall_timeout_seconds": 900
+  },
+  "command": [
+    "/usr/bin/python3",
+    "/home/pi/Digital-Terrarium/output/visible_diversity/pilot_20261122T233000Z/run_guarded_acquisition.py",
+    "--task",
+    "acquire-visible-diversity",
+    "--batch",
+    "/home/pi/Digital-Terrarium/output/visible_diversity/pilot_20261122T233000Z",
+    "--wall-seconds",
+    "1800"
+  ],
+  "schedules": "remain disabled; one-off only",
+  "build_metadata": {
+    "TERRARIUM_CORE_BUILD": "76b23bc91f012cd7",
+    "TERRARIUM_CORE_TARGET": "aarch64-unknown-linux-gnu",
+    "TERRARIUM_COMPILER": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "TERRARIUM_SOURCE_REVISION": "c7324b6ba6d2c6a57523c83cad2575d7a8ee75be",
+    "TERRARIUM_SOURCE_DIRTY": "false",
+    "TERRARIUM_TARGET": "aarch64-unknown-linux-gnu",
+    "TERRARIUM_BUILD_PROFILE": "release"
+  }
+}

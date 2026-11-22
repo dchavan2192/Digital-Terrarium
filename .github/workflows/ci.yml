@@ -27,6 +27,7 @@ jobs:
           python3 -m unittest discover -s analysis -p 'test_visible_validation_audit.py'
           python3 -m unittest discover -s analysis -p 'test_long_recurrence_worker.py'
           python3 -m unittest discover -s analysis -p 'test_long_recurrence_summary.py'
+          python3 -m unittest discover -s analysis -p 'test_visible_diversity_summary.py'
 
   check:
     name: Check & Clippy
