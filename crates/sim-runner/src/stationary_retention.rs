@@ -16,7 +16,7 @@ struct Candidate {
 }
 
 #[derive(Clone, Copy)]
-enum Reset {
+pub(super) enum Reset {
     Intact,
     Boundary,
     EveryTick,
@@ -38,6 +38,10 @@ fn probe(
         &[(0, 2, bias, true), (1, 2, cue_weight, true)],
         &[(2, 2, recurrence, 2)],
     );
+    brain_probe(&brain, visible, reset, delay)
+}
+
+pub(super) fn brain_probe(brain: &Brain, visible: bool, reset: Reset, delay: usize) -> [f64; 2] {
     [-1.0, 1.0].map(|cue| {
         let mut prev = [0.0; MAX_NODES];
         let mut act = prev;
@@ -60,10 +64,10 @@ fn probe(
     })
 }
 
-fn correct(r: [f64; 2]) -> u8 {
+pub(super) fn correct(r: [f64; 2]) -> u8 {
     u8::from(r[0] < 0.0) + u8::from(r[1] >= 0.0)
 }
-fn margin(r: [f64; 2]) -> f64 {
+pub(super) fn margin(r: [f64; 2]) -> f64 {
     (-r[0]).min(r[1])
 }
 fn candidate(id: usize, parent: Option<usize>, weights: [f64; 3]) -> Candidate {
@@ -74,7 +78,7 @@ fn candidate(id: usize, parent: Option<usize>, weights: [f64; 3]) -> Candidate {
         responses: responses(weights, false, Reset::Intact),
     }
 }
-fn save(path: &Path, value: &impl Serialize) -> RunResult<()> {
+pub(super) fn save(path: &Path, value: &impl Serialize) -> RunResult<()> {
     fs::write(path, serde_json::to_vec(value).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())
 }

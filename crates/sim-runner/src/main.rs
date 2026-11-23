@@ -18,6 +18,7 @@ mod run;
 mod stationary_retention;
 mod sweep;
 mod visible_validation;
+mod wiring;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -76,6 +77,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Select for delayed recall starting with feed-forward genomes.
+    RetentionWiring {
+        #[arg(long, default_value = "output/retention-wiring")]
+        output: PathBuf,
+    },
     /// Compare fitness-ranked and random survivors using matched founder populations.
     RetentionSelection {
         #[arg(long, default_value = "output/retention-selection")]
@@ -278,6 +284,7 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::RetentionWiring { output }) => wiring::run(&output),
         Some(Commands::RetentionSelection { output }) => stationary_retention::paired(&output),
         Some(Commands::StationaryRetention { output }) => stationary_retention::run(&output),
         Some(Commands::AcquireVisibleDiversity {
