@@ -15,6 +15,12 @@
 - Validation:25 Node tests pass including exact raw-source/pose matching, study selectors, aggregate outcomes and deterministic export. Six auditor tests pass; independent full audit reproduces the archived summary exactly. Figure visually inspected. Browser automation remains unavailable, so desktop/mobile interaction QA is unverified. Prior c8e1b50 CI45085173316 and Pages45085173291 both passed; final publication status follows this update's push.
 - Remaining product direction from the UI/business/science review: make the evidence journey understandable before adding more mechanisms. User observation of Pause→Energy→Resume and Task lab success/failure replays is still needed; no usability improvement has been measured.
 
+### Publication verification — 2026-11-23
+
+- Reporting/demo commit `2019920d0a0ddd70bc6834db17fd203c93b564eb` is pushed. CI45192837084 and Pages45192837149 both succeeded. Public `version.json` identifies that full SHA; served replay JSON and Task lab code match committed bytes exactly.
+- [Pilot raw-data release](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-diversity-pilot-2026-11-22) is published. Use `visible_diversity_pilot_2026-11-22_complete.tar.gz` (7,880,521 bytes; SHA-256 `9d4cbab4d4cf8bd72d582792bc484829ae94bfe74857addafe4940c0e825c76f`). All98 payloads verified; downloaded public archive matches local bytes. The initial archive remains for traceability, but its standalone test exposed a missing transitive auditor import. Complete package adds that dependency only; extracted empty-directory audit and six tests pass, summary identical. No experiment artifacts changed or replaced.
+- This handoff-only follow-up records verification of2019920 and corrects package selection; no further simulation or experiment was started. Browser/mobile interaction testing remains open. Continue with competence-first protocol design and novice observation, keeping schedules disabled and preserving the consumed held-outs.
+
 ## Reconciled development and audited completed campaign — 2026-11-22
 
 - Implementation/reconciliation sourcec7324b6 is pushed. GitHub Pages45082917776 succeeded and the public version file matches fullc7324b6; Ecology/neutral measures now deploy with the repaired engine. The overall CI run found an additional Rust1.100 range-loop style lint absent from local1.99.1; an equivalent iterator rewrite addresses it without changing sampling or suppressing checks. Local full/all-target Clippy checks remain passing; final workflow status follows the next push.

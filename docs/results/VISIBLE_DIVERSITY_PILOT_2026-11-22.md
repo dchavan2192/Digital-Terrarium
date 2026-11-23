@@ -6,7 +6,7 @@ Varied training scored **14/32** correct held-out geometry responses versus **12
 
 All eight searches and their training-selected champions are retained. Only seed 5000 reached all six training responses correct, in both arms. The other six champions reached three of six. Their held-out results remain in the primary denominator; no successful-seed filtering, additional training, test-based champion choice or outcome-dependent rerun occurred.
 
-[Full raw-data prerelease and checksums](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-diversity-pilot-2026-11-22). The archive preserves every training population, selected champion, trace, pinned Pi executable and thermal record.
+[Full raw-data prerelease and checksums](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-diversity-pilot-2026-11-22). Use `visible_diversity_pilot_2026-11-22_complete.tar.gz` and its matching SHA-256 sidecar. The initial package remains available for traceability but lacks a transitive audit import; the complete package includes it and passed both commands below after extraction into an empty directory, with identical summary output. All 98 payload files and the public download bytes were verified. The archive preserves every training population, selected champion, trace, pinned Pi executable and thermal record.
 
 ![All eight training-selected champions across six held-out cases](../images/visible_diversity_pilot_2026-11-22.png)
 
