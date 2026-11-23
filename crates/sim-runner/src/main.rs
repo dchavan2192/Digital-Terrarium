@@ -15,6 +15,7 @@ mod diverse_acquisition;
 mod exported_assay;
 mod movement_assay;
 mod run;
+mod stationary_retention;
 mod sweep;
 mod visible_validation;
 
@@ -75,6 +76,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Run the bounded four-seed stationary cue retention protocol.
+    StationaryRetention {
+        #[arg(long, default_value = "output/stationary-retention")]
+        output: PathBuf,
+    },
     /// Paired fixed-versus-varied visible training with champion-only fresh holdouts.
     AcquireVisibleDiversity {
         #[arg(long, default_value = "configs/visible_diversity.toml")]
@@ -267,6 +273,7 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::StationaryRetention { output }) => stationary_retention::run(&output),
         Some(Commands::AcquireVisibleDiversity {
             protocol,
             arena,
