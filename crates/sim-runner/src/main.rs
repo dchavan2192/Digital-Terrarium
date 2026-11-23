@@ -76,6 +76,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Compare fitness-ranked and random survivors using matched founder populations.
+    RetentionSelection {
+        #[arg(long, default_value = "output/retention-selection")]
+        output: PathBuf,
+    },
     /// Run the bounded four-seed stationary cue retention protocol.
     StationaryRetention {
         #[arg(long, default_value = "output/stationary-retention")]
@@ -273,6 +278,7 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::RetentionSelection { output }) => stationary_retention::paired(&output),
         Some(Commands::StationaryRetention { output }) => stationary_retention::run(&output),
         Some(Commands::AcquireVisibleDiversity {
             protocol,

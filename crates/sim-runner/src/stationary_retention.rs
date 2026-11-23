@@ -22,7 +22,15 @@ enum Reset {
     EveryTick,
 }
 
-fn responses([bias, cue_weight, recurrence]: [f64; 3], visible: bool, reset: Reset) -> [f64; 2] {
+fn responses(weights: [f64; 3], visible: bool, reset: Reset) -> [f64; 2] {
+    probe(weights, visible, reset, 5)
+}
+fn probe(
+    [bias, cue_weight, recurrence]: [f64; 3],
+    visible: bool,
+    reset: Reset,
+    delay: usize,
+) -> [f64; 2] {
     let brain = Brain::from_neat_with_memory(
         1,
         7,
@@ -34,12 +42,13 @@ fn responses([bias, cue_weight, recurrence]: [f64; 3], visible: bool, reset: Res
         let mut prev = [0.0; MAX_NODES];
         let mut act = prev;
         let mut turn = 0.0;
-        for tick in 0..7 {
-            if matches!(reset, Reset::EveryTick) || (tick == 6 && matches!(reset, Reset::Boundary))
+        for tick in 0..=delay + 1 {
+            if matches!(reset, Reset::EveryTick)
+                || (tick == delay + 1 && matches!(reset, Reset::Boundary))
             {
                 prev.fill(0.0);
             }
-            let input = if tick == 0 || (tick == 6 && visible) {
+            let input = if tick == 0 || (tick == delay + 1 && visible) {
                 cue
             } else {
                 0.0
@@ -69,6 +78,14 @@ fn save(path: &Path, value: &impl Serialize) -> RunResult<()> {
     fs::write(path, serde_json::to_vec(value).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())
 }
+fn rank(population: &mut [Candidate]) {
+    population.sort_by(|a, b| {
+        correct(b.responses)
+            .cmp(&correct(a.responses))
+            .then_with(|| margin(b.responses).total_cmp(&margin(a.responses)))
+            .then(a.id.cmp(&b.id))
+    });
+}
 pub fn run(output: &Path) -> RunResult<()> {
     let dir = create_session(output)?;
     let mut selected = Vec::new();
@@ -80,12 +97,7 @@ pub fn run(output: &Path) -> RunResult<()> {
         let mut history = Vec::new();
         let mut id = 16;
         for generation in 0..=16 {
-            population.sort_by(|a, b| {
-                correct(b.responses)
-                    .cmp(&correct(a.responses))
-                    .then_with(|| margin(b.responses).total_cmp(&margin(a.responses)))
-                    .then(a.id.cmp(&b.id))
-            });
+            rank(&mut population);
             history.push(population.clone());
             if generation == 16 {
                 break;
@@ -124,5 +136,74 @@ pub fn run(output: &Path) -> RunResult<()> {
     save(
         &dir.join("diagnostics.json"),
         &json!({"schema":1,"cue_order":[-1,1],"compiler":env!("TERRARIUM_COMPILER"),"target":env!("TERRARIUM_TARGET"),"source":env!("TERRARIUM_SOURCE_REVISION"),"source_dirty":env!("TERRARIUM_SOURCE_DIRTY"),"core":sim_core::checkpoint::CORE_BUILD_ID,"rows":rows}),
+    )
+}
+
+pub fn paired(output: &Path) -> RunResult<()> {
+    use rand::seq::SliceRandom;
+    let dir = create_session(output)?;
+    let mut winners = Vec::new();
+    for seed in 6100..6132 {
+        let mut source = ChaCha8Rng::seed_from_u64(seed);
+        let founders: Vec<_> = (0..16)
+            .map(|id| {
+                candidate(
+                    id,
+                    None,
+                    std::array::from_fn(|_| source.gen_range(-2.0..2.0)),
+                )
+            })
+            .collect();
+        for arm in ["selected", "neutral"] {
+            let mut rng = source.clone();
+            let mut sampling = ChaCha8Rng::seed_from_u64(seed ^ (1 << 63));
+            let mut pop = founders.clone();
+            let mut history = Vec::new();
+            for generation in 0..=16 {
+                rank(&mut pop);
+                history.push(pop.clone());
+                if generation == 16 {
+                    break;
+                }
+                if arm == "neutral" {
+                    pop.sort_by_key(|c| c.id);
+                    pop.shuffle(&mut sampling);
+                }
+                pop.truncate(4);
+                for index in 0..12 {
+                    let parent = &pop[sim_core::math::random_index(&mut rng, 4)];
+                    let child = candidate(
+                        16 + generation * 12 + index,
+                        Some(parent.id),
+                        parent
+                            .weights
+                            .map(|w| (w + rng.gen_range(-0.3..0.3)).clamp(-4.0, 4.0)),
+                    );
+                    pop.push(child);
+                }
+            }
+            save(&dir.join(format!("{seed}_{arm}.json")), &history)?;
+            winners.push((seed, arm, pop[0].clone()));
+        }
+    }
+    save(&dir.join("selection.json"), &winners)?;
+    let mut rows = Vec::new();
+    for (seed, arm, c) in winners {
+        for delay in [1, 5, 10, 20] {
+            for visible in [false, true] {
+                for (name, reset) in [
+                    ("intact", Reset::Intact),
+                    ("boundary", Reset::Boundary),
+                    ("every_tick", Reset::EveryTick),
+                ] {
+                    let r = probe(c.weights, visible, reset, delay);
+                    rows.push(json!({"seed":seed,"arm":arm,"id":c.id,"delay":delay,"visible":visible,"reset":name,"responses":r,"correct":correct(r)}));
+                }
+            }
+        }
+    }
+    save(
+        &dir.join("diagnostics.json"),
+        &json!({"source":env!("TERRARIUM_SOURCE_REVISION"),"dirty":env!("TERRARIUM_SOURCE_DIRTY"),"core":sim_core::checkpoint::CORE_BUILD_ID,"compiler":env!("TERRARIUM_COMPILER"),"target":env!("TERRARIUM_TARGET"),"rows":rows}),
     )
 }
