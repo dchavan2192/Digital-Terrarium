@@ -13,6 +13,7 @@ mod assay;
 mod delayed_choice;
 mod diverse_acquisition;
 mod exported_assay;
+mod food_cue;
 mod movement_assay;
 mod run;
 mod stationary_retention;
@@ -77,6 +78,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Validate delayed food cues using native patch choice, feeding and direct births.
+    FoodCuePayoff {
+        /// Randomizes the order of a bounded, balanced 16-event schedule.
+        #[arg(long, default_value_t = 6400)]
+        seed: u64,
+        #[arg(long, default_value = "output/food-cue-payoff")]
+        output: PathBuf,
+    },
     /// Compare fixed and varied training delays from matched founders.
     RetentionDelayTraining {
         #[arg(long, default_value = "output/retention-delay-training")]
@@ -289,6 +298,7 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::FoodCuePayoff { seed, output }) => food_cue::run(seed, &output),
         Some(Commands::RetentionWiring { output }) => wiring::run(&output, false),
         Some(Commands::RetentionDelayTraining { output }) => wiring::run(&output, true),
         Some(Commands::RetentionSelection { output }) => stationary_retention::paired(&output),

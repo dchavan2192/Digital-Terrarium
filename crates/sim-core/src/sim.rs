@@ -509,6 +509,21 @@ impl Simulation {
 
     /// Advance the simulation by one tick.
     pub fn step(&mut self) {
+        self.step_inner(None);
+    }
+
+    /// Step the controlled foraging assay with an external cue in the heard-signal
+    /// channel. All other sensors, actions, energy transactions and births use
+    /// the ordinary simulation tick. The override lasts for this tick alone.
+    pub fn step_with_external_cue(&mut self, cue: i8) -> Result<(), &'static str> {
+        if !(-1..=1).contains(&cue) {
+            return Err("external cue must be -1, 0, or +1");
+        }
+        self.step_inner(Some(f64::from(cue)));
+        Ok(())
+    }
+
+    fn step_inner(&mut self, external_cue: Option<f64>) {
         let mut ledger = EnergyLedger {
             before: self.organisms.iter().map(|o| o.energy).sum(),
             ..EnergyLedger::default()
@@ -778,7 +793,7 @@ impl Simulation {
                 idx += 1;
                 inputs[idx] = organisms[i].heading / std::f64::consts::PI - 1.0;
                 idx += 1;
-                inputs[idx] = heard_signal;
+                inputs[idx] = external_cue.unwrap_or(heard_signal);
                 idx += 1;
                 // Body size normalized to [-1, 1]: (size - 1.75) / 1.25
                 // Maps [0.5, 3.0] -> [-1, 1]

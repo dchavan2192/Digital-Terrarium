@@ -52,6 +52,11 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y libasound2-dev
       - run: cargo test --workspace
 
+      - name: Audit locally generated delayed food-cue birth records
+        run: |
+          cargo run --quiet -p sim-runner -- food-cue-payoff --seed 6401 --output "$RUNNER_TEMP/food-cue"
+          python3 analysis/check_food_cue_payoff.py "$RUNNER_TEMP"/food-cue/session_*
+
   fmt:
     name: Format
     runs-on: ubuntu-latest
