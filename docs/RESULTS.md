@@ -20,6 +20,10 @@ Each accepted entry must contain:
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
 
+## Recurrent wiring discovery — 2026-11-23
+
+Nine of 32 fitness-selected populations starting with feed-forward controllers produced a final champion passing the five-blank retention criterion. Both controls scored 0/32. Adjacent delays show parity sensitivity. All runs completed locally. [Report and raw data](results/RETENTION_WIRING_2026-11-23.md).
+
 ## Paired retention selection and transfer — 2026-11-23
 
 All 32 local matched-founder pairs completed. Selection increased final five-tick recall prevalence by 92.1875 percentage points versus random survival. Among ten founder-negative pairs, nine selected and five neutral populations discovered a solution. Only 11/32 selected champions passed at 20 blanks. Delay length and parity are confounded. Discovery of useful recurrent wiring remains open. [Report, protocol and raw histories](results/RETENTION_SELECTION_2026-11-23.md).
