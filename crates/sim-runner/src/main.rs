@@ -77,6 +77,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Compare fixed and varied training delays from matched founders.
+    RetentionDelayTraining {
+        #[arg(long, default_value = "output/retention-delay-training")]
+        output: PathBuf,
+    },
     /// Select for delayed recall starting with feed-forward genomes.
     RetentionWiring {
         #[arg(long, default_value = "output/retention-wiring")]
@@ -284,7 +289,8 @@ fn main() {
     }
 
     let result = match cli.command {
-        Some(Commands::RetentionWiring { output }) => wiring::run(&output),
+        Some(Commands::RetentionWiring { output }) => wiring::run(&output, false),
+        Some(Commands::RetentionDelayTraining { output }) => wiring::run(&output, true),
         Some(Commands::RetentionSelection { output }) => stationary_retention::paired(&output),
         Some(Commands::StationaryRetention { output }) => stationary_retention::run(&output),
         Some(Commands::AcquireVisibleDiversity {
