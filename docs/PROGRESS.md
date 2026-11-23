@@ -6,6 +6,10 @@
 
 ---
 
+## Paired retention selection and transfer — 2026-11-23
+
+All 32 local matched-founder pairs completed. Selection increased final five-tick recall prevalence by 92.1875 percentage points versus random survival. Among ten founder-negative pairs, nine selected and five neutral populations discovered a solution. Only 11/32 selected champions passed at 20 blanks. Delay length and parity are confounded. Discovery of useful recurrent wiring remains open. [Report, protocol and raw histories](results/RETENTION_SELECTION_2026-11-23.md).
+
 ## Stationary retention pilot completed — 2026-11-23
 
 Three of four final circuits retained a signed cue across five blanks and met the matched reset and visible-cue criteria. Two populations had successful founders. Seed 6003 first succeeded at generation one. Local native run, complete histories archived and independently reconstructed. Future work can compare selection against neutral search with matched founders and test fresh delays. [Full report](results/STATIONARY_RETENTION_2026-11-23.md).

@@ -5,13 +5,13 @@ import sys
 from pathlib import Path
 
 
-def response(weights, cue, visible=False, reset="intact"):
+def response(weights, cue, visible=False, reset="intact", delay=5):
     bias, direct, recurrent = weights
     previous = 0.0
-    for tick in range(7):
-        if reset == "every_tick" or (reset == "boundary" and tick == 6):
+    for tick in range(delay + 2):
+        if reset == "every_tick" or (reset == "boundary" and tick == delay + 1):
             previous = 0.0
-        stimulus = cue if tick == 0 or (visible and tick == 6) else 0.0
+        stimulus = cue if tick == 0 or (visible and tick == delay + 1) else 0.0
         x = bias + direct * stimulus + recurrent * previous
         square = x * x
         previous = (math.copysign(1, x) if abs(x) > 4 else
