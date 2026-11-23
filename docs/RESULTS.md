@@ -20,6 +20,10 @@ Each accepted entry must contain:
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
 
+## Feedback subset replay
+
+Exhaustive replay of the three sustained champions found one minimal sufficient feedback subset per controller. The turn self-loop sufficed alone in seed 6320 variable. The other two also required turn-to-hidden feedback. [Report and data](results/RETENTION_FEEDBACK_SUBSETS.md).
+
 ## Feedback connection replay
 
 All three champions passing every delay from 0 through 32 depended on a positive turn self-loop. Removing it left 1, 2 and 0 passing delays respectively, with visible cue responses still correct. Three controllers span two founder seeds. Full single-edge interventions and intact controls are archived in the [lesion report](results/RETENTION_EDGE_LESIONS.md).
