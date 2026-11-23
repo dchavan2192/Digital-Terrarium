@@ -20,6 +20,10 @@ Each accepted entry must contain:
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
 
+## Delay replay and paired transfer study — 2026-11-23
+
+Six of the seven prior champions passing at 19 blanks reversed both cue choices at 20 and recovered at 21. Seed 6226 passed at every delay from 0 through 32. In 32 fresh matched populations, only seed 6320 passed all four unseen delays, in both training arms. Ranks and responses independently verified. Both studies ran locally. [Report and raw records](results/RETENTION_DELAY_TRAINING_2026-11-23.md).
+
 ## Recurrent wiring discovery — 2026-11-23
 
 Nine of 32 fitness-selected populations starting with feed-forward controllers produced a final champion passing the five-blank retention criterion. Both controls scored 0/32. Adjacent delays show parity sensitivity. All runs completed locally. [Report and raw data](results/RETENTION_WIRING_2026-11-23.md).

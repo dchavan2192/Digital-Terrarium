@@ -1,0 +1,402 @@
+[
+ {
+  "seed": 6300,
+  "arm": "fixed",
+  "winner": 294,
+  "passed": [
+   9,
+   19
+  ]
+ },
+ {
+  "seed": 6300,
+  "arm": "variable",
+  "winner": 259,
+  "passed": []
+ },
+ {
+  "seed": 6301,
+  "arm": "fixed",
+  "winner": 285,
+  "passed": []
+ },
+ {
+  "seed": 6301,
+  "arm": "variable",
+  "winner": 67,
+  "passed": []
+ },
+ {
+  "seed": 6302,
+  "arm": "fixed",
+  "winner": 176,
+  "passed": []
+ },
+ {
+  "seed": 6302,
+  "arm": "variable",
+  "winner": 176,
+  "passed": []
+ },
+ {
+  "seed": 6303,
+  "arm": "fixed",
+  "winner": 296,
+  "passed": []
+ },
+ {
+  "seed": 6303,
+  "arm": "variable",
+  "winner": 238,
+  "passed": []
+ },
+ {
+  "seed": 6304,
+  "arm": "fixed",
+  "winner": 145,
+  "passed": []
+ },
+ {
+  "seed": 6304,
+  "arm": "variable",
+  "winner": 145,
+  "passed": []
+ },
+ {
+  "seed": 6305,
+  "arm": "fixed",
+  "winner": 299,
+  "passed": []
+ },
+ {
+  "seed": 6305,
+  "arm": "variable",
+  "winner": 257,
+  "passed": []
+ },
+ {
+  "seed": 6306,
+  "arm": "fixed",
+  "winner": 122,
+  "passed": []
+ },
+ {
+  "seed": 6306,
+  "arm": "variable",
+  "winner": 122,
+  "passed": []
+ },
+ {
+  "seed": 6307,
+  "arm": "fixed",
+  "winner": 147,
+  "passed": []
+ },
+ {
+  "seed": 6307,
+  "arm": "variable",
+  "winner": 147,
+  "passed": []
+ },
+ {
+  "seed": 6308,
+  "arm": "fixed",
+  "winner": 303,
+  "passed": []
+ },
+ {
+  "seed": 6308,
+  "arm": "variable",
+  "winner": 236,
+  "passed": []
+ },
+ {
+  "seed": 6309,
+  "arm": "fixed",
+  "winner": 303,
+  "passed": []
+ },
+ {
+  "seed": 6309,
+  "arm": "variable",
+  "winner": 243,
+  "passed": []
+ },
+ {
+  "seed": 6310,
+  "arm": "fixed",
+  "winner": 291,
+  "passed": []
+ },
+ {
+  "seed": 6310,
+  "arm": "variable",
+  "winner": 143,
+  "passed": []
+ },
+ {
+  "seed": 6311,
+  "arm": "fixed",
+  "winner": 278,
+  "passed": []
+ },
+ {
+  "seed": 6311,
+  "arm": "variable",
+  "winner": 278,
+  "passed": []
+ },
+ {
+  "seed": 6312,
+  "arm": "fixed",
+  "winner": 163,
+  "passed": []
+ },
+ {
+  "seed": 6312,
+  "arm": "variable",
+  "winner": 163,
+  "passed": []
+ },
+ {
+  "seed": 6313,
+  "arm": "fixed",
+  "winner": 287,
+  "passed": []
+ },
+ {
+  "seed": 6313,
+  "arm": "variable",
+  "winner": 290,
+  "passed": []
+ },
+ {
+  "seed": 6314,
+  "arm": "fixed",
+  "winner": 64,
+  "passed": []
+ },
+ {
+  "seed": 6314,
+  "arm": "variable",
+  "winner": 64,
+  "passed": []
+ },
+ {
+  "seed": 6315,
+  "arm": "fixed",
+  "winner": 276,
+  "passed": []
+ },
+ {
+  "seed": 6315,
+  "arm": "variable",
+  "winner": 288,
+  "passed": []
+ },
+ {
+  "seed": 6316,
+  "arm": "fixed",
+  "winner": 297,
+  "passed": [
+   9,
+   19
+  ]
+ },
+ {
+  "seed": 6316,
+  "arm": "variable",
+  "winner": 303,
+  "passed": []
+ },
+ {
+  "seed": 6317,
+  "arm": "fixed",
+  "winner": 282,
+  "passed": []
+ },
+ {
+  "seed": 6317,
+  "arm": "variable",
+  "winner": 282,
+  "passed": []
+ },
+ {
+  "seed": 6318,
+  "arm": "fixed",
+  "winner": 290,
+  "passed": []
+ },
+ {
+  "seed": 6318,
+  "arm": "variable",
+  "winner": 167,
+  "passed": []
+ },
+ {
+  "seed": 6319,
+  "arm": "fixed",
+  "winner": 179,
+  "passed": []
+ },
+ {
+  "seed": 6319,
+  "arm": "variable",
+  "winner": 179,
+  "passed": []
+ },
+ {
+  "seed": 6320,
+  "arm": "fixed",
+  "winner": 297,
+  "passed": [
+   8,
+   9,
+   18,
+   19
+  ]
+ },
+ {
+  "seed": 6320,
+  "arm": "variable",
+  "winner": 302,
+  "passed": [
+   8,
+   9,
+   18,
+   19
+  ]
+ },
+ {
+  "seed": 6321,
+  "arm": "fixed",
+  "winner": 151,
+  "passed": []
+ },
+ {
+  "seed": 6321,
+  "arm": "variable",
+  "winner": 151,
+  "passed": []
+ },
+ {
+  "seed": 6322,
+  "arm": "fixed",
+  "winner": 301,
+  "passed": []
+ },
+ {
+  "seed": 6322,
+  "arm": "variable",
+  "winner": 282,
+  "passed": []
+ },
+ {
+  "seed": 6323,
+  "arm": "fixed",
+  "winner": 79,
+  "passed": []
+ },
+ {
+  "seed": 6323,
+  "arm": "variable",
+  "winner": 79,
+  "passed": []
+ },
+ {
+  "seed": 6324,
+  "arm": "fixed",
+  "winner": 296,
+  "passed": []
+ },
+ {
+  "seed": 6324,
+  "arm": "variable",
+  "winner": 267,
+  "passed": []
+ },
+ {
+  "seed": 6325,
+  "arm": "fixed",
+  "winner": 300,
+  "passed": []
+ },
+ {
+  "seed": 6325,
+  "arm": "variable",
+  "winner": 300,
+  "passed": []
+ },
+ {
+  "seed": 6326,
+  "arm": "fixed",
+  "winner": 100,
+  "passed": []
+ },
+ {
+  "seed": 6326,
+  "arm": "variable",
+  "winner": 303,
+  "passed": []
+ },
+ {
+  "seed": 6327,
+  "arm": "fixed",
+  "winner": 277,
+  "passed": []
+ },
+ {
+  "seed": 6327,
+  "arm": "variable",
+  "winner": 277,
+  "passed": []
+ },
+ {
+  "seed": 6328,
+  "arm": "fixed",
+  "winner": 280,
+  "passed": []
+ },
+ {
+  "seed": 6328,
+  "arm": "variable",
+  "winner": 261,
+  "passed": []
+ },
+ {
+  "seed": 6329,
+  "arm": "fixed",
+  "winner": 290,
+  "passed": []
+ },
+ {
+  "seed": 6329,
+  "arm": "variable",
+  "winner": 288,
+  "passed": []
+ },
+ {
+  "seed": 6330,
+  "arm": "fixed",
+  "winner": 101,
+  "passed": []
+ },
+ {
+  "seed": 6330,
+  "arm": "variable",
+  "winner": 101,
+  "passed": []
+ },
+ {
+  "seed": 6331,
+  "arm": "fixed",
+  "winner": 272,
+  "passed": []
+ },
+ {
+  "seed": 6331,
+  "arm": "variable",
+  "winner": 205,
+  "passed": []
+ }
+]
