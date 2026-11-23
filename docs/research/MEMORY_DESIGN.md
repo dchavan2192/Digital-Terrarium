@@ -1,3 +1,7 @@
+# Current status — 2026-11-23
+
+Recurrence is implemented, enabled by an optional demo mode and tested in the completed pinned ecological study. It remains off in scientific defaults. Earlier statements below about implementation or rollout describe their dated stage. No evolved memory benefit has been established. See the [current audit and decision](SYSTEMS_AUDIT_2026-11-23.md).
+
 # Memory: recurrent connections
 
 Status: **implemented 2026-11-16, off by default.** Roadmap item 2.1 / Phase 9b. The design below was written before the code and the code follows it; see "What was built and checked" at the end for the outcome and what is still open.

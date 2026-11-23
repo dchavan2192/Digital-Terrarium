@@ -149,6 +149,18 @@ sim-runner evaluate-delayed-choice --input genomes_seed100_tick200001.json \
   --arena configs/delayed_choice.toml --cue-visible > visible_choices.json
 ```
 
+Optional retention intervention (both control and complete-export commands):
+
+```bash
+sim-runner delayed-choice --arena configs/delayed_choice.toml --delay-end-reset
+sim-runner delayed-choice --arena configs/delayed_choice.toml --delay-end-reset --cue-visible
+# Also accepted by evaluate-delayed-choice with --input <export.json>.
+```
+
+`--delay-end-reset` adds `same_network_delay_end_reset`: erase neural activations once after the last held cue/blank tick and before the first movement inference. Pose, inputs, weights and cue visibility stay unchanged; recurrence resumes during movement. Compare both hidden and visible conditions. The existing all-ticks-cleared condition is a broader intervention that also removes response-phase recurrent dynamics. Neither state reset is energy-matched to an intact ecological organism. Without the flag, existing conditions and work budgets are unchanged.
+
+The optional control command budgets eight trials; complete exports budget six per genome, versus six/four without the flag. The same100,000 retained-sample cap applies; the previously archived898-genome donor exceeds it with the new flag and default arena. Oversized work is rejected before evaluation; no score-based sampling or silent cap increase is performed. These are instrument checks, not a new evolved-memory result.
+
 This task adds movement and terminal reward to delayed-cue evaluation. Position
 and heading are held fixed through cue and blank phases; all actions are
 ignored until release. The controller then uses its turn/speed outputs to reach

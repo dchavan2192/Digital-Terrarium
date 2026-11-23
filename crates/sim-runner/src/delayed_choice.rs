@@ -338,6 +338,26 @@ fn condition(
     trace: bool,
     score_progress: bool,
 ) -> RunResult<Value> {
+    condition_with_boundary_reset(
+        brain,
+        config,
+        clear,
+        cue_visible,
+        trace,
+        score_progress,
+        false,
+    )
+}
+
+fn condition_with_boundary_reset(
+    brain: &Brain,
+    config: &ArenaConfig,
+    clear: bool,
+    cue_visible: bool,
+    trace: bool,
+    score_progress: bool,
+    reset_before_movement: bool,
+) -> RunResult<Value> {
     let mut trials = Vec::new();
     for cue in [-1, 1] {
         let mut state = State::new();
@@ -356,6 +376,12 @@ fn condition(
         let mut trajectory = Vec::new();
         let mut choice = "timeout";
         let mut movement_ticks = 0;
+        // Erase held-cue information once, leaving pose, inputs and weights intact.
+        // Recurrence remains enabled during every subsequent response step.
+        if reset_before_movement {
+            state.prev.fill(0.0);
+            state.act.fill(0.0);
+        }
         for tick in 1..=config.horizon {
             let inputs = sensors(config, pose, if cue_visible { f64::from(cue) } else { 0.0 });
             let actions = state.think(brain, &inputs, clear)?;
@@ -421,10 +447,27 @@ fn condition(
     });
     let mut result =
         json!({"clear_state_each_tick":clear,"mean_reward":mean_reward,"trials":trials});
+    if reset_before_movement {
+        result["state_reset_before_movement"] = json!(true);
+    }
     if let Some(progress) = mean_progress {
         result["mean_terminal_progress"] = json!(progress);
     }
     Ok(result)
+}
+
+/// Optional retention intervention; legacy evaluators and frozen budgets stay unchanged.
+pub(crate) fn delay_end_reset(
+    brain: &Brain,
+    config: &ArenaConfig,
+    cue_visible: bool,
+) -> RunResult<Value> {
+    config.validate()?;
+    if brain.inputs != config.input_count() || brain.outputs != 7 || brain.slot_count() > MAX_NODES
+    {
+        return Err("brain layout differs from arena input/output layout".into());
+    }
+    condition_with_boundary_reset(brain, config, false, cue_visible, true, false, true)
 }
 
 fn evaluate_brain_mode(

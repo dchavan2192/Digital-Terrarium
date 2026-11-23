@@ -1,6 +1,8 @@
 # Terrarium: Testing Inherited Neural State in an Evolving Agent Ecosystem
 
-## Candidate paper plan — not a results manuscript
+## Historical candidate paper plan — not the active development protocol
+
+Status reviewed 2026-11-23: this outline concerns inherited connection suppression, a different mechanism from within-life recurrent activation memory. It remains a candidate, not a committed paper direction or evidence claim. Use the [current systems audit](research/SYSTEMS_AUDIT_2026-11-23.md) and [PROGRESS.md](PROGRESS.md) for active work. Recurrence is now implemented; older feed-forward descriptions below describe the original candidate baseline.
 
 Updated: 2026-11-15. The earlier outline's numerical abstract and open-ended-evolution conclusion are withdrawn. Its historical version remains in Git history. Submission venue, date, novelty, and feasibility require verification before committing to a deadline.
 

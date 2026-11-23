@@ -84,7 +84,7 @@ Configuration: `configs/default.toml`, seed 42. Commands are in [the runner READ
 
 ## Registered implementation check: CHK-2026-11-16-DELAYED-CUE
 
-[Delayed-cue instrument report](results/DELAYED_CUE_INSTRUMENT_2026-11-16.md): a manufactured recurrent sign-persistence reference scored 2/2 balanced cues after 0, 1, 5, 20 and 100 blank ticks on the Pi. Feed-forward and same-network state-cleared controls scored 1/2 at each delay. Source `d35dd2c`; actual probe responses, build provenance and pre-execution protocol are linked. This validates a synthetic instrument, not evolved memory, learning, intelligence or ecological fitness. Exported-genome evaluation remains unimplemented.
+[Delayed-cue instrument report](results/DELAYED_CUE_INSTRUMENT_2026-11-16.md): a manufactured recurrent sign-persistence reference scored 2/2 balanced cues after 0, 1, 5, 20 and 100 blank ticks on the Pi. Feed-forward and same-network state-cleared controls scored 1/2 at each delay. Source `d35dd2c`; actual probe responses, build provenance and pre-execution protocol are linked. This validates a synthetic instrument, not evolved memory, learning, intelligence or ecological fitness. Exported-genome evaluation was outside this initial check; the subsequent registered check below implements it.
 
 ## Registered implementation check: CHK-2026-11-16-EXPORTED-DELAYED-CUE
 

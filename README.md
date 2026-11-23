@@ -2,11 +2,11 @@
 
 **An artificial-life laboratory where creatures evolve neural controllers in an energy-limited world.**
 
-[**Live 3D demo**](https://dchavan2192.github.io/Digital-Terrarium/) · [Development plan](docs/PROGRESS.md) · [Results register](docs/RESULTS.md) · [Scientific review](docs/research/SCIENCE_COUNCIL_2026-11-15.md)
+[**Live 3D demo**](https://dchavan2192.github.io/Digital-Terrarium/) · [Development plan](docs/PROGRESS.md) · [Results register](docs/RESULTS.md) · [Current systems audit](docs/research/SYSTEMS_AUDIT_2026-11-23.md)
 
 Watch a creature, inspect its brain, follow its lineage, or run controlled experiments headlessly. The Rust engine powers both the browser demo and the experimental runner.
 
-Open **Task lab** in the demo to replay saved native visible-cue evaluations: all nine training-selected policies, seven cases, both cues and fixed reference controls. Choose a policy/case and scrub its recorded movement. These replays are separate from the live ecosystem and do not establish useful memory. [Report and provenance](docs/results/VISIBLE_VALIDATION_2026-11-17.md).
+Open **Task lab** in the demo to replay saved native visible-cue evaluations: all 17 training-selected champions across two separate studies (nine earlier champions/seven cases and eight fixed-versus-varied champions/six cases), both cues and earlier fixed reference controls. Choose a cohort/policy/case and scrub its recorded movement. These replays are separate from the live ecosystem and do not establish useful memory. [Earlier report](docs/results/VISIBLE_VALIDATION_2026-11-17.md) · [Latest pilot](docs/results/VISIBLE_DIVERSITY_PILOT_2026-11-22.md).
 
 The **Ecology** panel shows measured diet variance, hidden-neuron counts and topology activity. Its optional neutral comparison restarts the same seed and preserves memory mode; it is an experimental demographic-conditional reference, not an OEE or memory-benefit test.
 

@@ -251,3 +251,123 @@ fn malformed_arena_and_donor_layout_fail_without_partial_json() {
     assert!(output.stdout.is_empty());
     assert!(String::from_utf8_lossy(&output.stderr).contains("I/O"));
 }
+
+fn with_boundary_reset(name: &str, path: &Path, input: Option<&Path>, visible: bool) -> Output {
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_sim-runner"));
+    cmd.arg(name)
+        .arg("--arena")
+        .arg(path)
+        .arg("--delay-end-reset");
+    if let Some(input) = input {
+        cmd.arg("--input").arg(input);
+    }
+    if visible {
+        cmd.arg("--cue-visible");
+    }
+    cmd.output().unwrap()
+}
+
+#[test]
+fn boundary_reset_preserves_hold_and_legacy_controls_but_allows_response_recurrence() {
+    for visible in [false, true] {
+        let baseline = successful_json(&command_mode("delayed-choice", &arena(), None, visible));
+        let result = successful_json(&with_boundary_reset(
+            "delayed-choice",
+            &arena(),
+            None,
+            visible,
+        ));
+        assert_eq!(result["instrument_validated"], true);
+        let controls = result["controls"].as_array().unwrap();
+        assert_eq!(controls.len(), 4);
+        assert_eq!(&controls[..3], baseline["controls"].as_array().unwrap());
+        let boundary = &controls[3];
+        assert_eq!(boundary["name"], "same_network_delay_end_reset");
+        assert_eq!(boundary["state_reset_before_movement"], true);
+        assert_eq!(boundary["clear_state_each_tick"], false);
+        assert_eq!(boundary["mean_reward"], if visible { 1.0 } else { 0.5 });
+        for (i, trial) in trials(boundary).iter().enumerate() {
+            let intact = &controls[0]["trials"][i];
+            assert_eq!(trial["hold_trace"], intact["hold_trace"]);
+            assert_eq!(trial["initial_pose"], intact["initial_pose"]);
+            assert_eq!(
+                trial["trajectory"][0]["inputs"],
+                intact["trajectory"][0]["inputs"]
+            );
+            assert_eq!(
+                trial["trajectory"][0]["pose_before"],
+                intact["trajectory"][0]["pose_before"]
+            );
+            // First action matches a zero-state pass; later recurrence is allowed.
+            assert_eq!(
+                trial["trajectory"][0]["actions"],
+                controls[2]["trials"][i]["trajectory"][0]["actions"]
+            );
+        }
+        if !visible {
+            no_response_cue_leakage(boundary);
+            assert_eq!(
+                boundary["trials"][0]["trajectory"],
+                boundary["trials"][1]["trajectory"]
+            );
+            assert_ne!(
+                boundary["trials"][0]["trajectory"][1]["actions"]["turn"],
+                controls[2]["trials"][0]["trajectory"][1]["actions"]["turn"]
+            );
+        }
+    }
+}
+
+#[test]
+fn exported_boundary_reset_keeps_all_genomes_and_feed_forward_trials_unchanged() {
+    let dir = artifacts("boundary-reset");
+    let donor = export_fixture(&dir);
+    for visible in [false, true] {
+        let baseline = successful_json(&command_mode(
+            "evaluate-delayed-choice",
+            &arena(),
+            Some(&donor),
+            visible,
+        ));
+        let result = successful_json(&with_boundary_reset(
+            "evaluate-delayed-choice",
+            &arena(),
+            Some(&donor),
+            visible,
+        ));
+        assert_eq!(result["sampling"]["evaluated"], 2);
+        for (record, old) in result["results"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .zip(baseline["results"].as_array().unwrap())
+        {
+            let eval = &record["evaluation"];
+            assert_eq!(record["id"], old["id"]);
+            for key in ["intact", "same_network_state_cleared"] {
+                assert_eq!(eval[key], old["evaluation"][key]);
+            }
+            let boundary = &eval["same_network_delay_end_reset"];
+            if record["enabled_recurrent_connections"] == 0 {
+                assert_eq!(boundary["trials"], eval["intact"]["trials"]);
+            }
+            assert_eq!(boundary["mean_reward"], if visible { 1.0 } else { 0.5 });
+        }
+    }
+}
+
+#[test]
+fn boundary_reset_occurs_after_the_cue_even_when_blank_delay_is_zero() {
+    let dir = artifacts("boundary-zero-delay");
+    let path = dir.join("arena.toml");
+    let text = std::fs::read_to_string(arena())
+        .unwrap()
+        .replace("blank_delay = 5", "blank_delay = 0");
+    std::fs::write(&path, text).unwrap();
+    let result = successful_json(&with_boundary_reset("delayed-choice", &path, None, false));
+    assert_eq!(result["controls"][0]["mean_reward"], 1.0);
+    assert_eq!(result["controls"][3]["mean_reward"], 0.5);
+    for trial in trials(&result["controls"][3]) {
+        assert_eq!(trial["hold_trace"].as_array().unwrap().len(), 1);
+    }
+}

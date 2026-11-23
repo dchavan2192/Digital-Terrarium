@@ -109,6 +109,9 @@ enum Commands {
         /// Keep the signed cue visible during movement as a competence control.
         #[arg(long)]
         cue_visible: bool,
+        /// Also erase neural state once after the hold, before movement inference.
+        #[arg(long)]
+        delay_end_reset: bool,
     },
     /// Evaluate every exported genotype in a controlled delayed-choice arena.
     EvaluateDelayedChoice {
@@ -119,6 +122,9 @@ enum Commands {
         /// Keep the signed cue visible during movement as a competence control.
         #[arg(long)]
         cue_visible: bool,
+        /// Add the same-network single delay-end reset (recurrence resumes afterward).
+        #[arg(long)]
+        delay_end_reset: bool,
     },
     /// Clamp synthetic delayed cues into every inherited genome of one export.
     /// Prints JSON; scores do not establish learning or ecological usefulness.
@@ -276,14 +282,17 @@ fn main() {
             arena,
             output,
         }) => acquisition::run(&protocol, &arena, &output),
-        Some(Commands::DelayedChoice { arena, cue_visible }) => {
-            movement_assay::controls(&arena, cue_visible)
-        }
+        Some(Commands::DelayedChoice {
+            arena,
+            cue_visible,
+            delay_end_reset,
+        }) => movement_assay::controls(&arena, cue_visible, delay_end_reset),
         Some(Commands::EvaluateDelayedChoice {
             input,
             arena,
             cue_visible,
-        }) => movement_assay::evaluate(&input, &arena, cue_visible),
+            delay_end_reset,
+        }) => movement_assay::evaluate(&input, &arena, cue_visible, delay_end_reset),
         Some(Commands::EvaluateDelayedCue {
             input,
             cue_channel,

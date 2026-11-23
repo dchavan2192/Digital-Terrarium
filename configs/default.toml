@@ -129,9 +129,9 @@ aging_rate = 0.002            # β — default aging rate (evolvable via genome)
 weight_probability = 0.1  # Chance each weight mutates during reproduction
 weight_step = 0.2         # Max magnitude of a weight mutation (uniform ±step)
 # Structural mutations (per offspring). Stanley & Miikkulainen (2002) NEAT.
-# Rates are balanced so the expected change in enabled connections is about zero
-# with no selection: +0.02 (add) +0.01 (add-node nets +1) −0.02 (prune) −~0.01 (toggle
-# mostly disables). Any trend in brain size then reflects selection, not mutation bias.
+# Nominal attempt rates do not guarantee zero structural drift: eligible edges,
+# failed additions and disabled genes change realized outcomes. Measure mutation
+# bias with appropriate controls before attributing brain-size trends to selection.
 # Real genomes can carry a deletion bias (Mira, Ochman & Moran 2001); raise
 # prune_probability to study that deliberately.
 add_connection_probability = 0.02  # Add a new feed-forward edge

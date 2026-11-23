@@ -6,6 +6,16 @@
 
 ---
 
+## Current systems audit and retention-control development — 2026-11-23
+
+**Current decision:** follow the [systems audit](research/SYSTEMS_AUDIT_2026-11-23.md). All older sections below are dated history; active-run labels, parallel-worker advice and unchecked roadmaps are not current launch instructions. The one-off pilot is complete; Pi schedules remain disabled. No new Pi experiment was launched during this audit.
+
+- Three independent agents reviewed science, memory internals and demo/operations. No concrete recurrence propagation/newborn reset/checkpoint/accounting fault found in reviewed paths. Main gap: existing task-directed acquisition deliberately disables recurrence, so its results do not diagnose evolved memory.
+- Corrected the decision path: navigation competence gates interpretation of navigation failures, not every stationary retention assay. Defer the new first-turn classifier; a successful archived policy initially turns right for both cues. Next is a prospectively specified stationary delayed-readout acquisition protocol after instrument validation, with all founder successes/partials retained and champions frozen before diagnostics. Recurrent topology initialization versus discovery must be explicit.
+- Implemented opt-in `--delay-end-reset` on movement control/export CLIs. It zeros neural state once after held cue/delay, preserves pose/inputs/weights and allows recurrence during response. Both hidden and visible conditions supported; original default evaluations unchanged. Extra trials count toward existing sample/edge budgets. Whole-state reset also removes cue-independent context; require matched controls before a cue-retention claim.
+- Reconciled README replay counts/research link, stale NIGHT_TASK instructions, historical paper/memory-rollout scope and an obsolete Results capability statement. Removed unsupported zero-mutation-drift claim from config comments; no numerical defaults or old data changed. Demo evidence navigation now links the audit.
+- Validation: all187 post-change workspace release tests pass (baseline184), all-target Clippy/format pass, all25 Node tests pass with source-byte/pose checks active, and10 thermal plus10 supervisor tests pass. Independent code review found no blocking issue in reset timing, preserved state, resumed recurrence or workload accounting. Parsed default configuration exactly equals the previous commit; comments alone changed. CI/Pages publication follows this push. Read-only Pi check53.45°C, no matching runner/guard/supervisor; schedules remain disabled.
+
 ## Completed one-off pilot and demo evidence update — 2026-11-23
 
 - The owner-authorized one-off fixed/varied training pilot completed8/8 searches at pinned clean c7324b6; no schedules enabled. [Report](results/VISIBLE_DIVERSITY_PILOT_2026-11-22.md), [complete audited JSON](results/visible_diversity_pilot_2026-11-22.json), [raw-data prerelease](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-diversity-pilot-2026-11-22). Batch `output/visible_diversity/pilot_20261122T233000Z` remains intact on Pi; full local mirror is `output/visible-diversity/pilot_20261122T233000Z`.

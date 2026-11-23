@@ -21,10 +21,24 @@ fn trace_budget(config: &ArenaConfig, trials: u64) -> RunResult<()> {
     Ok(())
 }
 
-pub fn controls(path: &Path, cue_visible: bool) -> RunResult<()> {
+pub fn controls(path: &Path, cue_visible: bool, delay_end_reset: bool) -> RunResult<()> {
     let config = delayed_choice::parse_config(path)?;
-    trace_budget(&config, 6)?;
+    trace_budget(&config, if delay_end_reset { 8 } else { 6 })?;
     let mut result = delayed_choice::validate_controls(&config, cue_visible)?;
+    if delay_end_reset {
+        let mut condition = delayed_choice::delay_end_reset(
+            &delayed_choice::reference(&config, true),
+            &config,
+            cue_visible,
+        )?;
+        if condition["mean_reward"] != if cue_visible { 1.0 } else { 0.5 } {
+            return Err("single delay-end reset reference control failed".into());
+        }
+        condition["name"] = json!("same_network_delay_end_reset");
+        result["controls"].as_array_mut().unwrap().push(condition);
+        result["checks"]["delay_end_reset_reward_expected"] = json!(true);
+        result["delay_end_reset"] = json!(true);
+    }
     result["arena_path"] = json!(path);
     result["protocol"] = protocol(&config, cue_visible);
     result["evaluator"] = evaluator_metadata();
@@ -55,27 +69,41 @@ fn evaluator_metadata() -> Value {
         "build_profile":env!("TERRARIUM_BUILD_PROFILE")})
 }
 
-pub fn evaluate(path: &Path, arena_path: &Path, cue_visible: bool) -> RunResult<()> {
+pub fn evaluate(
+    path: &Path,
+    arena_path: &Path,
+    cue_visible: bool,
+    delay_end_reset: bool,
+) -> RunResult<()> {
     let config = delayed_choice::parse_config(arena_path)?;
     let loaded = exported_assay::load_validated(path)?;
     let required_inputs = 2 * config.ray_count + 10;
     if loaded.export.config.brain.inputs != required_inputs {
         return Err("export input layout differs from the arena ray count".into());
     }
-    trace_budget(&config, 4 * loaded.export.genomes.len() as u64)?;
-    exported_assay::validate_work(&loaded.export, 4 * task_steps(&config))?;
+    let trials = if delay_end_reset { 6 } else { 4 };
+    trace_budget(&config, trials * loaded.export.genomes.len() as u64)?;
+    exported_assay::validate_work(&loaded.export, trials * task_steps(&config))?;
     let mut results = Vec::with_capacity(loaded.export.genomes.len());
     for record in &loaded.export.genomes {
         let brain = record.genome.build_brain();
+        let mut evaluation = delayed_choice::evaluate_brain(&brain, &config, cue_visible)?;
+        if delay_end_reset {
+            evaluation["same_network_delay_end_reset"] =
+                delayed_choice::delay_end_reset(&brain, &config, cue_visible)?;
+        }
         results.push(json!({"id":record.id,"generation":record.generation,
             "root_ancestor_id":record.root_ancestor_id,
             "enabled_recurrent_connections":brain.recurrent_count(),
-            "evaluation":delayed_choice::evaluate_brain(&brain,&config,cue_visible)?}));
+            "evaluation":evaluation}));
     }
     let mut result = loaded.metadata();
     result["schema_version"] = json!(1);
     result["assay"] = json!("exported_genome_delayed_choice");
     result["cue_visible"] = json!(cue_visible);
+    if delay_end_reset {
+        result["delay_end_reset"] = json!(true);
+    }
     result["interpretation"] = json!(if cue_visible {
         "visible-cue competence control; not memory use, training, natural ecology, evolutionary fitness, learned association or evidence of adaptive cognition"
     } else {
@@ -111,6 +139,7 @@ mod tests {
         )
         .unwrap();
         assert!(trace_budget(&config, 4 * 898).is_ok());
+        assert!(trace_budget(&config, 6 * 898).is_err());
         assert!(trace_budget(&config, u64::MAX).is_err());
     }
 }
