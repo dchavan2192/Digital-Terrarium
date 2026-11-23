@@ -2,9 +2,18 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-22 UTC
+**Last updated**: 2026-11-23 UTC
 
 ---
+
+## Completed one-off pilot and demo evidence update — 2026-11-23
+
+- The owner-authorized one-off fixed/varied training pilot completed8/8 searches at pinned clean c7324b6; no schedules enabled. [Report](results/VISIBLE_DIVERSITY_PILOT_2026-11-22.md), [complete audited JSON](results/visible_diversity_pilot_2026-11-22.json), [raw-data prerelease](https://github.com/dchavan2192/Digital-Terrarium/releases/tag/visible-diversity-pilot-2026-11-22). Batch `output/visible_diversity/pilot_20261122T233000Z` remains intact on Pi; full local mirror is `output/visible-diversity/pilot_20261122T233000Z`.
+- Mixed outcomes: geometry fixed12/32 versus varied14/32, four seedwise differences[−.25,0,+.375,+.125]; heading both10/16. Only one pair achieved6/6 training in each arm. All partials retained; no held-out-based selection or reruns. No reliable improvement, memory or ecological claim. Next study must first address training competence and prospectively reserve fresh tests; these six test cases are consumed. Do not launch another experiment from this handoff.
+- Guarded one-thread batch finished in15.149seconds; all exits0. Three telemetry samples55.1–58.95°C with no active low-bit flags; no pauses. This is sampled evidence, not a continuous temperature maximum. Latest Pi read-only check54.0°C with no runner/guard/supervisor processes. Schedules remain disabled.
+- Demo Task lab retains all9 earlier champions and adds all8 new champions, all6 new held-out cases and both cues. Switching studies updates geometry, evaluator revision, result report and frozen plan together. Static311KB export exactly matches archived poses and source hashes. Failures/timeouts remain visible. New study uses c7324b6; older replay uses b40ae9c; live ecosystem is separate.
+- Validation:25 Node tests pass including exact raw-source/pose matching, study selectors, aggregate outcomes and deterministic export. Six auditor tests pass; independent full audit reproduces the archived summary exactly. Figure visually inspected. Browser automation remains unavailable, so desktop/mobile interaction QA is unverified. Prior c8e1b50 CI45085173316 and Pages45085173291 both passed; final publication status follows this update's push.
+- Remaining product direction from the UI/business/science review: make the evidence journey understandable before adding more mechanisms. User observation of Pause→Energy→Resume and Task lab success/failure replays is still needed; no usability improvement has been measured.
 
 ## Reconciled development and audited completed campaign — 2026-11-22
 

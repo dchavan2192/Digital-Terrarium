@@ -1,4 +1,4 @@
-import { COHORT_LABELS, CONTROL_LABELS, findTrial, poseAt, caseScore, outcomeText, plotBounds } from './task-lab-model.js';
+import { COHORT_LABELS, CONTROL_LABELS, casesForPolicy, findTrial, poseAt, caseScore, outcomeText, plotBounds } from './task-lab-model.js';
 
 const dialog = document.querySelector('#taskLab');
 const openButton = document.querySelector('#taskLabBtn');
@@ -20,18 +20,30 @@ function setPolicies() {
   const cohort = $('taskCohort').value;
   $('taskPolicy').replaceChildren(...data.policies.filter(p => p.cohort === cohort).map(p =>
     option(p.seed ?? p.name, p.seed ? `Seed ${p.seed} · champion ${p.champion}` : CONTROL_LABELS[p.name])));
+  setCases();
+}
+function setCases() {
+  policy = data.policies.find(p => p.cohort === $('taskCohort').value && String(p.seed ?? p.name) === $('taskPolicy').value);
+  const previous = $('taskCase').value;
+  const cases = casesForPolicy(data, policy);
+  $('taskCase').replaceChildren(...cases.map(c => option(c.name, c.name.replaceAll('_', ' '))));
+  if (cases.some(c => c.name === previous)) $('taskCase').value = previous;
   selectTrial();
 }
 function selectTrial() {
   stop();
   policy = data.policies.find(p => p.cohort === $('taskCohort').value && String(p.seed ?? p.name) === $('taskPolicy').value);
   const caseName = $('taskCase').value;
-  arena = data.cases.find(c => c.name === caseName).arena;
+  arena = data.cases.find(c => c.study === policy.study && c.name === caseName).arena;
   trial = findTrial(policy, caseName, $('taskCue').value);
   $('taskTick').max = trial.movement_ticks;
   $('taskTick').value = 0;
   $('taskOutcome').textContent = `Recorded outcome: ${outcomeText(trial, arena.horizon)}`;
   $('taskScore').textContent = `${caseScore(policy, caseName)}/2 correct for this policy and case. Assigned goal: ${trial.target}.`;
+  const study = data.studies.find(s => s.id === policy.study);
+  $('taskStudySource').textContent = `${study.label} · native evaluator ${study.evaluator.slice(0, 7)}. ${study.note}`;
+  $('taskResultsLink').href = study.report;
+  $('taskPlanLink').href = study.plan;
   $('taskPolicyNote').textContent = policy.cohort === 'controls'
     ? 'Fixed manufactured control; not evolved or selected in this search. Passing a reference does not establish memory benefit.'
     : 'One final training-selected champion per search, including searches with partial task success. No validation-score selection.';
@@ -88,7 +100,6 @@ async function open() {
     });
     data = await loading;
     $('taskCohort').replaceChildren(...Object.entries(COHORT_LABELS).map(([id, label]) => option(id, label)));
-    $('taskCase').replaceChildren(...data.cases.map(c => option(c.name, c.name.replaceAll('_', ' '))));
     $('taskBody').hidden = false;
     $('taskStatus').hidden = true;
     setPolicies();
@@ -103,7 +114,8 @@ dialog.addEventListener('close', () => { stop(); openButton.focus(); });
 // Keep ecology keyboard shortcuts outside the modal; preserve native Escape/Tab.
 dialog.addEventListener('keydown', event => event.stopPropagation());
 $('taskCohort').addEventListener('change', setPolicies);
-for (const id of ['taskPolicy', 'taskCase', 'taskCue']) $(id).addEventListener('change', selectTrial);
+$('taskPolicy').addEventListener('change', setCases);
+for (const id of ['taskCase', 'taskCue']) $(id).addEventListener('change', selectTrial);
 $('taskTick').addEventListener('input', () => { stop(); render(); });
 $('taskStep').addEventListener('click', () => { stop(); $('taskTick').value = Number($('taskTick').value) + 1; render(); });
 $('taskRestart').addEventListener('click', () => { stop(); $('taskTick').value = 0; render(); });

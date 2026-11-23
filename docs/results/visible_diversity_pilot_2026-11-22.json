@@ -1,0 +1,2784 @@
+{
+  "schema_version": 1,
+  "complete": true,
+  "source": "c7324b6ba6d2c6a57523c83cad2575d7a8ee75be",
+  "core_build": "76b23bc91f012cd7",
+  "available_searches": 8,
+  "planned_searches": 8,
+  "available_pairs": 4,
+  "planned_pairs": 4,
+  "rows": [
+    {
+      "seed": 5000,
+      "arm": "fixed",
+      "champion_id": 952,
+      "founder_correct": 0,
+      "training_correct": 6,
+      "training_progress": 1.0,
+      "geometry_correct": 5,
+      "geometry_denominator": 8,
+      "heading_correct": 4,
+      "heading_denominator": 4,
+      "both_correct_cases": 3,
+      "first_generation_all_six_correct": 16,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 9,
+          "best_correct": 0,
+          "champion_terminal_progress": 0.45012359623860565,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 85,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 85,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 85,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 85,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 85,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 374,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5160420452000272,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 426,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5904027809246127,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 489,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5907726897697035,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 489,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5907726897697035,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 568,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5909018992363517,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 11,
+          "champion_id": 666,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.7109710367120273,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 12,
+          "champion_id": 683,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.873464800866699,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 13,
+          "champion_id": 683,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.873464800866699,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 14,
+          "champion_id": 683,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.873464800866699,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 15,
+          "champion_id": 895,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.9677887751824811,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 16,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 1
+        },
+        {
+          "generation": 17,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 4
+        },
+        {
+          "generation": 18,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 16
+        },
+        {
+          "generation": 19,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 27
+        },
+        {
+          "generation": 20,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 36
+        },
+        {
+          "generation": 21,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 33
+        },
+        {
+          "generation": 22,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 35
+        },
+        {
+          "generation": 23,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 36
+        },
+        {
+          "generation": 24,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 40
+        },
+        {
+          "generation": 25,
+          "champion_id": 952,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 38
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.8990945196796464
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 16,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7036912345110774
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 19,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 19,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 14,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7283503970774956
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 20,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 19,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 18,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 20,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 17,
+              "terminal_progress": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 5000,
+      "arm": "varied",
+      "champion_id": 571,
+      "founder_correct": 1,
+      "training_correct": 6,
+      "training_progress": 1.0,
+      "geometry_correct": 3,
+      "geometry_denominator": 8,
+      "heading_correct": 4,
+      "heading_denominator": 4,
+      "both_correct_cases": 3,
+      "first_generation_all_six_correct": 10,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 9,
+          "best_correct": 1,
+          "champion_terminal_progress": 0.4634539774207161,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 103,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5544573450413083,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 139,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5708894101341359,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 228,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.6755465454945746,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 228,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.6755465454945746,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 228,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.6755465454945746,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 392,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.9011012235081447,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 454,
+          "best_correct": 5,
+          "champion_terminal_progress": 0.9615152754865921,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 454,
+          "best_correct": 5,
+          "champion_terminal_progress": 0.9615152754865921,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 545,
+          "best_correct": 5,
+          "champion_terminal_progress": 0.9999025011930517,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 3
+        },
+        {
+          "generation": 11,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 11
+        },
+        {
+          "generation": 12,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 19
+        },
+        {
+          "generation": 13,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 26
+        },
+        {
+          "generation": 14,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 27
+        },
+        {
+          "generation": 15,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 26
+        },
+        {
+          "generation": 16,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 24
+        },
+        {
+          "generation": 17,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 26
+        },
+        {
+          "generation": 18,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 27
+        },
+        {
+          "generation": 19,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 37
+        },
+        {
+          "generation": 20,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 30
+        },
+        {
+          "generation": 21,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 34
+        },
+        {
+          "generation": 22,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 40
+        },
+        {
+          "generation": 23,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 33
+        },
+        {
+          "generation": 24,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 31
+        },
+        {
+          "generation": 25,
+          "champion_id": 571,
+          "best_correct": 6,
+          "champion_terminal_progress": 1.0,
+          "all_six_correct": 33
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 19,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.905760544688853
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.5924360251033416
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.8978156413237574
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 16,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 19,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.8558318258077935
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.6701431730885702
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 18,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 19,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 18,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 20,
+              "terminal_progress": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 5001,
+      "arm": "varied",
+      "champion_id": 1431,
+      "founder_correct": 2,
+      "training_correct": 3,
+      "training_progress": 0.5630501567784131,
+      "geometry_correct": 3,
+      "geometry_denominator": 8,
+      "heading_correct": 2,
+      "heading_denominator": 4,
+      "both_correct_cases": 0,
+      "first_generation_all_six_correct": null,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 42,
+          "best_correct": 2,
+          "champion_terminal_progress": 0.48214137212617053,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 118,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630483605865942,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 11,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 12,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 13,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 14,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 15,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 16,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 17,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 18,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 19,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 20,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 21,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 22,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 23,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 24,
+          "champion_id": 134,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.56305015658311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 25,
+          "champion_id": 1431,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501567784131,
+          "all_six_correct": 0
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 12,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7547026900399083
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 10,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 11,
+              "terminal_progress": 0.18397320674664178
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 15,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 12,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 12,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 5001,
+      "arm": "fixed",
+      "champion_id": 42,
+      "founder_correct": 3,
+      "training_correct": 3,
+      "training_progress": 0.5,
+      "geometry_correct": 3,
+      "geometry_denominator": 8,
+      "heading_correct": 2,
+      "heading_denominator": 4,
+      "both_correct_cases": 0,
+      "first_generation_all_six_correct": null,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 11,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 12,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 13,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 14,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 15,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 16,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 17,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 18,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 19,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 20,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 21,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 22,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 23,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 24,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 25,
+          "champion_id": 42,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 15,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 13,
+              "terminal_progress": 0.07988603804481564
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7817564841394428
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 13,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 11,
+              "terminal_progress": 0.18231469257100505
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 18,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 16,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 16,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 14,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 16,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 14,
+              "terminal_progress": 0.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 5002,
+      "arm": "fixed",
+      "champion_id": 1446,
+      "founder_correct": 0,
+      "training_correct": 3,
+      "training_progress": 0.8955883483242411,
+      "geometry_correct": 1,
+      "geometry_denominator": 8,
+      "heading_correct": 2,
+      "heading_denominator": 4,
+      "both_correct_cases": 0,
+      "first_generation_all_six_correct": null,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 7,
+          "best_correct": 0,
+          "champion_terminal_progress": 0.4044698065172641,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 65,
+          "best_correct": 0,
+          "champion_terminal_progress": 0.4698676591266528,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 132,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 132,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 132,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 132,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 132,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 132,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 508,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5104855414156095,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 508,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5104855414156095,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 508,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5104855414156095,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 11,
+          "champion_id": 660,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5127142599775137,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 12,
+          "champion_id": 660,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5127142599775137,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 13,
+          "champion_id": 660,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5127142599775137,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 14,
+          "champion_id": 807,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5481739116645377,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 15,
+          "champion_id": 853,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5966621894562313,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 16,
+          "champion_id": 920,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.6088346973476392,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 17,
+          "champion_id": 920,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.6088346973476392,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 18,
+          "champion_id": 1027,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.711253340189297,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 19,
+          "champion_id": 1094,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.7551518662898591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 20,
+          "champion_id": 1140,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.8350985401543779,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 21,
+          "champion_id": 1140,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.8350985401543779,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 22,
+          "champion_id": 1290,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.875255527206184,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 23,
+          "champion_id": 1290,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.875255527206184,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 24,
+          "champion_id": 1368,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.8794409970474956,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 25,
+          "champion_id": 1446,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.8955883483242411,
+          "all_six_correct": 0
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.6832980668729857
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7559650856161284
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7400863771755195
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.4114258885268861
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7113747900049091
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 13,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.6208621475702064
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7659125485975521
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.7891689908354664
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 15,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.8073384571166675
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 15,
+              "terminal_progress": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 5002,
+      "arm": "varied",
+      "champion_id": 1435,
+      "founder_correct": 1,
+      "training_correct": 3,
+      "training_progress": 0.5630501111777823,
+      "geometry_correct": 4,
+      "geometry_denominator": 8,
+      "heading_correct": 2,
+      "heading_denominator": 4,
+      "both_correct_cases": 0,
+      "first_generation_all_six_correct": null,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 41,
+          "best_correct": 1,
+          "champion_terminal_progress": 0.35131334646793305,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 97,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5611517607705768,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 140,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.562035437801624,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 224,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5629166757823837,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 224,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5629166757823837,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 326,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5629685241849073,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 11,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 12,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 13,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 14,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 15,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 16,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 17,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 18,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 19,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 20,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 21,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 22,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 23,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 24,
+          "champion_id": 364,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630500470823591,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 25,
+          "champion_id": 1435,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501111777823,
+          "all_six_correct": 0
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 14,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 12,
+              "terminal_progress": 0.12670268569428242
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 19,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 12,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 10,
+              "terminal_progress": 0.23154098426757702
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 16,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 14,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 14,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 13,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 14,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 13,
+              "terminal_progress": 0.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 5003,
+      "arm": "varied",
+      "champion_id": 752,
+      "founder_correct": 2,
+      "training_correct": 3,
+      "training_progress": 0.5630501547576914,
+      "geometry_correct": 4,
+      "geometry_denominator": 8,
+      "heading_correct": 2,
+      "heading_denominator": 4,
+      "both_correct_cases": 0,
+      "first_generation_all_six_correct": null,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 37,
+          "best_correct": 2,
+          "champion_terminal_progress": 0.38499291091927407,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 108,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5629761347011344,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 142,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630460759949019,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 181,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630485596160741,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 255,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630495946066573,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 311,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630497015251311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 311,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630497015251311,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 434,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501493015393,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 434,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501493015393,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 434,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501493015393,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 434,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501493015393,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 11,
+          "champion_id": 434,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501493015393,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 12,
+          "champion_id": 434,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501493015393,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 13,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 14,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 15,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 16,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 17,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 18,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 19,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 20,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 21,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 22,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 23,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 24,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 25,
+          "champion_id": 752,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5630501547576914,
+          "all_six_correct": 0
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 10,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 13,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 9,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "right",
+              "reward": 0,
+              "movement_ticks": 9,
+              "terminal_progress": 0.16788411142828458
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 13,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 10,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "right",
+              "reward": 1,
+              "movement_ticks": 10,
+              "terminal_progress": 1.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 5003,
+      "arm": "fixed",
+      "champion_id": 26,
+      "founder_correct": 3,
+      "training_correct": 3,
+      "training_progress": 0.5,
+      "geometry_correct": 3,
+      "geometry_denominator": 8,
+      "heading_correct": 2,
+      "heading_denominator": 4,
+      "both_correct_cases": 0,
+      "first_generation_all_six_correct": null,
+      "training_curve": [
+        {
+          "generation": 0,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 1,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 2,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 3,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 4,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 5,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 6,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 7,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 8,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 9,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 10,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 11,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 12,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 13,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 14,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 15,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 16,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 17,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 18,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 19,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 20,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 21,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 22,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 23,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 24,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        },
+        {
+          "generation": 25,
+          "champion_id": 26,
+          "best_correct": 3,
+          "champion_terminal_progress": 0.5,
+          "all_six_correct": 0
+        }
+      ],
+      "cases": [
+        {
+          "case": "geometry_forward_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 10,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_wide_shift",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.5512064655348897
+            }
+          ]
+        },
+        {
+          "case": "geometry_near_narrow",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 9,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "geometry_far_diagonal",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 12,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "heading_minus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 11,
+              "terminal_progress": 1.0
+            }
+          ]
+        },
+        {
+          "case": "heading_plus30",
+          "trials": [
+            {
+              "cue": -1,
+              "target": "right",
+              "choice": "timeout",
+              "reward": 0,
+              "movement_ticks": 20,
+              "terminal_progress": 0.0
+            },
+            {
+              "cue": 1,
+              "target": "left",
+              "choice": "left",
+              "reward": 1,
+              "movement_ticks": 11,
+              "terminal_progress": 1.0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "seed": 5000,
+      "geometry_difference": -0.25,
+      "heading_difference": 0.0
+    },
+    {
+      "seed": 5001,
+      "geometry_difference": 0.0,
+      "heading_difference": 0.0
+    },
+    {
+      "seed": 5002,
+      "geometry_difference": 0.375,
+      "heading_difference": 0.0
+    },
+    {
+      "seed": 5003,
+      "geometry_difference": 0.125,
+      "heading_difference": 0.0
+    }
+  ],
+  "paired_summary": {
+    "geometry_difference": {
+      "mean": 0.0625,
+      "range": [
+        -0.25,
+        0.375
+      ]
+    },
+    "heading_difference": {
+      "mean": 0.0,
+      "range": [
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "by_arm": [
+    {
+      "arm": "fixed",
+      "available_searches": 4,
+      "planned_searches": 4,
+      "geometry_mean_fraction": 0.375,
+      "heading_mean_fraction": 0.625
+    },
+    {
+      "arm": "varied",
+      "available_searches": 4,
+      "planned_searches": 4,
+      "geometry_mean_fraction": 0.4375,
+      "heading_mean_fraction": 0.625
+    }
+  ],
+  "artifact_sha256": {
+    "status": "d3be030801b90ea8057d3997d9845c7f850cc7b784450645d5ec2811cc927d7a",
+    "exit_code": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "supervisor.json": "5b470f812060ff756cbf883dcb0f95d90976cd6a81fd2ed558e18563ba278997",
+    "thermal_guard/status.json": "5a8eb3af1cedef63ebc45f1fc3fd4cc35450bfdff02a0e1fee901067b8821862",
+    "supervisor_manifest.json": "703c651364512c9b94fdfe43248a9cf1e0317e4c42499a96def3feb0a55d2736",
+    "launch.json": "59152823c8d0cdd08d6b5bf64df104ac17e48efc8289875c75d5b84f6f9b36bb",
+    "external:docs/results/visible_diversity_launch_2026-11-22.json": "59152823c8d0cdd08d6b5bf64df104ac17e48efc8289875c75d5b84f6f9b36bb",
+    "delayed_choice.toml": "7a47f36167419d92c0ab7414d11b4c399526dc90196fd64d7d938e1c6372f213",
+    "pi_thermal_guard.py": "e25611f799fac2537df86738e99cd29ad801a87bf4f4408df0c6d20e56a6176c",
+    "run_guarded_acquisition.py": "2f08b9c443b917026203d17cc3fc75d6a5f6b0b229e139c085e9c65a1a58c7ec",
+    "sim-runner": "682bb415d26dd5009220e6b6a775d9a153e30b97d8c97055cf3c023c5e6df02b",
+    "visible_diversity.toml": "a009ba4ad6467850e1270504474766262a4f68dbec59d341251efc5dcd896c67",
+    "runs/session_1795391295051362357_59243_0/manifest.json": "f0de6fb8e933bbe181e16291443b00ebc4559d477d0d6274e7347b169a2fd8a5",
+    "runs/session_1795391295051362357_59243_0/controls.json": "fa83b4f27bb38cf3db731c2ec9d43eaba17b0db012c4a139e89e22a6b728ec92",
+    "runs/session_1795391295051362357_59243_0/summary.json": "7bdf0dec1b3dc259a25676c635c5a5677d31a478d18fc61ab44abe63d93427bf",
+    "runs/session_1795391295051362357_59243_0/selection_lock.json": "29cb001fc1b45aba770cc788a4043568a791d444e42da666a96e038eccacd6cb",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/summary.json": "ef9661dff30b14889648830c7dd95416150b36900837757b72ec4a4397778ea0",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/founder_genomes.json": "ec9c8891e6ace032a62c13852eec7028a8e799253d54605b527ff854be6428d4",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/founders.json": "9c0e40e1da77f64fcba4f31eb00dea23245700ee690941a2abda0db2a1bf107a",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/generations.jsonl": "162472aefc72a22827bb05e8906b78cf18e1151aa84ff014aadabb4633bc1be3",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/final_population.json": "8fd4fc5ef5d16753c0acc818b00b23ec17dadd4cf9e850d146d89d0bc84288a2",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/selection.json": "98dcca6a741b85ce07c1394c94e4b9970fdcb3afb47897992172111ff990661c",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5000/training_summary.json": "1f37a119d5a2489f1b9402a911b532841ed387e36735f7d1a0cf327d8be51b0c",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/summary.json": "1775e38990feb21c52622ab42b60b9c73ccf36e72ebd5001b94ef006730fecf5",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/founder_genomes.json": "ec9c8891e6ace032a62c13852eec7028a8e799253d54605b527ff854be6428d4",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/founders.json": "9c12eb7866481232dc20a67e71c5d2bf722d22ed5174d32434c847d3c7014c77",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/generations.jsonl": "2127fe0ad906547c7050d9d570e036300005fce6c8b488cd2a5e0ae450386029",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/final_population.json": "cfeaa66fc87dd7e5ee6fc78b875e12aa83293f97af64e76a1ce079e707de9d7a",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/selection.json": "3e2b2c95e6c2d6f28e3d408a2f087ccae30960d5c8b80b28d9b587059880bc7b",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5000/training_summary.json": "e2cf3d4d5fcc1276700993a17fc2779af79f0b4c850bfbbcfc52ba51e6619081",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/summary.json": "8465b110621b57e32d7b8442b42d4b770a5c86a976cb6fe0df61103cb4083937",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/founder_genomes.json": "bce9fb1eb494db7de14be25aba77d63018066418ba8c4f20c4ab454d11943e65",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/founders.json": "c3bc3951d434fd875334026448190d08732698dfb027c96ef673501d2494a531",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/generations.jsonl": "06edfce3011e19d594fcee318bfab9df3de40c97d3009c38ba120adf24cd5caf",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/final_population.json": "bfbf65b3c182c27b549be1c016651eb277a4b5920bab45dd0f717df8004f1d12",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/selection.json": "37a972df4b004663372052bc33e5f6e61fb75430a393481c66039fae39fa6c1c",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5001/training_summary.json": "91cfe54aa4835d55eec46b14a2e0b8bf4204c2985eb69b57f8d8c9de886bd920",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/summary.json": "58da8fb08cdaef23fb76232227af633b520092ab7b3effa5032a37a3387a6519",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/founder_genomes.json": "bce9fb1eb494db7de14be25aba77d63018066418ba8c4f20c4ab454d11943e65",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/founders.json": "064ab5a1bc9bd0d6d4dce8e35f9eb2a19516825cd5af4997254bc548c9a6e919",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/generations.jsonl": "19ec2a615f963710dfb5acfa1625947560fea29216508ff09ce8da2d0f98766f",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/final_population.json": "e3a26c2f3329b620970628d9b8a354ebb3074d3115b62b392fb1c6b3f399f7ce",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/selection.json": "c1fa130505c9c60f206a1bc80925e0ffad213180461b1b2da6b4f8208681b20d",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5001/training_summary.json": "888e1d267c984d26118827778fc6afc64ec257cb05360af27ece4c9939d42cc9",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/summary.json": "992f70bb7c03d07d5f59933aaf2923512fe6242b6b1d60efdad0f4625c0cb25f",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/founder_genomes.json": "60f23362d13dd0839a51a1db1ba91aa75dc9a9f5ce33f34973c2a8e303467960",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/founders.json": "4a9ffdb418e0cbca6937683804632fe2833b92ebfa52f038291fcc4e427e1cee",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/generations.jsonl": "425d0b35cf3bc6afa244f2535e206b48b55a24729f530c909778615e9a0da91b",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/final_population.json": "7e0476bddb9ee41bdcb2b0e141eb2adef2568ad229dc07f82dc09162a00316b2",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/selection.json": "4ae75e57992607bb273fa30d44879608f89ccacfd48228ad0ff34830b6a69b38",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5002/training_summary.json": "7e7727bf6eca41ed3631969d5b21a724e8ba9bde07011f613597b7d0502fc546",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/summary.json": "0ba69eb90239246c5a1cccdc67f6017ed7a79f0614c12929db7a187b5f1c065d",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/founder_genomes.json": "60f23362d13dd0839a51a1db1ba91aa75dc9a9f5ce33f34973c2a8e303467960",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/founders.json": "298b8f896a63e7cc55aff25bdd199c1dd96210dffe2ce8d249af9bbd615b6a0c",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/generations.jsonl": "d2bf520ac97ac3e717435e58817198cf8c31654055403713abd47ac18b3f58d2",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/final_population.json": "5a1331ca2db75f958f3adb817618b5ec1c6270c1fc2642d0fe57865a6ca5154d",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/selection.json": "0b559eee5a303d7e464836b9a8c814b1d13b4ef7aee0c1d6ed9f0f0c7247ea5e",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5002/training_summary.json": "26929265af35aac2cd33c5230353bf0f05522348756cf98fd9420c9c535dd611",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/summary.json": "b9bca23ea7227f542a65c90d1ff6e3e139a0afa7bc63ba4b4c986b97acef73bd",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/founder_genomes.json": "d228ba2e4ec8a2e9b51042047ea63b62e7cedab680241656e38c990f68d54f7c",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/founders.json": "6d9c5b554b86555742845b4210c217553479432a8031c33a5581b89a93892134",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/generations.jsonl": "1389792ca88a545c74887fb69e65e3a330fa310142b04d2cd120b6aebeae0a52",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/final_population.json": "afc2ba3a1dccf98faa561a675472b97f9aebe37f34ee6921a80249a38245e494",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/selection.json": "5d2fbdc5b05a39d0434cae44f0fadce2c9bbfcd05c41abc7c16b65eaca3ad707",
+    "runs/session_1795391295051362357_59243_0/varied/seed_5003/training_summary.json": "0dbbbcb4f19072b9b0dd8620ee767659d4b633bff3928042e1262cd1d707d3c6",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/summary.json": "9154e5d7222ded2bfba47070a8f5d583f4dbdf4f8727e0fdeaf34965d14cb679",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/founder_genomes.json": "d228ba2e4ec8a2e9b51042047ea63b62e7cedab680241656e38c990f68d54f7c",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/founders.json": "8d806de2a210fe1e9c11bb9972f8547f319145a51117533ab656420a447219e5",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/generations.jsonl": "3714266bdf43838f335f7467d8fd4c2447befea49938548b8518841bf96f1bfe",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/final_population.json": "8d5cbc13cffea4e5c95fab6c2f138fe3f275819a7b7766af1a54ec7d93180883",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/innovations.json": "ffb083804055c06a87c76305acb365dafcfb9d4da0299dc4e533f82a67428648",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/selection.json": "a600ecc9ffd5f616e83b6e07485c8103feb9b9572645d7f564335d945df4396f",
+    "runs/session_1795391295051362357_59243_0/fixed/seed_5003/training_summary.json": "7d4e17a31c95385691fddc01593f54741a9691faadef76efb29c7305eefe9bab",
+    "guard.log": "9edcfaad20400e6a501231725a0b2ce5d29306738ab21c88a9d312d3155f5c94",
+    "thermal_supervisor.jsonl": "ddfd2fdc7ea185d7a96007603a4dc6301285c086a4bb78f1fed3aec0b86bc071"
+  },
+  "telemetry": {
+    "samples": 3,
+    "maximum_sampled_temperature_c": 58.95,
+    "snapshots": [
+      {
+        "utc": "2026-11-22T23:48:14.536662+00:00",
+        "temperature_c": 55.1,
+        "throttled_output": "throttled=0xe0000",
+        "throttled_exit_code": 0
+      },
+      {
+        "utc": "2026-11-22T23:48:19.554688+00:00",
+        "temperature_c": 58.4,
+        "throttled_output": "throttled=0xe0000",
+        "throttled_exit_code": 0
+      },
+      {
+        "utc": "2026-11-22T23:48:24.562958+00:00",
+        "temperature_c": 58.95,
+        "throttled_output": "throttled=0xe0000",
+        "throttled_exit_code": 0
+      }
+    ]
+  },
+  "interpretation": "Four paired searches; original training-selected champions retained. Geometry and heading endpoints separate. No memory, ecology or confirmatory inference.",
+  "thermal_note": "Clean guard lifecycle only; sampled telemetry cannot establish continuous peak temperature or absence of throttling."
+}

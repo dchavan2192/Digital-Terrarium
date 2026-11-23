@@ -254,8 +254,8 @@
       <div><p class="task-eyebrow">Saved science · visible-cue task</p><h2 id="taskTitle">Task lab</h2></div>
       <button class="btn btn-sm" id="taskClose" type="button">Close</button>
     </header>
-    <p class="task-intro" id="taskIntro">Prerecorded native task evaluations, separate from the live ecosystem. Replay all 9 training-selected champions across 7 cases and both cues, including partial responses. The cue stays visible; a memory benefit has not been established.</p>
-    <p class="task-note" id="taskSource">Saved evaluator b40ae9c · visible cue · movement horizon 20. The live ecosystem uses its current build.</p>
+    <p class="task-intro" id="taskIntro">Prerecorded native task evaluations, separate from the live ecosystem. Two separate studies: 9 earlier champions across 7 cases, plus 8 new one-layout/three-layout training champions across 6 fresh held-out cases. All champions and both cues are retained. The cue stays visible; a memory benefit has not been established.</p>
+    <p class="task-note" id="taskSource">Saved native evaluators · visible cue · movement horizon 20. Each study identifies its source below. The live ecosystem uses its current build.</p>
     <p class="task-note" id="taskStatus" role="status">Loading saved evaluations…</p>
     <div id="taskBody" hidden>
       <div class="task-selectors">
@@ -264,6 +264,7 @@
         <label>Evaluation case<select id="taskCase"></select></label>
         <label>Visible cue<select id="taskCue"><option value="-1">−1 → right goal</option><option value="1">+1 → left goal</option></select></label>
       </div>
+      <p class="task-note" id="taskStudySource"></p>
       <svg class="task-arena" id="taskArena" role="img" aria-label="Recorded movement trajectory"></svg>
       <p class="task-note">The task uses identical goal discs; L/R labels are replay annotations. Gold shows the replayed path and heading; dotted grey shows the full saved path. These are movement ticks after release.</p>
       <div class="task-playback">
@@ -278,8 +279,8 @@
       <p class="task-note" id="taskPolicyNote"></p>
     </div>
     <nav class="task-links" aria-label="Task evaluation evidence">
-      <a href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/VISIBLE_VALIDATION_2026-11-17.md" target="_blank" rel="noopener">Results &amp; controls</a>
-      <a href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/VISIBLE_VALIDATION_PLAN_2026-11-17.md" target="_blank" rel="noopener">Frozen evaluation plan</a>
+      <a id="taskResultsLink" href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/VISIBLE_VALIDATION_2026-11-17.md" target="_blank" rel="noopener">Study results &amp; controls</a>
+      <a id="taskPlanLink" href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/VISIBLE_VALIDATION_PLAN_2026-11-17.md" target="_blank" rel="noopener">Frozen study plan</a>
       <a href="data/visible-task.json" target="_blank" rel="noopener">Replay data &amp; source hashes</a>
     </nav>
   </dialog>

@@ -1,7 +1,9 @@
 // Saved poses only: this module never advances a neural policy or the ecology.
 export const COHORT_LABELS = {
   original: 'Original pilot', terminal_only: 'Terminal-only comparison',
-  terminal_progress: 'Terminal-progress comparison', controls: 'Fixed reference controls',
+  terminal_progress: 'Terminal-progress comparison',
+  diversity_fixed: 'One-layout training (new)', diversity_varied: 'Three-layout training (new)',
+  controls: 'Fixed reference controls (earlier study)',
 };
 export const CONTROL_LABELS = {
   cue_independent: 'Cue-independent straight mover',
@@ -10,6 +12,9 @@ export const CONTROL_LABELS = {
 };
 export function findTrial(policy, caseName, cue) {
   return policy.cases.find(c => c.name === caseName)?.trials.find(t => t.cue === Number(cue)) ?? null;
+}
+export function casesForPolicy(data, policy) {
+  return policy.cases.map(c => data.cases.find(x => x.study === policy.study && x.name === c.name));
 }
 export function poseAt(trial, tick) {
   const index = Math.max(0, Math.min(trial.movement_ticks, Math.trunc(Number(tick) || 0)));

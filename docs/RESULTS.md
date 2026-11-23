@@ -1,6 +1,6 @@
 # Results register
 
-Updated: 2026-11-22 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
+Updated: 2026-11-23 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
 
 ## Established scientific results for the corrected current model
 
@@ -19,6 +19,10 @@ Each accepted entry must contain:
 7. A completed review distinguishing observation, causal interpretation, novelty, and untested extrapolation. A well-designed null result is eligible.
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
+
+## Registered paired engineering pilot: EXP-2026-11-22-VISIBLE-DIVERSITY
+
+[Completed fixed-versus-varied training report](results/VISIBLE_DIVERSITY_PILOT_2026-11-22.md): all eight searches and four matched-founder seed pairs completed. Geometry correct fractions were fixed12/32 versus varied14/32; paired differences varied−fixed were [−.25,0,+.375,+.125], mean+.0625. Headings tied10/16 in each arm. Only seed5000 reached6/6 training in both arms; all partials remain included. Clean c7324b6, prospective launch record, 56 training-artifact locks, exact replay poses and thermal/supervision records audited. Four pairs with mixed directions do not establish generalization efficacy, memory use or ecological adaptation. Six held-out conditions are now consumed. Full raw-data prerelease and all-champion figure are linked in the report.
 
 ## Registered exploratory diagnostic: EXP-2026-11-22-BASELINE-LONG-RECURRENCE
 
