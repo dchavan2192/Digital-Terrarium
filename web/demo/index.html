@@ -254,8 +254,24 @@
       <div><p class="task-eyebrow">Saved science · visible-cue task</p><h2 id="taskTitle">Task lab</h2></div>
       <button class="btn btn-sm" id="taskClose" type="button">Close</button>
     </header>
-    <p class="task-intro" id="taskIntro">Prerecorded native task evaluations, separate from the live ecosystem. Two separate studies: 9 earlier champions across 7 cases, plus 8 new one-layout/three-layout training champions across 6 fresh held-out cases. All champions and both cues are retained. The cue stays visible; a memory benefit has not been established.</p>
+    <p class="task-intro" id="taskIntro">Prerecorded native task evaluations, separate from the live ecosystem. Two separate studies: 9 earlier champions across 7 cases, plus 8 new one-layout/three-layout training champions across 6 fresh held-out cases. All champions and both cues are retained. The cue stays visible in these movement replays.</p>
     <p class="task-note" id="taskSource">Saved native evaluators · visible cue · movement horizon 20. Each study identifies its source below. The live ecosystem uses its current build.</p>
+    <details class="task-payoff">
+      <summary>Can remembering where food will appear lead to more offspring?</summary>
+      <p class="task-note">A separate native assay gives an engineered controller a cue, a blank delay, then one move toward a food patch. The reliable cue points to food every time. The shuffled cue points to it half the time. Food appears after the founder has chosen where to go.</p>
+      <table class="task-payoff-table">
+        <caption>Saved outcomes · schedule seed 6400 · 16 food opportunities per run</caption>
+        <thead><tr><th scope="col">Controller</th><th scope="col">Predictive cue</th><th scope="col">Shuffled cue</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Recurrent memory</th><td>16 meals · 7 births</td><td>8 meals · 3 births</td></tr>
+          <tr><th scope="row">State reset before choice</th><td>8 meals · 3 births</td><td>8 meals · 3 births</td></tr>
+          <tr><th scope="row">State reset + cue shown again</th><td>16 meals · 7 births</td><td>8 meals · 3 births</td></tr>
+          <tr><th scope="row">Feed-forward (no memory links)</th><td>8 meals · 3 births</td><td>8 meals · 3 births</td></tr>
+        </tbody>
+      </table>
+      <p class="task-note">The cue is absent at choice except in “cue shown again.” Each newborn is counted and removed so the founder faces the next choice alone. These counts come from one schedule with a hand-built controller. Whether evolved organisms gain the same advantage in the live ecosystem is still open.</p>
+      <a class="task-note" href="https://github.com/dchavan2192/Digital-Terrarium/blob/main/docs/results/FOOD_CUE_PAYOFF_2026-11-23.md" target="_blank" rel="noopener">Read the food-cue results and controls</a>
+    </details>
     <p class="task-note" id="taskStatus" role="status">Loading saved evaluations…</p>
     <div id="taskBody" hidden>
       <div class="task-selectors">

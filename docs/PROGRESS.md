@@ -6,6 +6,10 @@
 
 ---
 
+## Local food-cue and offspring calibration
+
+The delayed food-cue arena is implemented, tested and replayable. The engineered founder had seven direct offspring with predictive cues and three with shuffled cues. Clearing its memory gave three in both arms on the primary schedule. Sixteen additional order checks passed. The demo Task lab includes the paired meals and births. Next, verify archived evolved controllers retain their original responses when moved into this arena. No Pi run was launched. [Report, raw events and replay instructions](results/FOOD_CUE_PAYOFF_2026-11-23.md)
+
 ## Feedback subset replay
 
 Exhaustive replay of the three sustained champions found one minimal sufficient feedback subset per controller. The turn self-loop sufficed alone in seed 6320 variable. The other two also required turn-to-hidden feedback. [Report and data](results/RETENTION_FEEDBACK_SUBSETS.md).

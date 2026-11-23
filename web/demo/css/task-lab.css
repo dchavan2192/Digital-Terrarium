@@ -4,6 +4,13 @@
 .task-head h2 { margin: 0; font-family: var(--font-serif); font-size: 28px; }
 .task-eyebrow { color: var(--accent-2); font-size: 12px; margin: 0 0 4px; }
 .task-intro, .task-note, .task-links { font-size: 12px; color: var(--ink-2); line-height: 1.6; }
+.task-payoff { margin: 16px 0; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.task-payoff summary { min-height: 32px; padding: 4px 0; cursor: pointer; font-weight: 600; font-size: 14px; }
+.task-payoff-table { width: 100%; margin: 12px 0; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+.task-payoff-table caption { text-align: left; color: var(--ink-2); margin-bottom: 8px; }
+.task-payoff-table th, .task-payoff-table td { text-align: left; vertical-align: top; padding: 8px 4px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.task-payoff-table th:first-child { width: 40%; }
+.task-payoff-table td { font-variant-numeric: tabular-nums; }
 .task-selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
 .task-selectors label { display: grid; gap: 6px; font-size: 12px; color: var(--ink-2); }
 .task-selectors select { width: 100%; min-width: 0; min-height: 40px; padding: 8px; font: inherit; color: var(--ink-1); background: var(--bg-3); border: 1px solid var(--line); border-radius: var(--radius-sm); }

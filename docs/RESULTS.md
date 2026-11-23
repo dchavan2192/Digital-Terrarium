@@ -6,6 +6,10 @@ Updated: 2026-11-23 UTC. This register separates implementation checks, calibrat
 
 None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
 
+## Local instrument calibration on 2026-11-23
+
+A predictive food cue increased an engineered founder’s direct offspring by four on the primary schedule. The paired difference disappeared after memory was cleared. Food placement, timing and quantity were matched and all 128 event records passed independent audit. Evolved-controller transfer is the next open question. [Protocol, controls and native birth records](results/FOOD_CUE_PAYOFF_2026-11-23.md)
+
 ## Evidence required for a result
 
 Each accepted entry must contain:
