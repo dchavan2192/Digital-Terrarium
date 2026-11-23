@@ -6,6 +6,10 @@
 
 ---
 
+## Stationary retention pilot completed — 2026-11-23
+
+Three of four final circuits retained a signed cue across five blanks and met the matched reset and visible-cue criteria. Two populations had successful founders. Seed 6003 first succeeded at generation one. Local native run, complete histories archived and independently reconstructed. Future work can compare selection against neutral search with matched founders and test fresh delays. [Full report](results/STATIONARY_RETENTION_2026-11-23.md).
+
 ## Current systems audit and retention-control development — 2026-11-23
 
 **Current decision:** follow the [systems audit](research/SYSTEMS_AUDIT_2026-11-23.md). All older sections below are dated history; active-run labels, parallel-worker advice and unchecked roadmaps are not current launch instructions. The one-off pilot is complete; Pi schedules remain disabled. No new Pi experiment was launched during this audit.

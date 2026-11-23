@@ -20,6 +20,10 @@ Each accepted entry must contain:
 
 A claim may enter README or the portfolio only after its entry is accepted here. The portfolio may describe implemented capabilities without presenting them as scientific findings.
 
+## Stationary retention feasibility pilot — 2026-11-23
+
+A supplied recurrent self-loop supported hidden-cue retention in three of four final circuits. One population first reached two correct answers after weight mutation. The evidence concerns this circuit and training delay. [Full report](results/STATIONARY_RETENTION_2026-11-23.md).
+
 ## Registered paired engineering pilot: EXP-2026-11-22-VISIBLE-DIVERSITY
 
 [Completed fixed-versus-varied training report](results/VISIBLE_DIVERSITY_PILOT_2026-11-22.md): all eight searches and four matched-founder seed pairs completed. Geometry correct fractions were fixed12/32 versus varied14/32; paired differences varied−fixed were [−.25,0,+.375,+.125], mean+.0625. Headings tied10/16 in each arm. Only seed5000 reached6/6 training in both arms; all partials remain included. Clean c7324b6, prospective launch record, 56 training-artifact locks, exact replay poses and thermal/supervision records audited. Four pairs with mixed directions do not establish generalization efficacy, memory use or ecological adaptation. Six held-out conditions are now consumed. Full raw-data prerelease and all-champion figure are linked in the report.
