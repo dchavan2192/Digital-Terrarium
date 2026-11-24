@@ -6,6 +6,10 @@
 
 ---
 
+## Factorial selection pilot
+
+All eight founder populations passed the birth-score check. Across fresh food schedules, birth-selected champions averaged 3.8125 offspring and turn-selected champions averaged 1. Every champion tied its own reset control for offspring. The birth-selected winners were feed-forward founders that always chose one side. The next comparison is random versus oldest-first survival among equally reproductive candidates. [Report, protocol and raw histories](results/FOOD_CUE_SELECTION.md)
+
 ## Why correct landings went uneaten
 
 Independent replay traced all 18 missed five-blank meals to negative eating outputs. A fixed-path ledger projection crediting every correct landing increased the reliable-cue beneficiaries from 1/31 to 4/31. Separate reviews of ecological learning and foraging informed a matched selection experiment with offspring as an endpoint. [Literature, audit and proposed comparison](research/FOOD_CUE_ECOLOGY_REVIEW.md)

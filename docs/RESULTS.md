@@ -6,6 +6,10 @@ Updated: 2026-11-24 UTC. This register separates implementation checks, calibrat
 
 None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
 
+## Factorial selection pilot
+
+All eight founder populations passed the birth-score check. Across fresh food schedules, birth-selected champions averaged 3.8125 offspring and turn-selected champions averaged 1. Every champion tied its own reset control for offspring. The birth-selected winners were feed-forward founders that always chose one side. The next comparison is random versus oldest-first survival among equally reproductive candidates. [Report, protocol and raw histories](results/FOOD_CUE_SELECTION.md)
+
 ## Reproductive payoff across the remaining 31 wiring-study founders
 
 At the close gap with predictive cues, intact memory increased direct offspring for one champion, tied for 20 and decreased offspring for ten. All eight previous five-blank passers turned correctly at five blanks, but ate in only eight of 32 opportunities. Both distances, all failures and all 5,952 events are archived. The next comparison is fixed versus variable delay training with feeding and births scored alongside recall. [Study report and full data](results/FOOD_CUE_POPULATION.md)
