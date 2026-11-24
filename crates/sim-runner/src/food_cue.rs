@@ -5,7 +5,10 @@ use rand::{SeedableRng, seq::SliceRandom};
 use rand_chacha::ChaCha8Rng;
 use serde::Serialize;
 use serde_json::json;
-use sim_core::{Config, Simulation, genome::ConnectionGene};
+use sim_core::{
+    Config, Simulation,
+    genome::{ConnectionGene, Genome},
+};
 use std::{f64::consts::FRAC_PI_2, path::Path};
 
 const START: [f64; 2] = [40.0, 39.75];
@@ -107,11 +110,16 @@ impl Policy {
     }
 }
 
-fn setup(c: &Config, policy: Policy) -> RunResult<Simulation> {
+fn setup(c: &Config, policy: Policy, donor: Option<&Genome>) -> RunResult<Simulation> {
     let mut sim = Simulation::new(c.clone());
     sim.food_grid.cells.fill(0.);
     sim.food_grid.fruit_cells.fill(0.);
     let org = &mut sim.organisms[0];
+    if let Some(donor) = donor {
+        org.genome = donor.clone();
+        org.brain = donor.build_brain();
+        return Ok(sim);
+    }
     let g = &mut org.genome;
     let turn = 1 + g.num_inputs as u32;
     let signed_cue = (2 * c.creature.vision.ray_count + 3) as u32;
@@ -158,6 +166,8 @@ struct Event {
     delay: u32,
     cue: i8,
     choice: i8,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    choice_turn: Option<f64>,
     choice_x: f64,
     choice_y: f64,
     food: i8,
@@ -220,8 +230,14 @@ fn tick(sim: &mut Simulation, cue: i8, ledger: &mut Ledger) -> RunResult<()> {
     Ok(())
 }
 
-fn lifetime(c: &Config, plan: &[Pulse], policy: Policy, predictive: bool) -> RunResult<Lifetime> {
-    let mut sim = setup(c, policy)?;
+fn lifetime(
+    c: &Config,
+    plan: &[Pulse],
+    policy: Policy,
+    predictive: bool,
+    donor: Option<&Genome>,
+) -> RunResult<Lifetime> {
+    let mut sim = setup(c, policy, donor)?;
     let founder_id = sim.organisms[0].id;
     let mut events = Vec::new();
     let mut offspring = 0;
@@ -269,6 +285,7 @@ fn lifetime(c: &Config, plan: &[Pulse], policy: Policy, predictive: bool) -> Run
         sim.config.creature.max_turn = 0.;
         let org = &sim.organisms[0];
         let (x, y) = (org.pos_x, org.pos_y);
+        let choice_turn = donor.map(|_| (org.heading - FRAC_PI_2) / STEP_TURN);
         let col = (x / sim.food_grid.cell_size) as usize;
         let row = (y / sim.food_grid.cell_size) as usize;
         let choice = match (col, row) {
@@ -286,7 +303,10 @@ fn lifetime(c: &Config, plan: &[Pulse], policy: Policy, predictive: bool) -> Run
         let remaining = sim.food_grid.cells[cell];
         let founder = &sim.organisms[0];
         if (x, y) != (founder.pos_x, founder.pos_y)
-            || ledger.algae != if choice == event.food { 15. } else { 0. }
+            || !(0. ..=1.).contains(&remaining)
+            || (ledger.algae - (1. - remaining) * c.food.energy_per_food).abs() > 1e-8
+            || (choice != event.food && ledger.algae != 0.)
+            || (donor.is_none() && choice == event.food && remaining != 0.)
         {
             return Err("native feeding or meal pose disagrees with committed cell".into());
         }
@@ -310,6 +330,7 @@ fn lifetime(c: &Config, plan: &[Pulse], policy: Policy, predictive: bool) -> Run
             delay: event.delay,
             cue,
             choice,
+            choice_turn,
             choice_x: x,
             choice_y: y,
             food: event.food,
@@ -338,20 +359,57 @@ fn lifetime(c: &Config, plan: &[Pulse], policy: Policy, predictive: bool) -> Run
 }
 
 pub fn run(seed: u64, output: &Path) -> RunResult<()> {
-    let c = config()?;
+    experiment(seed, output, None)
+}
+
+pub fn run_transfer(seed: u64, path: &Path, output: &Path) -> RunResult<()> {
+    use std::io::Read;
+    let file = std::fs::File::open(path).map_err(|e| format!("open donor genome: {e}"))?;
+    // The native controller is bounded by MAX_NODES. Reject accidentally supplied study archives.
+    let mut bytes = Vec::new();
+    let limit = 4 * 1024 * 1024;
+    file.take(limit + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|e| e.to_string())?;
+    if bytes.len() as u64 > limit {
+        return Err("donor genome exceeds 4 MiB".into());
+    }
+    let donor: Genome =
+        serde_json::from_slice(&bytes).map_err(|e| format!("read donor genome: {e}"))?;
+    experiment(seed, output, Some(&donor))
+}
+
+fn experiment(seed: u64, output: &Path, donor: Option<&Genome>) -> RunResult<()> {
+    let mut c = config()?;
+    let transferred = if let Some(original) = donor {
+        let genome = crate::food_cue_transfer::transfer(original, &c)?;
+        c.brain.hidden = genome.hidden_nodes.len().max(1);
+        c.validate().map_err(|e| e.to_string())?;
+        crate::food_cue_transfer::verify(original, &genome, &c)?;
+        Some(genome)
+    } else {
+        None
+    };
     let plan = schedule(seed);
     let dir = create_session(output)?;
     let mut runs = Vec::new();
-    save(
-        &dir.join("manifest.json"),
-        &json!({"task":"food_cue_payoff","schema":1,"config":c,"schedule_seed":seed,
+    let mut manifest = json!({"task":"food_cue_payoff","schema":1,"config":c,"schedule_seed":seed,
         "start":START,"start_heading":FRAC_PI_2,"choice_speed_limit":STEP_SPEED,"choice_turn_limit":STEP_TURN,
         "positive_patch":[3,4],"negative_patch":[4,4],"sign_convention":"+1 means left",
         "phases":["one cue at fixed pose","blank delay at fixed pose","one movement tick on empty grid","one feeding tick with fixed pose"],
         "reference_weights":{"bias_to_turn":0.15,"cue_to_turn":2.0,"turn_self_loop":2.0,"bias_to_eat":2.0,"bias_to_speed":2.0},
         "source":env!("TERRARIUM_SOURCE_REVISION"),"dirty":env!("TERRARIUM_SOURCE_DIRTY"),"core":sim_core::checkpoint::CORE_BUILD_ID,
-        "compiler":env!("TERRARIUM_COMPILER"),"target":env!("TERRARIUM_TARGET")}),
-    )?;
+        "compiler":env!("TERRARIUM_COMPILER"),"target":env!("TERRARIUM_TARGET")});
+    if let Some(original) = donor {
+        manifest["task"] = json!("food_cue_transfer");
+        manifest["donor"] = json!(original);
+        manifest["transferred"] = json!(&transferred);
+        manifest
+            .as_object_mut()
+            .unwrap()
+            .remove("reference_weights");
+    }
+    save(&dir.join("manifest.json"), &manifest)?;
     save(&dir.join("schedule.json"), &plan)?;
     for policy in [
         Policy::Recurrent,
@@ -359,10 +417,13 @@ pub fn run(seed: u64, output: &Path) -> RunResult<()> {
         Policy::VisibleReset,
         Policy::FeedForward,
     ] {
+        if transferred.is_some() && policy == Policy::FeedForward {
+            continue;
+        }
         for predictive in [true, false] {
-            let run = lifetime(&c, &plan, policy, predictive)?;
+            let run = lifetime(&c, &plan, policy, predictive, transferred.as_ref())?;
             println!(
-                "{} {}: {}/{} meals, {} direct births",
+                "{} {}: {}/{} correct landings, {} direct births",
                 run.policy.name(),
                 run.arm,
                 run.hits,
@@ -382,8 +443,8 @@ mod tests {
     #[test]
     fn inactive_external_channel_preserves_the_native_solo_trajectory() {
         let c = config().unwrap();
-        let mut ordinary = setup(&c, Policy::Recurrent).unwrap();
-        let mut external = setup(&c, Policy::Recurrent).unwrap();
+        let mut ordinary = setup(&c, Policy::Recurrent, None).unwrap();
+        let mut external = setup(&c, Policy::Recurrent, None).unwrap();
         let initial = external.state_fingerprint().unwrap();
         assert!(external.step_with_external_cue(2).is_err());
         assert_eq!(initial, external.state_fingerprint().unwrap());

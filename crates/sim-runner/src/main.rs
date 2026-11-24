@@ -14,6 +14,7 @@ mod delayed_choice;
 mod diverse_acquisition;
 mod exported_assay;
 mod food_cue;
+mod food_cue_transfer;
 mod movement_assay;
 mod run;
 mod stationary_retention;
@@ -84,6 +85,15 @@ enum Commands {
         #[arg(long, default_value_t = 6400)]
         seed: u64,
         #[arg(long, default_value = "output/food-cue-payoff")]
+        output: PathBuf,
+    },
+    /// Replay a saved stationary genome using its own native turn, speed and feeding actions.
+    FoodCueTransfer {
+        #[arg(long)]
+        donor: PathBuf,
+        #[arg(long, default_value_t = 6400)]
+        seed: u64,
+        #[arg(long, default_value = "output/food-cue-transfer")]
         output: PathBuf,
     },
     /// Compare fixed and varied training delays from matched founders.
@@ -298,6 +308,11 @@ fn main() {
     }
 
     let result = match cli.command {
+        Some(Commands::FoodCueTransfer {
+            donor,
+            seed,
+            output,
+        }) => food_cue::run_transfer(seed, &donor, &output),
         Some(Commands::FoodCuePayoff { seed, output }) => food_cue::run(seed, &output),
         Some(Commands::RetentionWiring { output }) => wiring::run(&output, false),
         Some(Commands::RetentionDelayTraining { output }) => wiring::run(&output, true),
