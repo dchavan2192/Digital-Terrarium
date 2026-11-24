@@ -6,6 +6,10 @@ Updated: 2026-11-24 UTC. This register separates implementation checks, calibrat
 
 None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
 
+## Reproductive payoff across the remaining 31 wiring-study founders
+
+At the close gap with predictive cues, intact memory increased direct offspring for one champion, tied for 20 and decreased offspring for ten. All eight previous five-blank passers turned correctly at five blanks, but ate in only eight of 32 opportunities. Both distances, all failures and all 5,952 events are archived. The next comparison is fixed versus variable delay training with feeding and births scored alongside recall. [Study report and full data](results/FOOD_CUE_POPULATION.md)
+
 ## Food reachability and reproduction in evolved controllers
 
 At the shortest starting distance all three selected controllers had eight direct offspring with reliable cues and four after memory was cleared. Shuffled cues also yielded four with memory intact. At the original distance none benefited over a reset. The audit reproduced all archived baseline events and verified matching turns and movement displacements across all four distances. All runs were local. Next compare independently founded controllers without filtering by prior recall. [Report, protocol and raw records](results/FOOD_CUE_DISTANCE.md)
