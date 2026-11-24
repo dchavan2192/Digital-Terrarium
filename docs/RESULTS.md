@@ -6,6 +6,10 @@ Updated: 2026-11-24 UTC. This register separates implementation checks, calibrat
 
 None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
 
+## Random survival among equal birth scores
+
+Recurrent controllers occupied 261 of 384 parent slots at fixed delays and 265 at varied delays with randomized ties. No population exceeded four training births. In replay, 269 and 414 recurrent descendants respectively showed a cue-dependent change in turn output, but none turned in opposite directions for the two cues. All work ran locally. [Report and raw records](results/FOOD_CUE_TIES.md)
+
 ## Factorial selection pilot
 
 All eight founder populations passed the birth-score check. Across fresh food schedules, birth-selected champions averaged 3.8125 offspring and turn-selected champions averaged 1. Every champion tied its own reset control for offspring. The birth-selected winners were feed-forward founders that always chose one side. The next comparison is random versus oldest-first survival among equally reproductive candidates. [Report, protocol and raw histories](results/FOOD_CUE_SELECTION.md)
