@@ -6,6 +6,10 @@
 
 ---
 
+## Food reachability and reproduction in evolved controllers
+
+At the shortest starting distance all three selected controllers had eight direct offspring with reliable cues and four after memory was cleared. Shuffled cues also yielded four with memory intact. At the original distance none benefited over a reset. The audit reproduced all archived baseline events and verified matching turns and movement displacements across all four distances. All runs were local. Next compare independently founded controllers without filtering by prior recall. [Report, protocol and raw records](results/FOOD_CUE_DISTANCE.md)
+
 ## Transfer of evolved memory controllers to the food arena
 
 Three archived controllers reproduced their original turns. None gained births versus a memory reset with reliable cues. Both seed-6320 controllers reached one side and produced four offspring with reliable cues versus two with shuffled cues. The seed-6226 controller always fell short of the food row. The next local comparison is a controlled change in distance to distinguish reaching the food from correctly recalling its location. All 288 events were audited. [Report and raw data](results/FOOD_CUE_TRANSFER_2026-11-24.md)

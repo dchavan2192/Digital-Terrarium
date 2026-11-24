@@ -6,6 +6,10 @@ Updated: 2026-11-24 UTC. This register separates implementation checks, calibrat
 
 None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
 
+## Food reachability and reproduction in evolved controllers
+
+At the shortest starting distance all three selected controllers had eight direct offspring with reliable cues and four after memory was cleared. Shuffled cues also yielded four with memory intact. At the original distance none benefited over a reset. The audit reproduced all archived baseline events and verified matching turns and movement displacements across all four distances. All runs were local. Next compare independently founded controllers without filtering by prior recall. [Report, protocol and raw records](results/FOOD_CUE_DISTANCE.md)
+
 ## Transfer case series on 2026-11-24
 
 Three previously evolved controllers retained their cue responses under native sensor remapping. On one balanced food schedule, none increased reliable-cue births over the same controller with cleared state. Both seed-6320 controllers lost two births when they followed shuffled cues. Realized choices show one-sided or absent patch access in all three. [All outcomes and replay](results/FOOD_CUE_TRANSFER_2026-11-24.md)
