@@ -1,10 +1,14 @@
 # Results register
 
-Updated: 2026-11-23 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
+Updated: 2026-11-24 UTC. This register separates implementation checks, calibration observations, and scientific results. A working mechanic is not evidence that selection favors it.
 
 ## Established scientific results for the corrected current model
 
 None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
+
+## Transfer case series on 2026-11-24
+
+Three previously evolved controllers retained their cue responses under native sensor remapping. On one balanced food schedule, none increased reliable-cue births over the same controller with cleared state. Both seed-6320 controllers lost two births when they followed shuffled cues. Realized choices show one-sided or absent patch access in all three. [All outcomes and replay](results/FOOD_CUE_TRANSFER_2026-11-24.md)
 
 ## Local instrument calibration on 2026-11-23
 

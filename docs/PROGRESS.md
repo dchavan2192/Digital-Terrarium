@@ -2,9 +2,13 @@
 
 **Purpose**: Living document that tracks all work, decisions, and next steps. Read this first at the start of every session so you can continue without re-explanation.
 
-**Last updated**: 2026-11-23 UTC
+**Last updated**: 2026-11-24 UTC
 
 ---
+
+## Transfer of evolved memory controllers to the food arena
+
+Three archived controllers reproduced their original turns. None gained births versus a memory reset with reliable cues. Both seed-6320 controllers reached one side and produced four offspring with reliable cues versus two with shuffled cues. The seed-6226 controller always fell short of the food row. The next local comparison is a controlled change in distance to distinguish reaching the food from correctly recalling its location. All 288 events were audited. [Report and raw data](results/FOOD_CUE_TRANSFER_2026-11-24.md)
 
 ## Local food-cue and offspring calibration
 
