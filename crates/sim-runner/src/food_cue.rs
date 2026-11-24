@@ -12,7 +12,6 @@ use sim_core::{
 use std::{f64::consts::FRAC_PI_2, path::Path};
 
 const FOOD_ROW_Y: f64 = 40.;
-const DEFAULT_DISTANCE: f64 = 0.25;
 const STEP_SPEED: f64 = 2.0;
 const STEP_TURN: f64 = 0.6;
 
@@ -24,8 +23,12 @@ struct Pulse {
 }
 
 fn schedule(seed: u64) -> Vec<Pulse> {
+    schedule_with_delays(seed, [2, 5, 8, 11])
+}
+
+fn schedule_with_delays(seed: u64, delays: [u32; 4]) -> Vec<Pulse> {
     let mut events = Vec::new();
-    for delay in [2, 5, 8, 11] {
+    for delay in delays {
         for food in [-1, 1] {
             for shuffled in [-1, 1] {
                 events.push(Pulse {
@@ -360,8 +363,33 @@ fn lifetime(
     })
 }
 
-pub fn run(seed: u64, output: &Path) -> RunResult<()> {
-    experiment(seed, output, None, DEFAULT_DISTANCE)
+pub(super) fn training_scores(donor: &Genome, varied: bool) -> RunResult<(usize, f64, usize)> {
+    let mut cfg = config()?;
+    let genome = crate::food_cue_transfer::transfer(donor, &cfg)?;
+    cfg.brain.hidden = genome.hidden_nodes.len().max(1);
+    let delays = if varied { [3, 4, 6, 7] } else { [5; 4] };
+    let plan = schedule_with_delays(6800, delays);
+    let life = lifetime(
+        &cfg,
+        &plan,
+        Policy::Recurrent,
+        true,
+        Some(&genome),
+        [40., FOOD_ROW_Y - 0.0625],
+    )?;
+    let mut correct = 0;
+    let mut margin = f64::INFINITY;
+    for event in &life.events {
+        let signed =
+            f64::from(event.cue) * event.choice_turn.ok_or("training event missing turn")?;
+        correct += usize::from(signed > 0.);
+        margin = margin.min(signed);
+    }
+    Ok((correct, margin, life.offspring))
+}
+
+pub fn run(seed: u64, output: &Path, distance: f64) -> RunResult<()> {
+    experiment(seed, output, None, distance)
 }
 
 pub fn run_transfer(seed: u64, path: &Path, output: &Path, distance: f64) -> RunResult<()> {
@@ -464,6 +492,21 @@ mod tests {
             ordinary.state_fingerprint().unwrap(),
             external.state_fingerprint().unwrap()
         );
+    }
+
+    #[test]
+    fn timing_intervention_preserves_food_signs_and_total_delay() {
+        let fixed = schedule_with_delays(6800, [5; 4]);
+        let varied = schedule_with_delays(6800, [3, 4, 6, 7]);
+        assert_eq!(fixed.len(), 16);
+        assert_eq!(varied.len(), 16);
+        assert_eq!(
+            fixed.iter().map(|e| e.delay).sum::<u32>(),
+            varied.iter().map(|e| e.delay).sum::<u32>()
+        );
+        for (a, b) in fixed.iter().zip(&varied) {
+            assert_eq!((a.food, a.shuffled), (b.food, b.shuffled));
+        }
     }
 
     #[test]

@@ -14,6 +14,7 @@ mod delayed_choice;
 mod diverse_acquisition;
 mod exported_assay;
 mod food_cue;
+mod food_cue_selection;
 mod food_cue_transfer;
 mod movement_assay;
 mod run;
@@ -79,11 +80,18 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Compare selection for turns and offspring with fixed or variable cue delays.
+    FoodCueSelection {
+        #[arg(long, default_value = "output/food-cue-selection")]
+        output: PathBuf,
+    },
     /// Validate delayed food cues using native patch choice, feeding and direct births.
     FoodCuePayoff {
         /// Randomizes the order of a bounded, balanced 16-event schedule.
         #[arg(long, default_value_t = 6400)]
         seed: u64,
+        #[arg(long, default_value_t = 0.25)]
+        distance: f64,
         #[arg(long, default_value = "output/food-cue-payoff")]
         output: PathBuf,
     },
@@ -317,7 +325,12 @@ fn main() {
             seed,
             output,
         }) => food_cue::run_transfer(seed, &donor, &output, distance),
-        Some(Commands::FoodCuePayoff { seed, output }) => food_cue::run(seed, &output),
+        Some(Commands::FoodCuePayoff {
+            seed,
+            output,
+            distance,
+        }) => food_cue::run(seed, &output, distance),
+        Some(Commands::FoodCueSelection { output }) => food_cue_selection::run(&output),
         Some(Commands::RetentionWiring { output }) => wiring::run(&output, false),
         Some(Commands::RetentionDelayTraining { output }) => wiring::run(&output, true),
         Some(Commands::RetentionSelection { output }) => stationary_retention::paired(&output),

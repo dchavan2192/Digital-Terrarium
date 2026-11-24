@@ -50,8 +50,7 @@ impl Birth {
         }
     }
 }
-pub fn run(output: &Path, delay_study: bool) -> RunResult<()> {
-    let dir = create_session(output)?;
+pub(super) fn search_config() -> RunResult<Config> {
     let mut cfg =
         Config::parse(include_str!("../../../configs/default.toml")).map_err(|e| e.to_string())?;
     cfg.brain.inputs = 1;
@@ -66,6 +65,14 @@ pub fn run(output: &Path, delay_study: bool) -> RunResult<()> {
     m.toggle_probability = 0.0;
     m.prune_probability = 0.0;
     m.trait_probability = 0.0;
+    m.add_recurrent_probability = 0.0;
+    Ok(cfg)
+}
+
+pub fn run(output: &Path, delay_study: bool) -> RunResult<()> {
+    let dir = create_session(output)?;
+    let mut cfg = search_config()?;
+    let m = &mut cfg.mutation;
     let mut locks = Vec::new();
     let (seeds, arms, probes): (_, &[(&str, f64)], &[usize]) = if delay_study {
         (
