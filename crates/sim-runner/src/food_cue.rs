@@ -11,7 +11,8 @@ use sim_core::{
 };
 use std::{f64::consts::FRAC_PI_2, path::Path};
 
-const START: [f64; 2] = [40.0, 39.75];
+const FOOD_ROW_Y: f64 = 40.;
+const DEFAULT_DISTANCE: f64 = 0.25;
 const STEP_SPEED: f64 = 2.0;
 const STEP_TURN: f64 = 0.6;
 
@@ -236,6 +237,7 @@ fn lifetime(
     policy: Policy,
     predictive: bool,
     donor: Option<&Genome>,
+    start: [f64; 2],
 ) -> RunResult<Lifetime> {
     let mut sim = setup(c, policy, donor)?;
     let founder_id = sim.organisms[0].id;
@@ -250,8 +252,8 @@ fn lifetime(
         };
         let start_tick = sim.tick;
         let org = &mut sim.organisms[0];
-        org.pos_x = START[0];
-        org.pos_y = START[1];
+        org.pos_x = start[0];
+        org.pos_y = start[1];
         org.heading = FRAC_PI_2;
         org.memory.clear();
         let energy_before = org.energy;
@@ -261,7 +263,7 @@ fn lifetime(
             tick(&mut sim, 0, &mut ledger)?;
         }
         let org = &mut sim.organisms[0];
-        if [org.pos_x, org.pos_y] != START
+        if [org.pos_x, org.pos_y] != start
             || org.heading != FRAC_PI_2
             || sim.food_grid.cells.iter().any(|&x| x != 0.)
         {
@@ -359,10 +361,10 @@ fn lifetime(
 }
 
 pub fn run(seed: u64, output: &Path) -> RunResult<()> {
-    experiment(seed, output, None)
+    experiment(seed, output, None, DEFAULT_DISTANCE)
 }
 
-pub fn run_transfer(seed: u64, path: &Path, output: &Path) -> RunResult<()> {
+pub fn run_transfer(seed: u64, path: &Path, output: &Path, distance: f64) -> RunResult<()> {
     use std::io::Read;
     let file = std::fs::File::open(path).map_err(|e| format!("open donor genome: {e}"))?;
     // The native controller is bounded by MAX_NODES. Reject accidentally supplied study archives.
@@ -376,10 +378,16 @@ pub fn run_transfer(seed: u64, path: &Path, output: &Path) -> RunResult<()> {
     }
     let donor: Genome =
         serde_json::from_slice(&bytes).map_err(|e| format!("read donor genome: {e}"))?;
-    experiment(seed, output, Some(&donor))
+    experiment(seed, output, Some(&donor), distance)
 }
 
-fn experiment(seed: u64, output: &Path, donor: Option<&Genome>) -> RunResult<()> {
+fn experiment(seed: u64, output: &Path, donor: Option<&Genome>, distance: f64) -> RunResult<()> {
+    let start = [40., FOOD_ROW_Y - distance];
+    if !(0. ..FOOD_ROW_Y).contains(&start[1]) {
+        return Err(
+            "distance must place the founder south of the food row and inside the world".into(),
+        );
+    }
     let mut c = config()?;
     let transferred = if let Some(original) = donor {
         let genome = crate::food_cue_transfer::transfer(original, &c)?;
@@ -394,7 +402,7 @@ fn experiment(seed: u64, output: &Path, donor: Option<&Genome>) -> RunResult<()>
     let dir = create_session(output)?;
     let mut runs = Vec::new();
     let mut manifest = json!({"task":"food_cue_payoff","schema":1,"config":c,"schedule_seed":seed,
-        "start":START,"start_heading":FRAC_PI_2,"choice_speed_limit":STEP_SPEED,"choice_turn_limit":STEP_TURN,
+        "start":start,"start_heading":FRAC_PI_2,"choice_speed_limit":STEP_SPEED,"choice_turn_limit":STEP_TURN,
         "positive_patch":[3,4],"negative_patch":[4,4],"sign_convention":"+1 means left",
         "phases":["one cue at fixed pose","blank delay at fixed pose","one movement tick on empty grid","one feeding tick with fixed pose"],
         "reference_weights":{"bias_to_turn":0.15,"cue_to_turn":2.0,"turn_self_loop":2.0,"bias_to_eat":2.0,"bias_to_speed":2.0},
@@ -421,7 +429,7 @@ fn experiment(seed: u64, output: &Path, donor: Option<&Genome>) -> RunResult<()>
             continue;
         }
         for predictive in [true, false] {
-            let run = lifetime(&c, &plan, policy, predictive, transferred.as_ref())?;
+            let run = lifetime(&c, &plan, policy, predictive, transferred.as_ref(), start)?;
             println!(
                 "{} {}: {}/{} correct landings, {} direct births",
                 run.policy.name(),
