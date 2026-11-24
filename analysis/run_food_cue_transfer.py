@@ -28,13 +28,15 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n")
 
 
-def run(binary, output, schedule_seed, distance=0.25):
+def run(binary, output, schedule_seed, distance=0.25, *, cohorts=None):
     binary = binary.resolve(strict=True)
     binary_hash = digest(binary)
     output.mkdir(parents=True, exist_ok=False)
     summaries = []
     common_schedule = None
-    for archive, cohort in COHORTS.items():
+    if cohorts is None:
+        cohorts = COHORTS
+    for archive, cohort in cohorts.items():
         path = ROOT / archive
         archive_hash = digest(path)
         require(archive_hash == ARCHIVE_SHA256[archive], f"frozen archive changed: {archive}")
