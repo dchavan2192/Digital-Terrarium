@@ -28,7 +28,7 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n")
 
 
-def run(binary, output, schedule_seed):
+def run(binary, output, schedule_seed, distance=0.25):
     binary = binary.resolve(strict=True)
     binary_hash = digest(binary)
     output.mkdir(parents=True, exist_ok=False)
@@ -51,10 +51,11 @@ def run(binary, output, schedule_seed):
             provenance = dict(archive=archive, archive_sha256=archive_hash, member="selection.json",
                               founder_seed=seed, training_arm=arm, champion_id=champion,
                               donor_sha256=digest(source), binary_sha256=binary_hash,
-                              schedule_seed=schedule_seed)
+                              schedule_seed=schedule_seed, distance=distance)
             save(folder / "provenance.json", provenance)
             subprocess.run([str(binary), "food-cue-transfer", "--donor", str(source),
-                            "--output", str(folder), "--seed", str(schedule_seed)], check=True)
+                            "--output", str(folder), "--seed", str(schedule_seed),
+                            "--distance", str(distance)], check=True)
             sessions = list(folder.glob("session_*"))
             require(len(sessions) == 1, f"expected one completed session for {seed} {arm}")
             session = sessions[0]
@@ -62,6 +63,7 @@ def run(binary, output, schedule_seed):
             require(manifest["task"] == "food_cue_transfer" and manifest["donor"] == genome,
                     "native session did not use frozen genome")
             require(manifest["schedule_seed"] == schedule_seed, "incorrect schedule seed")
+            require(manifest["start"] == [40.0, 40.0 - distance], "incorrect starting distance")
             schedule = json.loads((session / "schedule.json").read_text())
             if common_schedule is None:
                 common_schedule = schedule
@@ -77,9 +79,10 @@ if __name__ == "__main__":
     parser.add_argument("--binary", type=Path, default=ROOT.parents[1] / "target/release/sim-runner")
     parser.add_argument("--output", type=Path, required=True, help="new local output directory")
     parser.add_argument("--seed", type=int, default=6400)
+    parser.add_argument("--distance", type=float, default=0.25, help="starting distance below food row")
     args = parser.parse_args()
     try:
-        run(args.binary, args.output, args.seed)
+        run(args.binary, args.output, args.seed, args.distance)
         print(args.output / "summary.json")
     except (OSError, ValueError, KeyError, TypeError, subprocess.CalledProcessError) as exc:
         parser.exit(1, f"Transfer failed: {exc}\n")

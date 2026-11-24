@@ -56,8 +56,8 @@ jobs:
         run: |
           cargo run --quiet -p sim-runner -- food-cue-payoff --seed 6401 --output "$RUNNER_TEMP/food-cue"
           python3 analysis/check_food_cue_payoff.py "$RUNNER_TEMP"/food-cue/session_*
-      - name: Verify archived controllers transfer to the native food-cue arena
-        run: python3 analysis/run_food_cue_transfer.py --binary target/debug/sim-runner --output "$RUNNER_TEMP/food-cue-transfer"
+      - name: Verify distance controls and replay the archived food-cue baseline
+        run: python3 analysis/run_food_cue_distance.py --binary target/debug/sim-runner --output "$RUNNER_TEMP/food-cue-distance"
 
   fmt:
     name: Format
