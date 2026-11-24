@@ -82,6 +82,9 @@ struct Cli {
 enum Commands {
     /// Compare selection for turns and offspring with fixed or variable cue delays.
     FoodCueSelection {
+        /// Compare random versus oldest-first parental survival among equal birth scores.
+        #[arg(long)]
+        tie_study: bool,
         #[arg(long, default_value = "output/food-cue-selection")]
         output: PathBuf,
     },
@@ -330,7 +333,9 @@ fn main() {
             output,
             distance,
         }) => food_cue::run(seed, &output, distance),
-        Some(Commands::FoodCueSelection { output }) => food_cue_selection::run(&output),
+        Some(Commands::FoodCueSelection { output, tie_study }) => {
+            food_cue_selection::run(&output, tie_study)
+        }
         Some(Commands::RetentionWiring { output }) => wiring::run(&output, false),
         Some(Commands::RetentionDelayTraining { output }) => wiring::run(&output, true),
         Some(Commands::RetentionSelection { output }) => stationary_retention::paired(&output),

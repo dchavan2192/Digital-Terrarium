@@ -3,7 +3,7 @@ use crate::food_cue::training_scores;
 use crate::run::{RunResult, create_session};
 use crate::stationary_retention::save;
 use crate::wiring::search_config;
-use rand::SeedableRng;
+use rand::{SeedableRng, seq::SliceRandom};
 use rand_chacha::ChaCha8Rng;
 use serde::Serialize;
 use serde_json::json;
@@ -23,6 +23,13 @@ const ARMS: [(&str, bool, bool); 4] = [
     ("varied_turn", true, false),
     ("fixed_births", false, true),
     ("varied_births", true, true),
+];
+
+const TIE_ARMS: [(&str, bool, bool); 4] = [
+    ("fixed_births", false, true),
+    ("fixed_random", false, true),
+    ("varied_births", true, true),
+    ("varied_random", true, true),
 ];
 
 #[derive(Clone, Serialize)]
@@ -108,6 +115,9 @@ fn evolve(
     dir: &Path,
 ) -> RunResult<(usize, Genome)> {
     let mut rng = founders.rng.clone();
+    let randomized = arm.ends_with("_random");
+    let mut tie_rng = ChaCha8Rng::seed_from_u64(founders.seed ^ (1 << 63));
+    let mut tie_orders = Vec::new();
     let mut innovations = Innovations::new(&config.brain);
     let mut births = if varied {
         founders.varied.clone()
@@ -117,7 +127,14 @@ fn evolve(
     let mut pop: Vec<_> = (0..POPULATION).collect();
     let mut generations = Vec::with_capacity(GENERATIONS + 1);
     for generation in 0..=GENERATIONS {
-        rank(&mut pop, &births, by_births);
+        if randomized && generation < GENERATIONS {
+            pop.shuffle(&mut tie_rng);
+            tie_orders.push(pop.clone());
+            // A stable sort preserves the uniform shuffled order within each score.
+            pop.sort_by_key(|&id| std::cmp::Reverse(births[id].native_births));
+        } else {
+            rank(&mut pop, &births, by_births);
+        }
         generations.push(pop.clone());
         if generation == GENERATIONS {
             break;
@@ -136,10 +153,11 @@ fn evolve(
         }
     }
     let winner = (pop[0], births[pop[0]].genome.clone());
-    save(
-        &dir.join(format!("{}_{arm}.json", founders.seed)),
-        &json!({"births":births,"generations":generations}),
-    )?;
+    let mut history = json!({"births":births,"generations":generations});
+    if randomized {
+        history["tie_orders"] = json!(tie_orders);
+    }
+    save(&dir.join(format!("{}_{arm}.json", founders.seed)), &history)?;
     Ok(winner)
 }
 
@@ -148,7 +166,8 @@ fn has_variation(pop: &[Candidate]) -> bool {
         .any(|candidate| candidate.native_births != pop[0].native_births)
 }
 
-pub fn run(output: &Path) -> RunResult<()> {
+pub fn run(output: &Path, tie_study: bool) -> RunResult<()> {
+    let arms = if tie_study { TIE_ARMS } else { ARMS };
     let dir = create_session(output)?;
     let mut cfg = search_config()?;
     cfg.mutation.add_recurrent_probability = 0.;
@@ -156,8 +175,8 @@ pub fn run(output: &Path) -> RunResult<()> {
     mutation.add_recurrent_probability = 0.3;
     save(
         &dir.join("manifest.json"),
-        &json!({"schema":1,"task":"food_cue_selection","seeds":SEEDS.collect::<Vec<_>>(),
-                "arms":ARMS.map(|a| a.0),"training_schedule_seed":6800,"generations":GENERATIONS,
+        &json!({"schema":1,"task":if tie_study {"food_cue_tie_selection"} else {"food_cue_selection"},"seeds":SEEDS.collect::<Vec<_>>(),
+                "arms":arms.map(|a| a.0),"training_schedule_seed":6800,"generations":GENERATIONS,
                 "population":POPULATION,"elites":ELITES,"children":POPULATION-ELITES,
                 "brain":cfg.brain,"founder_mutation":cfg.mutation,"mutation":mutation,
                 "compiler":env!("TERRARIUM_COMPILER"),"target":env!("TERRARIUM_TARGET"),
@@ -197,7 +216,7 @@ pub fn run(output: &Path) -> RunResult<()> {
     cfg.mutation = mutation;
     let mut winners = Vec::new();
     for cohort in &cohorts {
-        for (arm, varied, by_births) in ARMS {
+        for (arm, varied, by_births) in arms {
             let (id, genome) = evolve(cohort, &cfg, arm, varied, by_births, &dir)?;
             winners.push((cohort.seed, arm, id, genome));
         }
