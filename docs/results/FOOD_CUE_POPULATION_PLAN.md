@@ -1,0 +1,7 @@
+# How often do the archived controllers gain births from memory?
+
+Use all selected-arm final champions from independently seeded wiring-study populations 6200–6231 except 6226, the donor already used to choose the geometry. Include every other champion regardless of earlier recall, mobility or feeding. These 31 independent founders were trained on the same stationary recall task. They support a descriptive estimate for that archived cohort.
+
+Run the existing native arena with schedule seed 6400 at gaps 0.0625 and 0.25, retaining all six lifetimes per donor and both cue signs. The primary endpoint is the number of donors that produce more direct offspring with intact memory than after a pre-choice reset under predictive cues at the close gap. Report positive, tied and negative counts and individual differences at both distances. Report the same differences under shuffled cues, the paired difference of differences, and counts by earlier five-blank recall status. Use the same founder and feeding schedule within every comparison. Preserve failures and flag any incomplete lifetime. A failed audit or incomplete cohort precludes claiming a completed comparison. Do not tune geometry or controllers in response to outcomes.
+
+The experimental unit is the archived founding population. Repeated meals, interventions and distances are paired observations. The experiment does not compare training algorithms or establish adaptation in the open ecosystem. Run locally. [Distance calibration](FOOD_CUE_DISTANCE.md)
