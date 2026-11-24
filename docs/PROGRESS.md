@@ -6,6 +6,10 @@
 
 ---
 
+## Why correct landings went uneaten
+
+Independent replay traced all 18 missed five-blank meals to negative eating outputs. A fixed-path ledger projection crediting every correct landing increased the reliable-cue beneficiaries from 1/31 to 4/31. Separate reviews of ecological learning and foraging informed a matched selection experiment with offspring as an endpoint. [Literature, audit and proposed comparison](research/FOOD_CUE_ECOLOGY_REVIEW.md)
+
 ## Reproductive payoff across the remaining 31 wiring-study founders
 
 At the close gap with predictive cues, intact memory increased direct offspring for one champion, tied for 20 and decreased offspring for ten. All eight previous five-blank passers turned correctly at five blanks, but ate in only eight of 32 opportunities. Both distances, all failures and all 5,952 events are archived. The next comparison is fixed versus variable delay training with feeding and births scored alongside recall. [Study report and full data](results/FOOD_CUE_POPULATION.md)

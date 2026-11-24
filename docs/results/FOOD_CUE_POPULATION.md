@@ -28,6 +28,8 @@ Two limits are visible. Turn direction depended on the delay. Even at the traine
 
 The **1/31** is descriptive of these archived champions. They share a fixed-delay training regime and were evaluated on one food schedule, with solitary founders and direct newborns as the endpoint. The earlier three-controller pilot deliberately selected sustained recall. Its three cases should not be pooled with this cohort to estimate prevalence.
 
+A subsequent controller replay identified a negative eating output on every one of the 18 uneaten landings at five blanks. An energy-ledger projection tests how much fixing that one step could change the result. [Follow-up audit, ecological evidence and proposed experiment](../research/FOOD_CUE_ECOLOGY_REVIEW.md)
+
 ## Verification and replay
 
 All 31 founders completed six lifetimes at each of two distances. The independent event audit checked 372 lifetimes and 5,952 food opportunities, including realized positions, landed cells, consumption, energy and direct newborns. The runner pinned the input archive and earlier recall classifications, verified matched schedules, and compared each donor’s turns and movement displacements across distances. The local single-worker release run used clean source `8940b62`. A second audit from the extracted output archive reproduced every donor outcome and cohort count. [Raw schedules, donor identities, per-founder contrasts and events](food_cue_population_raw.tar.gz) · [Study runner](../../analysis/run_food_cue_population.py)
