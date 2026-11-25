@@ -6,6 +6,10 @@ Updated: 2026-11-24 UTC. This register separates implementation checks, calibrat
 
 None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
 
+## Blank-cue follow-up and stopping point
+
+Subtracting the blank-cue turn exposed small correctly directed responses in some descendants. None met the original turn margin for both directions. The local diagnostic is complete; the present arena is a stopping point. [Report and replay](results/FOOD_CUE_BLANK_TURN.md)
+
 ## Random survival among equal birth scores
 
 Recurrent controllers occupied 261 of 384 parent slots at fixed delays and 265 at varied delays with randomized ties. No population exceeded four training births. In replay, 269 and 414 recurrent descendants respectively showed a cue-dependent change in turn output, but none turned in opposite directions for the two cues. All work ran locally. [Report and raw records](results/FOOD_CUE_TIES.md)
