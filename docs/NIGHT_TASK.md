@@ -4,7 +4,7 @@ Read [PROGRESS.md](PROGRESS.md) and the [current systems audit](research/SYSTEMS
 
 Automated Pi schedules remain disabled. The authorized one-off pilot is complete; do not restart it, enable a schedule or launch another experiment from this document. Preserve all existing outputs, checkpoints and pinned binaries. Further experiments need a separately frozen protocol and the owner's applicable authorization.
 
-Continue bounded development, research review and validation within the existing authorized scope. Commit and push verified work, as the owner requested. Record results, limitations and remaining work in PROGRESS.md. Mechanism implementation, functional retention, navigation transfer and ecological benefit are separate acceptance claims; no positive effect is required to finish an honest study.
+The one-step food-cue research series has since concluded. See the [project handoff](PROGRESS.md#project-handoff) for the stopping point and the [README](../README.md) for reproducible experiments.
 
 ---
 

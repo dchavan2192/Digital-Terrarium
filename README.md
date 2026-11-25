@@ -1,98 +1,72 @@
-# Terrarium
+# Digital Terrarium
 
-**An artificial-life laboratory where creatures evolve neural controllers in an energy-limited world.**
+Watch creatures forage, compete and reproduce in a world where movement and neural processing cost energy. Each creature inherits a neural controller. The same Rust simulation powers an interactive browser world and a headless experiment runner.
 
-[**Live 3D demo**](https://dchavan2192.github.io/Digital-Terrarium/) · [Development plan](docs/PROGRESS.md) · [Results register](docs/RESULTS.md) · [Current systems audit](docs/research/SYSTEMS_AUDIT_2026-11-23.md)
+**[Explore the live terrarium](https://dchavan2192.github.io/Digital-Terrarium/demo/)** · [Research results](docs/RESULTS.md) · [Reproduce an experiment](#reproduce-an-experiment)
 
-Watch a creature, inspect its brain, follow its lineage, or run controlled experiments headlessly. The Rust engine powers both the browser demo and the experimental runner.
+[![The live terrarium showing 357 creatures in 11 species, with a drought crossing the southeast food patch and an event feed beside the terrain.](docs/images/live-terrarium.jpg)](https://dchavan2192.github.io/Digital-Terrarium/demo/?seed=42)
 
-Open **Task lab** in the demo to replay saved native visible-cue evaluations: all 17 training-selected champions across two separate studies (nine earlier champions/seven cases and eight fixed-versus-varied champions/six cases), both cues and earlier fixed reference controls. Choose a cohort/policy/case and scrub its recorded movement. These replays are separate from the live ecosystem and do not establish useful memory. [Earlier report](docs/results/VISIBLE_VALIDATION_2026-11-17.md) · [Latest pilot](docs/results/VISIBLE_DIVERSITY_PILOT_2026-11-22.md).
+*Seed 42, tick 223,176. The food layer shows where algae can sustain the population. The shaded southeast patch is experiencing a drought. Captured from the live browser demo at revision `bd9fc9a`.*
 
-The **Ecology** panel shows measured diet variance, hidden-neuron counts and topology activity. Its optional neutral comparison restarts the same seed and preserves memory mode; it is an experimental demographic-conditional reference, not an OEE or memory-benefit test.
+## Try the demo
 
-> **Research question:** Which ecological conditions favor adaptive behavior, costly neural processing, and different forms of inheritance?
+- **Follow a creature.** Pause, select a creature, and inspect its controller. Switch between the food and temperature layers to see the conditions around it.
+- **Replay a world.** Enter a seed to restart. The **Memory** switch starts a new world in which recurrent connections can evolve. A recurrent connection can carry an earlier activation into the next decision.
+- **Open Task lab.** Watch recorded cue-following trials and explore the offspring counts from the memory studies. The live world has changing resources and interacting creatures. Task lab shows controlled experiments where food deliveries and cue timing can be matched.
 
-## What is implemented
+## What the memory experiments found
 
-A continuous 2D toroidal world contains algae, fruit, biomes, seasons, droughts, and terrain. Creatures have evolvable body traits and small feed-forward neural networks. With five vision rays, the current controller has **20 inputs and 7 outputs**: turn, speed, eat, attack, signal, share, and construct.
+Could remembering a brief cue help a creature leave more offspring? A founder saw a cue, waited through a delay and chose where to move. Food appeared **after** that choice. We compared the same controller with its memory intact and cleared, and repeated the experiment with shuffled cues while keeping food deliveries identical.
 
-- **Energy economics:** food supplies energy; movement, neural processing, maintenance, and construction spend it. Feeding reduces movement speed by a configurable factor.
-- **Predation and sharing:** attacks transfer a fraction of prey energy. Sharing transfers energy with configurable efficiency at most 1; it cannot amplify energy.
-- **Evolution:** weights, connections, hidden nodes, and body traits mutate. Sexual reproduction combines matching genes using population-wide historical node identity, with asexual fallback. Recurrent connections are implemented and off by default.
-- **Environmental modification:** construction changes local food regrowth and decays over time.
-- **Epigenetic state:** low reserves increase connection methylation, suppressing effective weights; marks can be inherited and later decay. Whether this is adaptive is an experimental question.
-- **Observation:** the web viewer provides an inspector, neural graph, data layers, and event feed. The headless runner records statistics across seeds and parameter settings.
+| Question | Result |
+|---|---|
+| Can memory pay off when food is within reach? | Three controllers selected for sustained recall each produced **8 offspring with reliable cues and 4 after memory was cleared** at the closest distance. At the original distance, none gained offspring over its reset control. [Distance experiment](docs/results/FOOD_CUE_DISTANCE.md) |
+| How common was the benefit? | Among the other 31 founding populations in the original wiring study, **1 gained offspring, 20 tied and 10 lost offspring** with memory intact at the close distance. [Population study and raw data](docs/results/FOOD_CUE_POPULATION.md) |
+| What did direct selection for offspring favor? | Across eight new founding populations, the winning strategy was to choose one side and eat there. Winners averaged **3.81 offspring** on fresh schedules, versus **1** for turn-selected winners. Clearing memory left their birth counts unchanged. [Four-way selection experiment](docs/results/FOOD_CUE_SELECTION.md) |
 
-The model is biologically inspired. Genome-distance clusters are operational species labels, hue similarity is a kin proxy, and the trophic statistic is an energy-source proxy. These are not direct demonstrations of reproductive isolation, genealogical relatedness, or a reconstructed food web. Network size and output entropy do not establish intelligence.
+**The one-step food-cue series is complete.** Giving equally successful descendants more chances to reproduce preserved recurrent connections. Some circuits retained a weak cue signal, but removing their default turn still produced no descendants meeting the established turn-strength benchmark in both directions. These findings apply to this arena, its controllers and its training regimes. Whether memory improves fitness in the open ecosystem remains an open question. [Tie-breaking study](docs/results/FOOD_CUE_TIES.md) · [Final diagnostic](docs/results/FOOD_CUE_BLANK_TURN.md)
 
-## Evidence status
+## Run locally
 
-**No current-model scientific result is established yet.** Earlier experiments used rules with energy-amplifying sharing; some also predated fruit and methylation fixes. Their plots and interpretations are historical records, not validated findings about the corrected engine.
+The browser demo needs no installation. For native use, install stable Rust and run these commands from the repository root. On Ubuntu the native viewer also requires `libasound2-dev`. [Rust installation](https://rustup.rs/)
 
-In particular, the earlier “87% cooperation” and logarithmic activity-growth claims have been withdrawn as evidence. Activity accumulating during a finite run does not prove open-ended evolution. A neutral comparison and behavioral evaluation are planned; the current implementation has finite network-size limits.
+```sh
+# Run 1,000 simulation ticks and write statistics to a new session directory.
+cargo run --release -p sim-runner -- --config configs/default.toml --ticks 1000 --output output/smoke
 
-The [results register](docs/RESULTS.md) defines the evidence required before a numerical claim enters this README. Historical material remains in [experiment findings](docs/EXPERIMENT_FINDINGS.md), [progress history](docs/PROGRESS.md), and Git history. The browser demo uses a presentation configuration; it is not an experimental control.
-
-**Held-out engineering calibration:** all 30 runs across three food-regrowth rates survived 200,000 ticks with zero cap-blocked births. The predefined rule selected regrowth **0.008**, with mean late population **914** across ten runs (exploratory 95% CI: 884–944). The owner approved 0.008 and a population cap of 2,000 as the baseline for a current-engine recheck. These results characterize pinned source `2b1c837`, before recent engine changes; they do not establish memory benefits or current-engine equilibrium. [Report, plot and reproducible data](docs/results/PHASE9A_VALIDATION_2026-11-16.md).
-
-**Earlier pinned-engine baseline recheck passed:** ten seeds reached 200,000 ticks at regrowth 0.008/cap 2,000 with zero cap-blocked births; mean late population 893.6 (exploratory 95% CI 884.7–902.6). This reuses calibration seeds and establishes the predefined finite-run engineering gate for its pinned engine, not equilibrium or memory benefits. The newer diet/resource/shadow revisions need separate calibration. [Report and provenance](docs/results/CURRENT_BASELINE_RECHECK_2026-11-17.md).
-
-## Architecture
-
-```text
-sim-core    Rendering-independent world, organisms, neural controllers, evolution, statistics
-sim-runner  Headless runs, CSV logging, and parallel parameter sweeps
-sim-wasm    Thin C-ABI bridge from sim-core to the web viewer
-sim-viewer  Native macroquad + egui development viewer
-web/demo    Three.js visualization and HTML/CSS interface
-analysis    Python plotting and experiment analysis
+# Open the native viewer.
+cargo run --release -p sim-viewer
 ```
 
-Complete-state agreement has been measured across macOS, Pi and WASM for selected configurations and seeds, with Linux/WASM comparisons in CI. See [the portability check](docs/RESULTS.md#registered-implementation-check-chk-2026-11-15-portability) for its scope. Droughts now use an independent random stream; `food.droughts.schedule_seed` can replay an environment across world seeds. Checkpoint continuation requires the build that wrote it.
+### Reproduce an experiment
 
-## Quickstart
+This Python 3 diagnostic replays saved genomes from the checked-in archive. It verifies the original archive checksum and writes per-controller results as JSON. It uses the Python standard library.
 
-Install [Rust](https://rustup.rs/) stable.
-
-```bash
-# Native viewer
-cargo run -p sim-viewer --release
-
-# Short headless smoke run
-cargo run -p sim-runner --release -- \
-  --config configs/default.toml --ticks 1000 --output output/smoke
-
-# Pilot sweep; choose a fresh output directory for each experiment
-cargo run -p sim-runner --release -- sweep \
-  --config configs/default.toml \
-  --param food.regrowth_rate --values 0.003,0.006 \
-  --set creature.hard_cap=2000 --seeds 3 --ticks 20000 \
-  --output output/pilot
+```sh
+mkdir -p output
+python3 analysis/food_cue_blank_turn.py > output/blank-turn.json
 ```
 
-Long experiments in this project's workflow run on the Raspberry Pi 5. The [Pi launcher](analysis/launch_pi_phase9a.sh) and CLI `--help` describe the current runner options. Do not treat pilot configurations as validated defaults.
+To run a new native memory experiment, replay the fixed cohort at all four starting distances. Use a fresh output directory. The report links the archived results and explains how the controls are audited. [Protocol and expected outcomes](docs/results/FOOD_CUE_DISTANCE.md)
 
-Native controls: scroll to zoom, right-drag to pan, space to pause, click to inspect. The browser viewer has its own visible controls and guided tour. GitHub Pages builds the WASM engine from the same repository; the demo header identifies its deployed revision.
-
-```bash
-# Development checks
-cargo fmt --all -- --check
-cargo clippy --workspace -- -D warnings
-cargo test --workspace
-
-# Plot a CSV, using the path produced by the runner
-python analysis/plot_readme.py path/to/stats.csv
+```sh
+cargo build --release -p sim-runner
+RAYON_NUM_THREADS=1 python3 analysis/run_food_cue_distance.py --output output/my-distance-study
 ```
 
-Plotting requires a Python environment with matplotlib, pandas, and scipy. Generated run data stays in the ignored `output/` directory.
+## Inside the simulator
 
-## Configuration and research method
+The landscape wraps at its edges. Algae, fruit, seasons, droughts and terrain affect what a creature can reach and eat. Five vision rays contribute to a 20-input controller with seven actions. Creatures can turn, move, eat, attack, signal, share and construct. Weights, connections, hidden nodes and body traits can mutate. The engine supports sexual reproduction through crossover, inherited methylation and local changes to food regrowth.
 
-Start with [default.toml](configs/default.toml), or the separate [demo.toml](configs/demo.toml). Important controls include food regrowth, neural structure/activity costs, reproduction investment, transfer efficiency, construction cost, and environmental variability. The defaults are modeling choices undergoing calibration, not measured biological constants.
+| Component | Where to look |
+|---|---|
+| World dynamics, energy accounting, neural controllers and inheritance | [sim-core](crates/sim-core) |
+| Headless runs, checkpoints, parameter sweeps and controlled tasks | [sim-runner](crates/sim-runner) |
+| Browser viewer and WebAssembly bridge | [web/demo](web/demo) · [sim-wasm](crates/sim-wasm) |
+| Native viewer | [sim-viewer](crates/sim-viewer) |
+| Model parameters, analysis and replication scripts | [Default config](configs/default.toml) · [Demo config](configs/demo.toml) · [analysis](analysis) |
 
-The staged plan is to validate energy accounting and mechanism effects, establish a food-limited baseline, add persistence and evaluation, and then test mechanisms individually before studying interactions. Memory is implemented and off by default. Controlled cue and movement evaluation tools are available; adaptive-memory evidence and lifetime learning remain future work. Informative null results count as progress.
-
-Primary methods and prior art include [NEAT](https://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf), [Polyworld's selection-versus-drift comparison](https://arxiv.org/html/1112.4906), [MODES metric definitions](https://doi.org/10.1162/artl_a_00280), and the [ODD model-description protocol](https://www.jasss.org/23/2/7.html). See the [prior-art review](docs/research/PRIOR_ART.md) for boundaries on novelty claims and the [scientific council](docs/research/SCIENCE_COUNCIL_2026-11-15.md) for design decisions and unresolved alternatives.
+For provenance, start with the [results register](docs/RESULTS.md). It also records pinned-engine calibration runs and withdrawn historical claims, including an early cooperation estimate affected by an energy-accounting bug. The [development history](docs/PROGRESS.md) preserves the experiments in order of recency. The [ecology review](docs/research/FOOD_CUE_ECOLOGY_REVIEW.md) explains why turning, reaching food, eating and reproducing were measured separately.
 
 ## License
 

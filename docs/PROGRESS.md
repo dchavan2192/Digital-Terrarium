@@ -6,6 +6,10 @@
 
 ---
 
+## Project handoff
+
+The one-step food-cue series is complete. The [repository overview](../README.md) links the live simulator, findings and reproduction commands. The dated entries below preserve the reasoning at the time of each study. Earlier “next” steps and overnight plans are historical. A new research direction would need a distinct testable question and a new decision to start.
+
 ## Blank-cue follow-up and stopping point
 
 Subtracting the blank-cue turn exposed small correctly directed responses in some descendants. None met the original turn margin for both directions. The local diagnostic is complete; the present arena is a stopping point. [Report and replay](results/FOOD_CUE_BLANK_TURN.md)

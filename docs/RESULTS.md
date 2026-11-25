@@ -4,7 +4,7 @@ Updated: 2026-11-24 UTC. This register separates implementation checks, calibrat
 
 ## Established scientific results for the corrected current model
 
-None registered yet. This is an evidence status, not a claim that the model cannot produce interesting outcomes.
+No general finding of adaptive memory in the open ecosystem has been registered. The completed controlled food-cue studies below report when memory affected direct offspring in a specified arena. The [README](../README.md#what-the-memory-experiments-found) summarizes the results and links the underlying records.
 
 ## Blank-cue follow-up and stopping point
 
